@@ -231,6 +231,10 @@ body{margin:0;background:var(--bg);color:var(--ink);
 .label{transition:opacity .6s}
 .passage:not(.on) .label{opacity:0}
 .art svg{width:100%;height:100%;display:block}
+.art{position:relative;background:#f1ece2}
+.art img{position:absolute;inset:0;width:100%;height:100%;display:block}
+.art .abg{object-fit:cover;filter:blur(18px) saturate(1.1);transform:scale(1.25)}
+.art .afg{object-fit:contain}
 /* ---- Khoá bài theo tiến trình ---- */
 .passage.locked .stage>.left,.passage.locked .stage>.art{filter:blur(3px) grayscale(.3);pointer-events:none;user-select:none}
 .lockOv{position:absolute;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
@@ -645,7 +649,7 @@ const ALL = (window.__PASSAGES&&window.__PASSAGES.length) ? window.__PASSAGES : 
   ]}
 ];
 /* Bài tập làm: bài cực ngắn chỉ chạy ở lần dùng đầu (và khi bấm "?") để người dùng làm thử vuốt / chạm / nghe */
-const PRACTICE={ id:0, topic:"Welcome to Reed", level:"A1", scene:"hobbies", cat:"practice",
+const PRACTICE={ id:0, topic:"Welcome to Reed", level:"A1", scene:"welcome", cat:"practice",
   tpl:"Welcome to Reed! Today, you will {0} how it works. Reading a little every day makes English {1}.",
   hl:[
    {"o":"see","u":"find out","lv":"A2","vn":"to learn something new","ex":"I want to find out more."},
@@ -723,6 +727,17 @@ function lineGroups(lines){
   });
   return out;
 }
+/* Ảnh minh hoạ thật (WebP). Khoá = scene của bài; bài nào chưa có ảnh thì dùng tranh SVG vẽ sẵn. */
+const IMG={ family:"img/family.webp", friends:"img/friends.webp", school:"img/school.webp", work:"img/work.webp",
+  weekend:"img/weekend.webp", morning:"img/health.webp", tech:"img/tech.webp", welcome:"img/welcome.webp" };
+const artHTML=p=>{
+  const svg=(scenes[p.scene]||scenes.hobbies).replace("<svg ",'<svg preserveAspectRatio="xMidYMid slice" ');
+  const src=IMG[p.scene]; if(!src) return svg;
+  return `<img class="abg" src="${src}" alt="" aria-hidden="true" decoding="async"><img class="afg" src="${src}" alt="${p.topic}" data-sc="${p.scene}" decoding="async">`;
+};
+/* ảnh lỗi (mất mạng lần đầu...) → quay về tranh SVG vẽ sẵn */
+document.addEventListener("error",e=>{ const t=e.target; if(t&&t.tagName==="IMG"&&t.classList&&t.classList.contains("afg")){
+  const art=t.closest(".art"); if(art) art.innerHTML=(scenes[t.dataset.sc]||scenes.hobbies).replace("<svg ",'<svg preserveAspectRatio="xMidYMid slice" '); } },true);
 function build(){
   $("#main").innerHTML = passages.map((p,pi)=>{
     const sents = P[pi].sents.map((s,si)=> s.recap
@@ -733,7 +748,7 @@ function build(){
         <div class="sents">${sents}</div>
         <div class="foot"><span class="pos"></span><div class="bar"><i></i></div><button class="sv" hidden aria-label="Save to vocabulary" aria-pressed="false">${BOOKMARK(false)}</button>
           <div class="tg" data-p="${pi}" hidden><i class="pill"></i><button data-m="base" aria-pressed="false">A1</button><button data-m="up" aria-pressed="true">A2</button></div></div></div>
-      <div class="art">${(scenes[p.scene]||scenes.hobbies).replace("<svg ",'<svg preserveAspectRatio="xMidYMid slice" ')}</div>
+      <div class="art">${artHTML(p)}</div>
       <div class="lockOv" hidden><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><b>Lesson ${pi+1} is locked</b><span>Finish Lesson ${pi} to unlock it</span></div>
     </div></section>`;
   }).join("");
