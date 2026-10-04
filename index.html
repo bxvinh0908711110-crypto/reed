@@ -330,7 +330,7 @@ body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webki
 #reed-splash.play .rbody{animation:rsWipe calc(400ms*var(--s)) cubic-bezier(.4,0,.2,1) calc(450ms*var(--s)) forwards}
 #reed-splash.play .wm path{animation:rsLetter calc(600ms*var(--s)) var(--ease) forwards;
   animation-delay:calc((800ms + var(--i)*40ms)*var(--s))}
-#reed-splash.play .tag{animation:rsRise calc(500ms*var(--s)) var(--ease) calc(1250ms*var(--s)) forwards}
+#reed-splash.play .tag{animation:rsRise calc(700ms*var(--s)) var(--ease) calc(1250ms*var(--s)) forwards}
 @keyframes rsStreak{from{opacity:1;fill:#e8fbff;transform:translateX(calc(var(--fly,900)*-1px)) scaleX(7)}to{opacity:1;fill:#2fd7fc;transform:translateX(0) scaleX(1)}}
 @keyframes rsWipe{from{opacity:1;clip-path:inset(0 100% 0 0)}to{opacity:1;clip-path:inset(0 0 0 0)}}
 @keyframes rsSlide{to{transform:translateX(0)}}
@@ -1504,7 +1504,9 @@ requestAnimationFrame(()=>requestAnimationFrame(()=>{ layout(); measure(); moveP
   dots(el.querySelector("#reed-dots"),s,reduce);
   el.classList.add("play");
   document.body.style.overflow="hidden";
-  const minTime=new Promise(r=>setTimeout(r,1850*s));
+  /* slogan hiện xong lúc 1950*s; giữ thêm một nhịp để người dùng kịp đọc rồi mới thu nhỏ về header */
+  const hold=reduce?300:(seen()?750:1300);
+  const minTime=new Promise(r=>setTimeout(r,1950*s+hold));
   const loaded=new Promise(r=>document.readyState==="complete"?r():addEventListener("load",r,{once:true}));
   Promise.all([minTime,loaded]).then(fly);
 })();
