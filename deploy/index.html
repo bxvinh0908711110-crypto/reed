@@ -98,6 +98,11 @@ body{margin:0;background:var(--bg);color:var(--ink);
 .toast{position:fixed;z-index:70;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 100px);transform:translate(-50%,8px);padding:10px 16px;border-radius:999px;
   background:#0b0b0b;color:#fff;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease;white-space:nowrap}
 .toast.on{opacity:1;transform:translate(-50%,0)}
+ #main{transition:opacity .17s ease}
+#main.leaving{opacity:0}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+#main.entering .label,#main.entering .sents{animation:rise .55s cubic-bezier(.2,.8,.2,1) both}
+#main.entering .art{animation:rise .65s .08s cubic-bezier(.2,.8,.2,1) both}
 .hero p{font-size:clamp(16px,1.6vw,22px);color:var(--muted);max-width:30em;margin:0;line-height:1.5}
 .cue{position:absolute;left:6vw;bottom:9vh;font-size:14px;color:var(--muted);letter-spacing:.06em;animation:bob 1.8s ease-in-out infinite}
 @keyframes bob{50%{transform:translateY(8px)}}
@@ -416,6 +421,18 @@ body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webki
 
 <script type="text/plain" id="appSrc">
 const scenes = {
+morning:`<svg class="scene" viewBox="0 0 400 200" role="img" aria-label="Sunrise, water and a healthy breakfast">
+<rect width="400" height="200" fill="#ffe6c4"/><circle cx="200" cy="128" r="64" fill="#ffd66b"/>
+<g stroke="#ffb84d" stroke-width="5" stroke-linecap="round"><path d="M200 36v16M130 58l10 12M270 58l-10 12M92 100l14 6M308 100l-14 6"/></g>
+<rect y="130" width="400" height="70" fill="#8fd14f"/><path d="M0 130q100-28 200-10t200-4v14H0z" fill="#7fc040"/>
+<g transform="translate(40,118)"><path d="M0 0h38l-4 52a8 8 0 0 1-8 7H12a8 8 0 0 1-8-7z" fill="#bfe3f2" stroke="#3f8fd6" stroke-width="4"/><path d="M5 22h28" stroke="#3f8fd6" stroke-width="3"/></g>
+<g transform="translate(300,132)"><ellipse cx="44" cy="30" rx="44" ry="14" fill="#fff" stroke="#c9b79c" stroke-width="3"/><circle cx="28" cy="20" r="11" fill="#e4715a"/><circle cx="52" cy="18" r="10" fill="#ffb84d"/><circle cx="68" cy="26" r="8" fill="#7bc77e"/></g>
+</svg>`,
+tech:`<svg class="scene" viewBox="0 0 400 200" role="img" aria-label="Phone and laptop">
+<rect width="400" height="200" fill="#dfe8fb"/><rect y="150" width="400" height="50" fill="#b9c8ea"/>
+<g transform="translate(60,48)"><rect width="170" height="106" rx="9" fill="#2b2622"/><rect x="9" y="9" width="152" height="88" rx="4" fill="#bfe3f2"/><circle cx="85" cy="53" r="20" fill="#fff"/><path d="M79 43l16 10-16 10z" fill="#e4715a"/><path d="M-14 106h198l-18 16H4z" fill="#8a8580"/></g>
+<g transform="translate(262,40)"><rect width="74" height="132" rx="14" fill="#2b2622"/><rect x="7" y="14" width="60" height="100" rx="6" fill="#fff"/><circle cx="37" cy="124" r="4" fill="#8a8580"/><circle cx="24" cy="38" r="9" fill="#7bc77e"/><rect x="38" y="32" width="22" height="6" rx="3" fill="#ffb84d"/><rect x="38" y="42" width="16" height="6" rx="3" fill="#ffb84d"/><path d="M16 70q21-26 42 0" stroke="#3f8fd6" stroke-width="4" fill="none"/><path d="M24 80q13-14 26 0" stroke="#3f8fd6" stroke-width="4" fill="none"/></g>
+</svg>`,
 friends:`<svg class="scene" viewBox="0 0 400 200" role="img" aria-label="Two best friends with games, food and a pet">
 <rect width="400" height="200" fill="#fde7c8"/><rect y="150" width="400" height="50" fill="#e8b774"/>
 <circle cx="345" cy="45" r="22" fill="#ffd66b"/>
@@ -1359,7 +1376,22 @@ function setTopic(k,jump){
   unlockedCount=loadUnlocked(); active={pi:0,si:0}; live=[];
   build(); buildPlayer(); layout(); measure(); movePills(); update(); fitSlides();   /* fit sau update() vì chú thích (.cap) chỉ có chữ sau khi update chạy */
   document.querySelectorAll("#topics button").forEach(b=>{ b.setAttribute("aria-pressed",b.dataset.k===k); });
-  if(jump) fadeJump(()=>{ const pp=P[0]; return pp.el.getBoundingClientRect().top+scrollY+pp.sents[0].lo; });
+  if(jump) scrollTo(0, firstLessonY());
+}
+const firstLessonY=()=>{ const pp=P[0]; return pp.el.getBoundingClientRect().top+scrollY+pp.sents[0].lo; };
+/* Đổi chủ đề: nội dung mờ đi rất nhanh → đổi → hiện lại trượt nhẹ lên (thanh chủ đề đứng yên) */
+let switching=false, pendingTopic=null;
+function animateTopic(k){
+  if(switching){ pendingTopic=k; return; }   /* bấm liên tiếp: chủ đề bấm sau cùng sẽ được áp dụng */
+  const main=$("#main");
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches){ setTopic(k,true); return; }
+  switching=true; main.classList.add("leaving");
+  setTimeout(()=>{
+    setTopic(k,true);
+    main.classList.add("entering");
+    requestAnimationFrame(()=>requestAnimationFrame(()=>main.classList.remove("leaving")));
+    setTimeout(()=>{ main.classList.remove("entering"); switching=false; if(pendingTopic&&pendingTopic!==curTopic){ const n=pendingTopic; pendingTopic=null; animateTopic(n); } else pendingTopic=null; },700);
+  },170);
 }
 (function initTopics(){
   const bar=$("#topics"), toast=$("#toast"); let tt=0;
@@ -1367,7 +1399,7 @@ function setTopic(k,jump){
   bar.addEventListener("click",e=>{
     const b=e.target.closest("button"); if(!b) return;
     if(b.dataset.soon){ toast.textContent=b.textContent+" lessons are coming soon"; toast.classList.add("on"); clearTimeout(tt); tt=setTimeout(()=>toast.classList.remove("on"),1800); return; }
-    setTopic(b.dataset.k,true);
+    animateTopic(b.dataset.k);
   });
   let saved=null; try{saved=localStorage.getItem("reed_topic")}catch(e){}
   const first=TOPICS.find(t=>hasLessons(t.k));
