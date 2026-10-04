@@ -381,7 +381,7 @@ body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webki
   </div>
 </div>
 
-<script>
+<script type="text/plain" id="appSrc">
 const scenes = {
 hobbies:`<svg class="scene" viewBox="0 0 400 200" role="img" aria-label="Hobbies: football, music and books">
 <rect width="400" height="200" fill="#bfe3f2"/>
@@ -419,7 +419,7 @@ family:`<svg class="scene" viewBox="0 0 400 200" role="img" aria-label="Family i
 </svg>`
 };
 
-const passages = [
+const passages = (window.__PASSAGES&&window.__PASSAGES.length) ? window.__PASSAGES : [
 { id:1, topic:"My Hobbies", level:"A1", scene:"hobbies",
   tpl:"My name is Anna and I have {0} hobbies. In my {1} time, I {2} listening to music and reading books. On the weekend, I usually play football with my friends in the park. I also like {3} food for my family. {4} makes me happy and relaxed after a busy day.",
   hl:[
@@ -1202,6 +1202,26 @@ if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{layout()
    nên đo lại một lần nữa sau khi trình duyệt đã ổn định bố cục để tránh sai lệch nhỏ về độ rộng chữ. */
 requestAnimationFrame(()=>requestAnimationFrame(()=>{ layout(); measure(); movePills(); update(); }));
 
+</script>
+<script>
+/* ---------- Nạp bài học: Supabase (có cache) → dự phòng dữ liệu nhúng sẵn trong app ---------- */
+(async function(){
+  const SB="https://mmadhhjjfqnlhitklfep.supabase.co", KEY="sb_publishable_oHn1ilWP4TE7ICb2HLVOiA_FPwNz7oh", CK="reed_lessons_v1";
+  const q="/rest/v1/lessons?select=id,position,title,level,scene_key,template,version,phrases(idx,base,upgrade,level,vn,example)&status=eq.published&order=position";
+  const toPassages=rows=>rows.map(r=>({id:r.position,uid:r.id,version:r.version,topic:r.title,level:r.level||"A1",scene:r.scene_key,tpl:r.template,
+    hl:(r.phrases||[]).sort((a,b)=>a.idx-b.idx).map(p=>({o:p.base,u:p.upgrade,lv:p.level||"A2",vn:p.vn||"",ex:p.example||""}))}));
+  /* chỉ nhận bài hợp lệ: mọi {n} trong template phải có cụm tương ứng, và có ít nhất 1 cụm */
+  const valid=p=>p.tpl&&p.hl.length&&[...p.tpl.matchAll(/\{(\d+)\}/g)].every(m=>+m[1]<p.hl.length)&&p.hl.length===new Set([...p.tpl.matchAll(/\{(\d+)\}/g)].map(m=>m[1])).size;
+  let list=null;
+  try{
+    const ctrl=new AbortController(), t=setTimeout(()=>ctrl.abort(),3500);
+    const res=await fetch(SB+q,{headers:{apikey:KEY},signal:ctrl.signal}); clearTimeout(t);
+    if(res.ok){ const rows=await res.json(); const ps=toPassages(rows).filter(valid); if(ps.length){ list=ps; try{localStorage.setItem(CK,JSON.stringify(ps))}catch(e){} } }
+  }catch(e){}
+  if(!list){ try{ const c=JSON.parse(localStorage.getItem(CK)||"null"); if(Array.isArray(c)&&c.length) list=c; }catch(e){} }
+  window.__PASSAGES=list;   /* null → app dùng dữ liệu nhúng */
+  const el=document.createElement("script"); el.textContent=document.getElementById("appSrc").textContent; document.body.appendChild(el);
+})();
 </script>
 
 <script>
