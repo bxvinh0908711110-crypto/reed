@@ -84,6 +84,8 @@ body{margin:0;background:var(--bg);color:var(--ink);
 #rotWord.out{opacity:0;transform:translateY(.25em)}
 .top .topics{pointer-events:auto;margin-left:32px;flex:0 1 auto}
 .top .right{margin-left:auto}
+@media (min-width:1320px){ .top{min-height:64px} .top .topics{position:absolute;left:50%;top:12px;transform:translateX(-50%);margin:0} }
+@media (min-width:821px) and (max-width:1180px){ .top .topics{margin-left:16px;margin-right:12px} .top .topics button{padding:8px 10px} }
 .topics{display:flex;gap:8px;padding:7px;background:var(--leaf);border-radius:999px;width:max-content;max-width:100%;min-width:0;
   overflow-x:auto;scrollbar-width:none;touch-action:pan-x;-webkit-overflow-scrolling:touch}
 .topics::-webkit-scrollbar{display:none}
