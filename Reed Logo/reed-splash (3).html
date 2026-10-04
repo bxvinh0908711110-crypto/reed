@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reed – Splash + Dock</title>
+<style>
+:root{--navy:#00148C;--cyan:#2fd7fc;--ease:cubic-bezier(.16,1,.3,1);--hdr:calc(64px + env(safe-area-inset-top,0px))}
+html,body{margin:0;background:#f4f6fb;font-family:system-ui,sans-serif}
+
+/* ===== Header của app (đích bay của logo) ===== */
+.app-hdr{position:sticky;top:0;z-index:5;height:var(--hdr);box-sizing:border-box;padding:env(safe-area-inset-top,0px) 20px 0;
+  background:var(--navy);display:flex;align-items:center}
+#hdr-slot{width:128px;aspect-ratio:856/251.35}  /* giữ nguyên cả lockup (có tagline) nên slot rộng hơn */
+
+/* ===== Reed splash: Lockup Unfold ===== */
+#reed-splash{--s:1;position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:var(--navy)}
+#reed-splash.flying{pointer-events:none}
+#reed-splash::before{content:"";position:absolute;width:70vmin;height:70vmin;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(47,215,252,.22),transparent);opacity:0}
+/* Gradient mesh: nhiều lớp radial-gradient, trôi chậm. Grain: noise SVG phủ ~4% để nền không bị phẳng */
+.mesh{position:absolute;inset:-25%;opacity:0;will-change:transform;
+  background:
+    radial-gradient(40% 35% at 22% 26%,rgba(36,64,255,.60),transparent 70%),
+    radial-gradient(34% 34% at 78% 20%,rgba(47,215,252,.30),transparent 70%),
+    radial-gradient(46% 40% at 70% 82%,rgba(30,60,255,.50),transparent 70%),
+    radial-gradient(30% 30% at 16% 80%,rgba(47,215,252,.20),transparent 70%),
+    radial-gradient(60% 60% at 50% 50%,rgba(0,8,80,.55),transparent 80%),
+    var(--navy)}
+.grain{position:absolute;inset:0;pointer-events:none;opacity:.06;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 1.2 0 0 0 -.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:160px 160px}
+#reed-dots{position:absolute;inset:0;width:100%;height:100%;
+  -webkit-mask-image:radial-gradient(circle at 50% 50%,#000 0,#000 25%,transparent 80%);
+          mask-image:radial-gradient(circle at 50% 50%,#000 0,#000 25%,transparent 80%)}
+.lockup{position:relative;width:min(78vw,440px);height:auto;overflow:visible;transform:translateX(36.2%)}
+.icon{fill:var(--cyan)}
+.rbody,.rs{opacity:0}
+.rs{transform-box:fill-box;transform-origin:100% 50%}   /* co giãn từ mép phải: kéo dài về bên trái = vệt mờ chuyển động */
+.wm path,.tag{fill:#fff;opacity:0}
+.wm path{transform:translate(-46px,12px)}
+.tag{transform:translateY(26px)}
+
+/* Timeline (x --s): 3 nét vút bay 0-800 | thân R hiện 450-850 | trượt lockup 800-1500 | chữ 800-1530 | tagline 1250-1750 | bay lên header 1850-2600 */
+#reed-splash.play::before{animation:glow calc(1200ms*var(--s)) ease-out forwards}
+#reed-splash.play .mesh{animation:meshIn calc(900ms*var(--s)) ease-out forwards,drift 9s ease-in-out infinite alternate}
+#reed-splash.play .lockup{animation:slide calc(700ms*var(--s)) var(--ease) calc(800ms*var(--s)) forwards}
+#reed-splash.play .rs{animation:streak calc(700ms*var(--s)) var(--ease) forwards}
+#reed-splash.play .rs3{animation-delay:0ms}
+#reed-splash.play .rs1{animation-delay:calc(90ms*var(--s))}
+#reed-splash.play .rs2{animation-delay:calc(180ms*var(--s))}
+#reed-splash.play .rbody{animation:wipe calc(400ms*var(--s)) cubic-bezier(.4,0,.2,1) calc(450ms*var(--s)) forwards}
+#reed-splash.play .wm path{animation:letter calc(600ms*var(--s)) var(--ease) forwards;
+  animation-delay:calc((800ms + var(--i)*40ms)*var(--s))}
+#reed-splash.play .tag{animation:rise calc(500ms*var(--s)) var(--ease) calc(1250ms*var(--s)) forwards}
+
+/* Sau khi logo đã "đáp" vào header: trạng thái cuối, không còn phụ thuộc #reed-splash */
+.lockup.docked{width:100%;transform:none;animation:none}
+.docked .rbody,.docked .rs{opacity:1;transform:none;clip-path:none;animation:none}
+.docked .wm path{opacity:1;transform:none;animation:none}
+.docked .tag{opacity:1;transform:none;animation:none}
+
+/* --fly (đơn vị SVG) do JS tính để vệt sáng bắt đầu từ ngoài mép trái màn hình */
+@keyframes streak{
+  from{opacity:1;fill:#e8fbff;transform:translateX(calc(var(--fly,900)*-1px)) scaleX(7)}
+  to{opacity:1;fill:#2fd7fc;transform:translateX(0) scaleX(1)}}
+@keyframes wipe{from{opacity:1;clip-path:inset(0 100% 0 0)}to{opacity:1;clip-path:inset(0 0 0 0)}}
+@keyframes slide{to{transform:translateX(0)}}
+@keyframes letter{to{opacity:1;transform:translate(0,0)}}
+@keyframes rise{to{opacity:1;transform:translateY(0)}}
+@keyframes glow{0%{opacity:0;transform:scale(.7)}50%{opacity:1}100%{opacity:.55;transform:scale(1)}}
+@keyframes fade{to{opacity:1}}
+@keyframes meshIn{to{opacity:1}}
+@keyframes drift{from{transform:translate3d(-3%,2%,0) rotate(0) scale(1.05)}to{transform:translate3d(3%,-2%,0) rotate(7deg) scale(1.18)}}
+
+@media (prefers-reduced-motion:reduce){
+  #reed-splash.play .mesh{animation:none;opacity:1}
+  .lockup{transform:none!important;animation:none!important}
+  .wm path,.tag{transform:none!important}
+  #reed-splash.play .rbody,#reed-splash.play .rs,#reed-splash.play .wm path,#reed-splash.play .tag{
+    animation:fade 300ms forwards!important;transform:none;clip-path:none}
+}
+
+/* ===== Nội dung app: skeleton shimmer -> stagger-in (phần demo, thay bằng UI thật) ===== */
+.app{padding:16px 20px 40px;display:grid;gap:12px;max-width:480px;margin:0 auto}
+.card{min-height:84px;box-sizing:border-box;padding:16px;border-radius:14px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.card b{display:block;font-size:16px;color:#0b1b5a}
+.card span{display:block;margin-top:6px;font-size:13px;color:#6b7590}
+.card.skel{box-shadow:none;background:linear-gradient(100deg,#e6eaf4 30%,#f4f6fb 50%,#e6eaf4 70%) 0 0/300% 100%;
+  animation:shimmer 1.2s linear infinite}
+.card.skel>*{visibility:hidden}
+.card.in{animation:up .5s var(--ease) both}
+@keyframes shimmer{to{background-position:-300% 0}}
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.card.skel{animation:none}.card.in{animation:fade .3s both}}
+#replay{position:fixed;right:12px;bottom:12px;z-index:10000;padding:8px 14px;border:0;border-radius:999px;background:var(--navy);color:#fff;font:600 13px system-ui;cursor:pointer}
+</style>
+</head>
+<body>
+
+<header class="app-hdr"><div id="hdr-slot"></div></header>
+
+<main class="app">
+  <div class="card skel"><b>Bài đọc hôm nay</b><span>5 phút · Trình độ B1</span></div>
+  <div class="card skel"><b>Từ vựng đã lưu</b><span>24 từ cần ôn</span></div>
+  <div class="card skel"><b>Chuỗi ngày đọc</b><span>12 ngày liên tiếp</span></div>
+  <div class="card skel"><b>Gợi ý cho bạn</b><span>3 bài mới</span></div>
+</main>
+<button id="replay">Replay</button>
+
+<div id="reed-splash" aria-hidden="true">
+  <div class="mesh"></div>
+  <canvas id="reed-dots"></canvas>
+  <div class="grain"></div>
+  <svg class="lockup" viewBox="0 0 856 251.35" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <clipPath id="wmClip"><rect x="258" y="0" width="620" height="251.35"/></clipPath>
+      <clipPath id="tagClip"><rect x="270" y="222" width="600" height="30"/></clipPath>
+    </defs>
+    <g class="icon"><path class="rbody" d="M0,.01h148.76c62.11,1.6,96.46,76.05,61.65,126.44-9.09,13.17-22.34,23.11-37.01,29.35-2.02.86-4.31,1.49-6.26,2.37-.21.09-.41-.14-.33.36l69.55,92.39h-74.77l-59.89-75.91c-.37-.1-.67.7-.83.99-14.49,24.98-28.79,50.08-43.49,74.92H0v-46.25c44.45-20.61,88.25-43.25,128.03-71.97,10.58-7.64,28.17-19.47,31.63-32.46,6.18-23.18-12.54-41.61-34.99-41.83H0S0,.01,0,.01Z"/><rect class="rs rs3" x="0" y="0" width="124" height="33.87"/><path class="rs rs1" d="M0,117.17v23.52l114.55-40.68v-22.73L0,117.17Z"/><path class="rs rs2" d="M114.55,117.74L0,160.92v24.32c30.34-12.69,60.5-26.02,89.78-41.02,8.31-4.26,16.47-8.82,24.77-13.07v-13.41Z"/></g>
+    <g clip-path="url(#wmClip)"><g class="wm"><path style="--i:0" d="M279,27.41h82.42c26.32.43,52.43,14.87,58.02,42.11,5.99,29.19-10.18,53.92-37.97,62.51l44.1,60.52h-49.91l-40.46-58.03h-14.43v58.03h-41.78V27.41ZM320.78,105.34h36.64c2.5,0,8.18-2.16,10.45-3.48,15.19-8.8,13.64-31.59-2.76-38.03-1.52-.6-6.23-1.93-7.69-1.93h-36.64v43.44Z"/><path style="--i:3" d="M856,20.45v172.11h-41.78v-17.24c-7.35,9.82-17.03,16.54-29.18,19.07-60.36,12.58-94.76-59.81-62.75-106.52,20.78-30.33,67.83-37,91.93-7.06V20.45h41.78ZM779.33,95.83c-22.87,2.04-33.84,27.54-25.09,47.44,7.33,16.68,27.17,23.96,43.4,14.98,29.4-16.26,17.85-65.64-18.31-62.42Z"/><path style="--i:1" d="M465.36,140.49c4.09,28.77,45.34,30.93,58.09,7.35l.43-.09,31.3,14.73c-21.26,41.08-88.32,44.62-116.67,9.67-15.84-19.53-18.77-49.16-8.69-72.01,22.14-50.19,101.8-52.15,124.37-1.22,5.67,12.8,6.66,26.88,5.68,40.74l-.5.83h-94.01ZM519.75,116.29c-.74-7.86-5.43-15.45-12.26-19.4-16.74-9.69-39.3.06-42.12,19.4h54.38Z"/><path style="--i:2" d="M608.29,140.49c4.6,28.73,45.21,30.98,58.09,7.35l.43-.09,31.64,14.74c-9.8,18.11-27.53,28.98-47.64,32.28-50.06,8.23-90.87-26.4-82.54-78.23,10.62-66.06,108.55-75.03,130.9-13.37,4.25,11.73,4.57,24.12,3.97,36.48l-.5.83h-94.34ZM662.67,116.29c-2.94-31.45-50-30.09-54.05,0h54.05Z"/></g></g>
+    <g clip-path="url(#tagClip)"><g class="tag"><path d="M457.74,240.97v-14.26h5.64v24.21h-5.31c-.02-.31-.13-.58-.33-.82-3.62-4.17-6.61-9.19-10.19-13.35-.21-.24.02-.62-.76-.42v14.59h-5.64v-24.21h5.47l11.11,14.26Z"/><path d="M775.42,226.71h13.1c.29,0,3.74,1.42,4.25,1.72,8.11,4.65,7.63,16.53-.55,20.89-.66.35-3.85,1.6-4.37,1.6h-11.94c-1.19-1.11-.11-2.87-.14-4.15-.01-.79-.36-1.52-.37-2.31-.09-5.91.09-11.84.01-17.75ZM781.39,245.95h5.14c.88,0,3.67-1.59,4.33-2.31,2.61-2.86,1.97-8.78-1.46-10.84-.36-.22-2.34-1.11-2.54-1.11h-5.47v14.26Z"/><path d="M294.09,226.71c8.15,1.15,8.87,13.28,1.16,15.75l5.97,8.46h-6.47l-5.14-7.46-4.31-.17v7.63h-5.64v-24.21c4.46.45,10.11-.61,14.43,0ZM285.3,238.32h7.13c1.24,0,2.57-2.18,2.48-3.44-.1-1.41-1.81-3.19-3.14-3.19h-6.47v6.63Z"/><path d="M717.88,226.71c2.34.39,5.15,2.74,5.9,5.04,1.52,4.65-.2,8.88-4.74,10.71l5.97,8.46h-6.47l-5.21-7.56-4.24-.07v7.63h-5.64v-24.21h14.42ZM709.1,238.32h6.8c2.19,0,3.5-4.05,1.67-5.65-.32-.28-2.03-.98-2.33-.98h-6.13v6.63Z"/><path d="M368.2,250.92v-24.04l.68-.36c4.44.7,9.25-.49,13.58.69,11.35,3.09,11.55,18.85.66,22.88-.5.19-2.48.83-2.81.83h-12.1ZM374.17,245.95h4.81c.23,0,2.58-.84,2.94-1.04,3.56-2.06,4.31-7.8,1.69-10.87-.67-.78-3.36-2.34-4.29-2.34h-4.97c-.47.29-.46.66-.51,1.14-.16,1.4-.1,12.64.35,13.12Z"/><path d="M495.54,247.93c-4.01,2.49-7.62,3.75-12.45,3.33-13.35-1.17-15.53-19.39-3.22-24.14,5.37-2.07,10.42-.99,15,2.25l-3.17,4.33c-.59.08-3.53-1.95-4.76-2.2-12.28-2.54-12.1,18.02,1.05,14.35,2.5-.7,3-1.83,1.75-4.22h-5.14l.32-4.81,10.63.17v10.94Z"/><path d="M327.75,226.71v4.97h-12.93v4.64c3.78.29,7.52-.84,11.27,0v4.97h-11.27v4.64h12.93v4.97h-18.9v-24.04l.5-.43c.13,0,.25.26.33.26h18.07Z"/><path d="M636.81,231.69h-12.93v4.64c3.81.21,7.51-.45,11.27,0v4.97h-11.27v4.64h12.93v4.97h-18.9v-24.04l.48-.42c4.57.34,9.34.4,13.96.27,1.49-.04,3.32-.95,4.46.15v4.81Z"/><path d="M694.84,226.71c-.22,1.57.53,3.73-.5,4.97h-12.77v4.31s11.61.33,11.61.33c-.22,1.57.53,3.73-.5,4.98h-11.11v4.64h13.26v4.97h-18.9v-24.21h18.9Z"/><path d="M432.54,226.71v4.97h-12.93c.21,1.47-.52,3.49.5,4.64h11.11c-.22,1.57.53,3.73-.5,4.97h-11.11v4.64h13.26v4.97h-18.9v-24.21h18.57Z"/><polygon points="578.11 226.71 578.11 236 587.73 236 587.73 226.71 593.37 226.71 593.37 250.92 587.73 250.92 587.73 241.3 578.11 241.3 578.11 250.92 572.47 250.92 572.47 226.71 578.11 226.71"/><path d="M803.27,250.92l10.32-24.5,5.12-.06,10.76,24.56h-5.97l-2.19-5.33-9.86.07-2.71,5.25h-5.47ZM819.19,240.64l-2.66-6.96c-.49-.37-2.99,6.4-3.31,6.96h5.97Z"/><path d="M360.58,250.92h-5.97l-2.2-5.26-10.1.16-1.95,5.1h-5.64l10.76-24.56,4.99.35,10.11,24.21ZM350.63,240.64c-.4-.52-2.77-7.38-3.31-6.96l-2.66,6.96h5.97Z"/><path d="M557.78,245.52c2.73-3.37-5.83-4.48-7.7-5.2-4.17-1.61-6.18-5.04-4.4-9.39,2.62-6.4,12.98-5.78,17.36-1.55.43.87-2.18,3.41-2.69,4.3-2.19-1.49-5.66-3.19-8.35-2.06-1.1.46-1.42,1.68-.91,2.73.99,2.04,11.46,1.76,12.62,7.28,2.45,11.62-13.51,11.73-19.4,5.78l2.85-3.76c1.97.6,3.46,2.3,5.62,2.61,1.23.17,4.21.26,5.01-.73Z"/><path d="M668.64,226.71l-9.98,24.01c-.61.85-5,.82-5.58,0l-9.98-24.01h6.47l6.14,16.58c.71-.38.95-1.52,1.24-2.24,1.88-4.77,3.38-9.73,5.57-14.37.28-.45.56.03.65.03h5.47Z"/><path d="M840.08,241.14l-9.28-14.42c1.95.25,4.86-.87,6.62.18.68.4,4.36,7.35,5.24,8.68.15.23-.1.57.57.43l6.01-9.58c.29-.05.53.29.62.29h5.47l-9.29,14.42v9.78h-5.97v-9.78Z"/><path d="M736.29,226.71l5.47,9.28,5.97-9.28h6.47l-9.62,14.42v9.78h-5.64c-.57-2.98.42-6.25-.08-9.37l-9.54-14.84h6.96Z"/><polygon points="510.13 226.71 510.13 245.45 510.63 245.95 522.4 245.95 522.4 250.92 504.49 250.92 504.49 226.71 510.13 226.71"/><rect x="530.36" y="226.71" width="5.64" height="24.21"/></g></g>
+  </svg>
+</div>
+
+<script>
+/* ===== Reed splash + dock vào header ===== */
+(function () {
+  var el = document.getElementById('reed-splash');
+  var lock = el.querySelector('.lockup');
+  var slot = document.getElementById('hdr-slot');
+  var hdr = document.querySelector('.app-hdr');
+  var KEY = 'reed_splash_seen';
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var force = false;
+  try { force = !!sessionStorage.getItem('reed_force'); sessionStorage.removeItem('reed_force'); } catch (e) {}
+
+  /* Dot Grid Ripple: lưới chấm mờ, gợn sóng cyan lan từ tâm chữ R */
+  function dots(cv, s, still) {
+    var ctx = cv.getContext('2d'), G = 28, ring = 170, dpr = Math.min(devicePixelRatio || 1, 2);
+    var W = innerWidth, H = innerHeight;
+    cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var cx = W / 2, cy = H / 2, maxD = Math.hypot(cx, cy);
+    var speed = 1100 / s, delay = 420 * s, ox = (W % G) / 2, oy = (H % G) / 2, t0 = performance.now();
+    function draw(now) {
+      var front = still ? -1 : (now - t0 - delay) * speed / 1000;   // vị trí mép sóng (px)
+      ctx.clearRect(0, 0, W, H);
+      for (var x = ox; x < W; x += G) for (var y = oy; y < H; y += G) {
+        var d = Math.hypot(x - cx, y - cy), k = 0;
+        for (var w = 0; w < 2; w++) {                                 // sóng chính + sóng phụ yếu hơn
+          var dl = front - w * 120 - d;
+          if (dl > 0 && dl < ring) k = Math.max(k, Math.pow(1 - dl / ring, 2) * (w ? 0.5 : 1));
+        }
+        ctx.beginPath(); ctx.arc(x, y, 1.3 + 1.6 * k, 0, 6.283);
+        ctx.fillStyle = k > 0.01 ? 'rgba(47,215,252,' + (0.12 + 0.88 * k) + ')' : 'rgba(255,255,255,.12)';
+        ctx.fill();
+      }
+      if (!still && front - 120 - maxD < ring) requestAnimationFrame(draw);   // sóng đi hết màn hình thì dừng
+    }
+    requestAnimationFrame(draw);
+  }
+
+  function seen() { try { return !!localStorage.getItem(KEY); } catch (e) { return false; } }
+  var s = reduce ? 0.4 : (seen() && !force ? 0.55 : 1);   // lần mở sau chạy nhanh ~0.55x
+  el.style.setProperty('--s', s);
+
+  function dock() {
+    lock.getAnimations({ subtree: true }).forEach(function (a) { a.cancel(); });
+    lock.style.transform = ''; lock.style.transformOrigin = '';
+    lock.classList.add('docked');
+    slot.appendChild(lock);            // chính phần tử logo đó nằm lại trong header
+    el.style.display = 'none';
+    try { localStorage.setItem(KEY, '1'); } catch (e) {}
+    document.dispatchEvent(new CustomEvent('reed:splash-done'));
+  }
+
+  function fly() {
+    if (reduce) { dock(); return; }
+    var a = lock.getBoundingClientRect(), b = slot.getBoundingClientRect();
+    var k = b.width / a.width, d = 750 * s;
+    var to = 'translate(' + (b.left - a.left) + 'px,' + (b.top - a.top) + 'px) scale(' + k + ')';
+    el.classList.add('flying');
+    lock.style.transformOrigin = '0 0';
+    el.querySelectorAll('#reed-dots,.mesh,.grain').forEach(function (n) {
+      n.animate({ opacity: [getComputedStyle(n).opacity, 0] }, { duration: d * 0.8, fill: 'forwards' });
+    });
+    lock.animate({ transform: ['translate(0,0) scale(1)', to] }, { duration: d, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'forwards' });
+    // nền navy toàn màn hình co lại thành đúng thanh header
+    var end = 'inset(0px 0px ' + (innerHeight - hdr.offsetHeight) + 'px 0px)';
+    var bg = el.animate({ clipPath: ['inset(0px 0px 0px 0px)', end] },
+      { duration: d, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'forwards' });
+    bg.onfinish = dock;
+  }
+
+  var lr = lock.getBoundingClientRect();   // vệt sáng bắt đầu từ ngoài mép trái màn hình
+  lock.style.setProperty('--fly', Math.round((lr.left + 300) / (lr.width / 856)));
+  dots(el.querySelector('#reed-dots'), s, reduce);
+  el.classList.add('play');
+  var minTime = new Promise(function (r) { setTimeout(r, 1850 * s); });   // animation logo xong (~1750ms) rồi mới bay
+  var loaded = new Promise(function (r) {
+    document.readyState === 'complete' ? r() : addEventListener('load', r, { once: true });
+  });
+  Promise.all([minTime, loaded]).then(fly);
+
+  document.getElementById('replay').onclick = function () {
+    try { sessionStorage.setItem('reed_force', '1'); } catch (e) {}
+    location.reload();
+  };
+})();
+
+/* ===== Demo: skeleton shimmer -> card stagger-in. Thay setTimeout bằng lúc dữ liệu thật đã tải xong ===== */
+document.addEventListener('reed:splash-done', function () {
+  setTimeout(function () {
+    document.querySelectorAll('.card.skel').forEach(function (c, i) {
+      setTimeout(function () { c.classList.remove('skel'); c.classList.add('in'); }, i * 50);
+    });
+  }, 700);
+});
+</script>
+</body>
+</html>

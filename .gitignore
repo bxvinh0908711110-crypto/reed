@@ -1,0 +1,12 @@
+tools/kokoro-venv/
+tools/models/
+tools/pw/node_modules/
+tools/pw/shots/
+tools/pw/vid/
+deploy/export/
+node_modules/
+.env
+.env.*
+*.zip
+download/
+download (1)/

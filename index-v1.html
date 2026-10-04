@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your English</title>
+<style>
+:root{
+  --bg:#faf6ef; --card:#fffdf9; --ink:#2b2622; --muted:#7b7068; --line:#eadfce;
+  --accent:#d9822b; --accent-soft:#fbe9d2; --up:#1f8a5b; --up-soft:#dcf3e8;
+  --shadow:0 8px 30px rgba(80,50,10,.10);
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#1c1917;--card:#26221f;--ink:#f1e9df;--muted:#a89b8f;--line:#3a332d;
+    --accent:#f0a04b;--accent-soft:#4a3520;--up:#4fd09a;--up-soft:#173a2c;--shadow:0 8px 30px rgba(0,0,0,.4)}
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Segoe UI",system-ui,-apple-system,sans-serif;line-height:1.5}
+.wrap{max-width:720px;margin:0 auto;padding:20px 16px 60px}
+header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px}
+h1{font-size:22px;margin:0;letter-spacing:-.3px}
+h1 span{color:var(--accent)}
+.tag{font-size:13px;color:var(--muted)}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 12px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;border:1px solid var(--line);background:var(--card);color:var(--ink);
+  border-radius:999px;padding:7px 14px;font:inherit;font-size:14px;cursor:pointer}
+.tab[aria-selected=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;
+  box-shadow:var(--shadow);overflow:hidden}
+.scene{display:block;width:100%;height:auto;background:var(--accent-soft)}
+.body{padding:20px 22px 22px}
+.meta{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.topic{font-weight:700;font-size:17px}
+.lvl{font-size:12px;background:var(--accent-soft);color:var(--accent);
+  padding:3px 10px;border-radius:999px;font-weight:600}
+.text{font-size:21px;line-height:1.75;margin:6px 0 4px}
+.hl{display:inline-block;vertical-align:top;border:0;border-bottom:2.5px solid var(--accent);
+  background:linear-gradient(transparent 60%,rgba(255,200,60,.45) 60%);
+  color:inherit;font:inherit;padding:0 3px;cursor:ns-resize;border-radius:3px;touch-action:none;
+  transition:border-color .3s,color .3s}
+.hl:hover,.hl.open{background:linear-gradient(transparent 60%,rgba(255,200,60,.75) 60%)}
+.hl.up{border-bottom-color:var(--up);color:var(--up);font-weight:600;
+  background:linear-gradient(transparent 60%,var(--up-soft) 60%)}
+.roll{display:block;overflow:hidden;height:1.75em;transition:width .35s cubic-bezier(.3,.9,.3,1)}
+.rw{display:block;transition:transform .35s cubic-bezier(.3,.9,.3,1)}
+.rw>span{display:block;height:1.75em;line-height:1.75em;white-space:nowrap}
+.rw i{font-style:normal;display:inline-block}
+.hint{font-size:13px;color:var(--muted);margin:0 0 14px}
+.vi{display:none;margin:0 0 14px;padding:10px 14px;border-left:3px solid var(--line);
+  color:var(--muted);font-size:15px}
+.vi.show{display:block}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding-top:14px;border-top:1px solid var(--line)}
+button.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);
+  border-radius:12px;padding:8px 14px;font:inherit;font-size:14px;cursor:pointer}
+button.btn:hover{border-color:var(--accent)}
+button.play{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+button.on{background:var(--up-soft);border-color:var(--up);color:var(--up)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.seg button{border:0;background:var(--card);color:var(--ink);padding:8px 12px;font:inherit;font-size:14px;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.spacer{flex:1}
+.prog{font-size:13px;color:var(--muted)}
+#pop{position:absolute;z-index:20;width:min(300px,calc(100vw - 32px));background:var(--card);
+  border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.22);
+  padding:14px 16px;display:none}
+#pop.show{display:block}
+#pop .from{font-size:13px;color:var(--muted)}
+#pop .to{font-size:20px;font-weight:700;color:var(--up);margin:2px 0 4px}
+#pop .to small{font-size:12px;background:var(--up-soft);padding:2px 8px;border-radius:999px;
+  margin-left:6px;vertical-align:middle}
+#pop .vn{font-size:14px;margin-bottom:6px}
+#pop .ex{font-size:13px;color:var(--muted);font-style:italic;margin-bottom:10px}
+#pop .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+#pop .chip{font-size:13px;padding:4px 10px}
+#pop .chip small{opacity:.6;font-size:11px}
+#pop .chip.cur{background:var(--up);border-color:var(--up);color:#fff}
+#pop .row{display:flex;gap:8px}
+#pop button{font:inherit;font-size:13px;border-radius:10px;padding:6px 12px;cursor:pointer;
+  border:1px solid var(--line);background:var(--card);color:var(--ink)}
+#pop button.use{background:var(--up);border-color:var(--up);color:#fff;font-weight:600}
+footer{margin-top:18px;text-align:center;font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Your <span>English</span></h1>
+    <div class="tag">Mỗi ngày một đoạn ngắn</div>
+  </header>
+  <div class="tabs" id="tabs" role="tablist"></div>
+  <div class="card">
+    <div id="scene"></div>
+    <div class="body">
+      <div class="meta"><div class="topic" id="topic"></div><div class="lvl" id="lvl">A2</div></div>
+      <div class="text" id="text"></div>
+      <p class="hint">Cuộn chuột (hoặc vuốt lên/xuống) trên cụm gạch chân để trượt qua từ mới. Bấm vào để xem nghĩa.</p>
+      <div class="vi" id="vi"></div>
+      <div class="bar">
+        <button class="btn play" id="play">▶ Nghe</button>
+        <div class="seg" id="voice">
+          <button data-v="female" aria-pressed="true">Giọng nữ</button>
+          <button data-v="male" aria-pressed="false">Giọng nam</button>
+        </div>
+        <div class="seg" id="rate">
+          <button data-r="0.8" aria-pressed="false">Chậm</button>
+          <button data-r="1" aria-pressed="true">Vừa</button>
+        </div>
+        <span class="spacer"></span>
+        <span class="prog" id="prog"></span>
+      </div>
+      <div class="bar" style="border:0;padding-top:10px">
+        <button class="btn" id="all">✨ Nâng cấp tất cả</button>
+        <button class="btn" id="tr">Dịch tiếng Việt</button>
+      </div>
+    </div>
+  </div>
+  <footer>Prototype MVP · Không cần chọn level, bài nào cũng mở.</footer>
+</div>
+<div id="pop" role="dialog"></div>
+
+<script>
+/* ---------- Dữ liệu bài mẫu ----------
+   Trong "tpl", {0} {1}... là vị trí của các cụm trong "hl". */
+const scenes = {
+coffee:`<svg class="scene" viewBox="0 0 400 200" role="img" aria-label="Quán cà phê">
+<rect width="400" height="200" fill="#f6dcb8"/><rect x="30" y="20" width="120" height="90" rx="8" fill="#bfe3f2" stroke="#8b5e34" stroke-width="5"/>
+<path d="M90 20v90M30 65h120" stroke="#8b5e34" stroke-width="4"/><circle cx="345" cy="55" r="22" fill="#ffd66b"/>
+<rect x="0" y="150" width="400" height="50" fill="#c68a53"/><rect x="60" y="128" width="280" height="12" rx="6" fill="#8b5e34"/>
+<rect x="90" y="140" width="10" height="60" fill="#8b5e34"/><rect x="300" y="140" width="10" height="60" fill="#8b5e34"/>
+<g fill="#fff" stroke="#6b4423" stroke-width="3"><path d="M130 92h46l-6 36h-34z"/><path d="M230 92h46l-6 36h-34z"/></g>
+<path d="M176 100q14 2 6 16" fill="none" stroke="#6b4423" stroke-width="3"/><path d="M276 100q14 2 6 16" fill="none" stroke="#6b4423" stroke-width="3"/>
+<g stroke="#b08a66" stroke-width="3" fill="none" stroke-linecap="round"><path d="M143 84q-6-10 0-18"/><path d="M158 84q-6-10 0-18"/><path d="M243 84q-6-10 0-18"/><path d="M258 84q-6-10 0-18"/></g>
+<g><circle cx="110" cy="170" r="0"/></g></svg>`,
+cinema:`<svg class="scene" viewBox="0 0 400 200" role="img" aria-label="Rạp chiếu phim">
+<rect width="400" height="200" fill="#2a2140"/><rect x="60" y="20" width="280" height="90" rx="6" fill="#f4efe6"/>
+<circle cx="200" cy="65" r="26" fill="#ffb84d"/><path d="M192 52l22 13-22 13z" fill="#2a2140"/>
+<g fill="#7a2d3a"><rect x="40" y="130" width="50" height="40" rx="10"/><rect x="110" y="130" width="50" height="40" rx="10"/><rect x="180" y="130" width="50" height="40" rx="10"/><rect x="250" y="130" width="50" height="40" rx="10"/><rect x="320" y="130" width="50" height="40" rx="10"/></g>
+<g fill="#a03c4c"><rect x="30" y="165" width="70" height="35" rx="10"/><rect x="100" y="165" width="70" height="35" rx="10"/><rect x="170" y="165" width="70" height="35" rx="10"/><rect x="240" y="165" width="70" height="35" rx="10"/><rect x="310" y="165" width="70" height="35" rx="10"/></g>
+<path d="M300 200l6-34h34l6 34z" fill="#e8483f"/><g fill="#fff3b0"><circle cx="312" cy="160" r="8"/><circle cx="325" cy="156" r="9"/><circle cx="338" cy="160" r="8"/></g></svg>`,
+restaurant:`<svg class="scene" viewBox="0 0 400 200" role="img" aria-label="Nhà hàng nhỏ">
+<rect width="400" height="200" fill="#f8e3c4"/><path d="M110 0v40M290 0v40" stroke="#6b4423" stroke-width="3"/>
+<path d="M85 40h50l-8 26H93z" fill="#e8b34a"/><path d="M265 40h50l-8 26h-34z" fill="#e8b34a"/>
+<ellipse cx="200" cy="140" rx="170" ry="16" fill="#a86a3a"/><rect x="30" y="140" width="340" height="14" fill="#8b5227"/>
+<rect x="60" y="154" width="12" height="46" fill="#8b5227"/><rect x="328" y="154" width="12" height="46" fill="#8b5227"/>
+<ellipse cx="140" cy="128" rx="46" ry="10" fill="#fff"/><path d="M98 122q42 52 84 0z" fill="#fff" stroke="#c9b79c" stroke-width="3"/>
+<path d="M112 120q28-16 56 0" fill="#e2a24a"/><ellipse cx="270" cy="128" rx="46" ry="10" fill="#fff"/><path d="M228 122q42 52 84 0z" fill="#fff" stroke="#c9b79c" stroke-width="3"/>
+<path d="M242 120q28-16 56 0" fill="#7fb069"/><path d="M200 60l-3 40M204 60l3 40" stroke="#6b4423" stroke-width="3"/></svg>`,
+bus:`<svg class="scene" viewBox="0 0 400 200" role="img" aria-label="Xe buýt buổi sáng">
+<rect width="400" height="200" fill="#ffe9b8"/><circle cx="330" cy="46" r="26" fill="#ffc94d"/>
+<rect y="150" width="400" height="50" fill="#8d8a86"/><path d="M0 175h400" stroke="#fff" stroke-width="3" stroke-dasharray="20 14"/>
+<rect x="70" y="70" width="240" height="84" rx="14" fill="#3f8fd6"/><rect x="70" y="118" width="240" height="12" fill="#2f74b3"/>
+<g fill="#dff2ff"><rect x="86" y="82" width="46" height="34" rx="4"/><rect x="142" y="82" width="46" height="34" rx="4"/><rect x="198" y="82" width="46" height="34" rx="4"/><rect x="254" y="82" width="46" height="34" rx="4"/></g>
+<g fill="#2b2622"><circle cx="120" cy="156" r="16"/><circle cx="262" cy="156" r="16"/></g><g fill="#ccc"><circle cx="120" cy="156" r="7"/><circle cx="262" cy="156" r="7"/></g>
+<rect x="20" y="70" width="8" height="82" fill="#666"/><rect x="8" y="58" width="32" height="18" rx="4" fill="#e8483f"/></svg>`,
+market:`<svg class="scene" viewBox="0 0 400 200" role="img" aria-label="Chợ cuối tuần">
+<rect width="400" height="200" fill="#e9f3d6"/>
+<g><path d="M40 40h150l10 34H30z" fill="#e8483f"/><path d="M70 40l-8 34M100 40l-2 34M130 40l2 34M160 40l8 34" stroke="#fff" stroke-width="10"/></g>
+<g><path d="M210 40h150l10 34H200z" fill="#3f8fd6"/><path d="M240 40l-8 34M270 40l-2 34M300 40l2 34M330 40l8 34" stroke="#fff" stroke-width="10"/></g>
+<rect x="40" y="120" width="140" height="14" fill="#8b5227"/><rect x="220" y="120" width="140" height="14" fill="#8b5227"/>
+<rect x="50" y="134" width="8" height="66" fill="#8b5227"/><rect x="170" y="134" width="8" height="66" fill="#8b5227"/><rect x="230" y="134" width="8" height="66" fill="#8b5227"/><rect x="350" y="134" width="8" height="66" fill="#8b5227"/>
+<g><circle cx="70" cy="108" r="12" fill="#e8483f"/><circle cx="96" cy="108" r="12" fill="#ff9d2e"/><circle cx="122" cy="108" r="12" fill="#e8483f"/><circle cx="148" cy="108" r="12" fill="#ff9d2e"/>
+<circle cx="250" cy="108" r="12" fill="#8fd14f"/><circle cx="276" cy="108" r="12" fill="#f4d03f"/><circle cx="302" cy="108" r="12" fill="#8fd14f"/><circle cx="328" cy="108" r="12" fill="#f4d03f"/></g></svg>`
+};
+
+const passages = [
+{ id:1, topic:"Cuối tuần ở quán cà phê", level:"A2", scene:"coffee",
+  tpl:"On weekends, I usually {0} with my friends. We {1} and drink some coffee. The coffee shop is always {2}, but we like it. We {3} for hours and {4}.",
+  vi:"Vào cuối tuần, mình thường đi chơi với bạn. Tụi mình xem phim và uống cà phê. Quán lúc nào cũng đông, nhưng tụi mình thích vậy. Tụi mình tán gẫu hàng giờ và cười rất nhiều.",
+  hl:[
+   {o:"go out",u:"hang out",lv:"B1",vn:"đi chơi, tụ tập với bạn bè",ex:"We hang out at the mall every Sunday."},
+   {o:"watch a movie",u:"catch a movie",lv:"B1",vn:"đi xem phim (cách nói tự nhiên)",ex:"Let's catch a movie tonight."},
+   {o:"busy",u:"packed",lv:"B2",vn:"chật kín người",ex:"The bus was packed this morning."},
+   {o:"talk",u:"catch up",lv:"B1",vn:"tán gẫu, hỏi thăm chuyện của nhau",ex:"I need to catch up with my old friend."},
+   {o:"laugh a lot",u:"crack up",lv:"B2",vn:"cười phá lên",ex:"His jokes always crack me up."}
+  ]},
+{ id:2, topic:"Tối thứ Sáu ở rạp phim", level:"A2", scene:"cinema",
+  tpl:"Last Friday, my friend and I {0}. The movie was {1}. We {2} popcorn and sat in the middle. After the film, we {3}, so we ate noodles nearby.",
+  vi:"Thứ Sáu tuần trước, mình và bạn đi rạp. Bộ phim rất hay. Tụi mình mua bắp rang và ngồi giữa rạp. Xem xong, tụi mình đói bụng nên ăn mì gần đó.",
+  hl:[
+   {o:"went to the cinema",u:"hit the cinema",lv:"B2",vn:"ghé rạp xem phim (thân mật)",ex:"Want to hit the cinema after work?"},
+   {o:"very good",u:"absolutely brilliant",lv:"B2",vn:"xuất sắc, quá hay",ex:"The acting was absolutely brilliant."},
+   {o:"bought",u:"grabbed",lv:"B1",vn:"mua nhanh, tiện tay lấy",ex:"I grabbed a coffee on the way."},
+   {o:"were hungry",u:"were starving",lv:"B1",vn:"đói muốn xỉu",ex:"I'm starving. Let's eat!"}
+  ]},
+{ id:3, topic:"Chủ nhật đi ăn ngoài", level:"A2", scene:"restaurant",
+  tpl:"My family {0} on Sunday. Today we {1} a small restaurant near our house. The food was {2} and the people were {3}. We {4} and walked home slowly.",
+  vi:"Gia đình mình thích đi ăn ngoài vào Chủ nhật. Hôm nay tụi mình đến một quán nhỏ gần nhà. Đồ ăn ngon và mọi người tốt bụng. Tụi mình trả tiền rồi đi bộ về thong thả.",
+  hl:[
+   {o:"likes eating out",u:"enjoys dining out",lv:"B1",vn:"thích đi ăn nhà hàng",ex:"She enjoys dining out with her coworkers."},
+   {o:"went to",u:"tried out",lv:"B1",vn:"thử một nơi mới",ex:"We tried out the new pizza place."},
+   {o:"nice",u:"delicious",lv:"B1",vn:"ngon tuyệt",ex:"The soup was absolutely delicious."},
+   {o:"kind",u:"welcoming",lv:"B2",vn:"thân thiện, niềm nở",ex:"The staff were warm and welcoming."},
+   {o:"paid",u:"settled the bill",lv:"B2",vn:"thanh toán hóa đơn",ex:"Let me settle the bill."}
+  ]},
+{ id:4, topic:"Buổi sáng đi làm", level:"A2", scene:"bus",
+  tpl:"I {0} at six every day. I {1} breakfast, then I {2} work by bus. The bus is often {3}, so I {4} while I wait.",
+  vi:"Mình thức dậy lúc sáu giờ mỗi ngày. Mình làm bữa sáng, rồi đi làm bằng xe buýt. Xe buýt hay trễ, nên mình đọc sách trong lúc chờ.",
+  hl:[
+   {o:"get up",u:"roll out of bed",lv:"B1",vn:"lồm cồm ra khỏi giường",ex:"I rolled out of bed at noon."},
+   {o:"make",u:"whip up",lv:"B2",vn:"nấu nhanh một món",ex:"I'll whip up some eggs."},
+   {o:"go to",u:"head to",lv:"B1",vn:"đi về hướng, đến",ex:"I'm heading to the office."},
+   {o:"late",u:"running behind schedule",lv:"B2",vn:"chạy trễ so với lịch",ex:"The train is running behind schedule."},
+   {o:"read a book",u:"lose myself in a book",lv:"B2",vn:"đắm chìm vào cuốn sách",ex:"I love to lose myself in a book."}
+  ]},
+{ id:5, topic:"Đi chợ với mẹ", level:"A2", scene:"market",
+  tpl:"On Saturday, I {0} the market with my mom. Everything was {1}, so I {2}. I also {3}, and the seller {4}.",
+  vi:"Thứ Bảy, mình đi chợ với mẹ. Mọi thứ đều rẻ nên mình mua thật nhiều. Mình còn trả giá, và người bán đồng ý.",
+  hl:[
+   {o:"went to",u:"headed down to",lv:"B1",vn:"đi xuống/ghé chỗ nào",ex:"We headed down to the beach."},
+   {o:"cheap",u:"a real bargain",lv:"B1",vn:"món hời",ex:"At that price, it's a real bargain."},
+   {o:"bought a lot",u:"stocked up",lv:"B2",vn:"mua tích trữ",ex:"We stocked up on rice."},
+   {o:"asked for a lower price",u:"bargained",lv:"B1",vn:"mặc cả, trả giá",ex:"She bargained for a better deal."},
+   {o:"said yes",u:"gave in",lv:"B2",vn:"nhượng bộ, chịu đồng ý",ex:"He finally gave in and lowered the price."}
+  ]}
+];
+
+/* ---------- Các từ nâng cấp thêm (ngoài từ nâng cấp chính trong dữ liệu) ---------- */
+const EXTRA = {
+ "go out":[["get together","B2"]], "watch a movie":[["enjoy a good film","B2"]], "busy":[["buzzing","B2"]],
+ "talk":[["chat away","B2"]], "laugh a lot":[["have a great laugh","B1"]],
+ "went to the cinema":[["caught a film","B1"]], "very good":[["really gripping","B1"]],
+ "bought":[["picked up","B1"]], "were hungry":[["could eat a horse","B2"]],
+ "likes eating out":[["loves dining out","B1"]], "went to":[["checked out","B1"],["popped over to","B2"]],
+ "nice":[["mouth-watering","B2"]], "kind":[["friendly","B1"]], "paid":[["split the bill","B2"]],
+ "get up":[["wake up early","B1"]], "make":[["prepare","B1"]], "go to":[["commute to","B2"]],
+ "late":[["delayed","B1"]], "read a book":[["dive into a book","B2"]],
+ "cheap":[["dirt cheap","B2"]], "bought a lot":[["splurged","B2"]],
+ "asked for a lower price":[["haggled","B2"]], "said yes":[["agreed","B1"]]
+};
+function opts(pi,i){
+  const h = passages[pi].hl[i];
+  return h.opts || (h.opts = [{w:h.o,lv:"A2"},{w:h.u,lv:h.lv},...(EXTRA[h.o]||[]).map(([w,lv])=>({w,lv}))]);
+}
+
+/* ---------- Trạng thái ---------- */
+let cur = 0, sel = {}, voiceKind = "female", rate = 1, showVi = false;
+const $ = id => document.getElementById(id);
+const pop = $("pop");
+let popIdx = null, pinned = false, hideTimer = null;
+const getSel = i => sel[i] || 0;
+const upCount = () => passages[cur].hl.filter((_,i)=>getSel(i)>0).length;
+
+function fullText(){
+  return passages[cur].tpl.replace(/\{(\d)\}/g,(_,i)=> opts(cur,+i)[getSel(+i)].w);
+}
+
+/* ---------- Render ---------- */
+function renderTabs(){
+  $("tabs").innerHTML = passages.map((p,i)=>
+    `<button class="tab" role="tab" aria-selected="${i===cur}" data-i="${i}">${i+1}. ${p.topic}</button>`).join("");
+}
+function renderText(){
+  const p = passages[cur];
+  $("text").innerHTML = p.tpl.replace(/\{(\d)\}/g,(_,i)=>{
+    const rows = opts(cur,+i).map(o=>`<span><i>${o.w}</i></span>`).join("");
+    return `<button class="hl" data-i="${i}" aria-label="Cuộn để đổi từ"><span class="roll"><span class="rw">${rows}</span></span></button>`;
+  });
+  document.querySelectorAll(".hl").forEach(b=>applySel(+b.dataset.i,true));
+  updateMeta();
+}
+function applySel(i,instant){
+  const b = document.querySelector(`.hl[data-i="${i}"]`); if(!b) return;
+  const k = getSel(i), n = opts(cur,i).length;
+  const roll = b.querySelector(".roll"), rw = b.querySelector(".rw");
+  if(instant){ roll.style.transition = rw.style.transition = "none"; }
+  roll.style.width = b.querySelectorAll("i")[k].offsetWidth + "px";
+  rw.style.transform = `translateY(-${k*100/n}%)`;
+  b.classList.toggle("up", k>0);
+  if(instant){ void rw.offsetWidth; roll.style.transition = rw.style.transition = ""; }
+}
+function updateMeta(){
+  const p = passages[cur], n = upCount();
+  $("prog").textContent = `Đã nâng cấp ${n}/${p.hl.length}`;
+  $("all").classList.toggle("on", n === p.hl.length);
+  $("all").textContent = n === p.hl.length ? "↺ Về bản gốc" : "✨ Nâng cấp tất cả";
+  $("lvl").textContent = n ? "A2 → B1/B2" : p.level;
+}
+function renderPassage(){
+  const p = passages[cur];
+  stopSpeech(); hidePop(true);
+  $("scene").innerHTML = scenes[p.scene];
+  $("topic").textContent = p.topic;
+  $("vi").textContent = p.vi;
+  $("vi").classList.toggle("show", showVi);
+  $("tr").textContent = showVi ? "Ẩn bản dịch" : "Dịch tiếng Việt";
+  renderTabs(); renderText();
+}
+function setSel(i,k){
+  const n = opts(cur,i).length;
+  sel[i] = ((k % n) + n) % n;
+  applySel(i); updateMeta();
+  if(popIdx === i && pop.classList.contains("show")) setTimeout(()=>{
+    const b = document.querySelector(`.hl[data-i="${i}"]`); if(b) showPop(b,pinned);
+  },320);
+}
+
+/* ---------- Popup ---------- */
+function showPop(btn, pin){
+  clearTimeout(hideTimer);
+  const i = +btn.dataset.i, h = passages[cur].hl[i], o = opts(cur,i), k = getSel(i);
+  popIdx = i; pinned = pinned || pin;
+  pop.innerHTML = `<div class="from">Cách nói hay hơn cho “${h.o}”</div>
+    <div class="to">${o[k].w}<small>${o[k].lv}</small></div>
+    <div class="vn">${h.vn}</div><div class="ex">“${h.ex}”</div>
+    <div class="chips">${o.map((x,j)=>`<button class="chip${j===k?" cur":""}" data-k="${j}">${x.w} <small>${x.lv}</small></button>`).join("")}</div>
+    <div class="row"><button class="say">🔊 Nghe từ này</button></div>`;
+  pop.classList.add("show");
+  document.querySelectorAll(".hl").forEach(b=>b.classList.toggle("open", b===btn));
+  const r = btn.getBoundingClientRect(), w = pop.offsetWidth;
+  let left = r.left + scrollX + r.width/2 - w/2;
+  left = Math.max(12, Math.min(left, scrollX + document.documentElement.clientWidth - w - 12));
+  pop.style.left = left + "px";
+  pop.style.top = (r.bottom + scrollY + 8) + "px";
+}
+function hidePop(force){
+  if(pinned && !force) return;
+  pop.classList.remove("show"); popIdx = null; pinned = false;
+  document.querySelectorAll(".hl.open").forEach(b=>b.classList.remove("open"));
+}
+function scheduleHide(){ clearTimeout(hideTimer); hideTimer = setTimeout(()=>hidePop(), 250); }
+
+const text = $("text");
+text.addEventListener("mouseover",e=>{
+  const b = e.target.closest(".hl"); if(b && !pinned) showPop(b,false);
+});
+text.addEventListener("mouseout",e=>{ if(e.target.closest(".hl")) scheduleHide(); });
+text.addEventListener("click",e=>{
+  const b = e.target.closest(".hl"); if(!b) return;
+  e.stopPropagation();
+  if(pop.classList.contains("show") && popIdx === +b.dataset.i && pinned){ hidePop(true); return; }
+  pinned = false; showPop(b,true);
+});
+/* Cuộn chuột trên cụm từ -> trượt qua từ khác */
+let lastWheel = 0;
+text.addEventListener("wheel",e=>{
+  const b = e.target.closest(".hl"); if(!b) return;
+  e.preventDefault();
+  const now = Date.now(); if(now - lastWheel < 260 || Math.abs(e.deltaY) < 4) return;
+  lastWheel = now; setSel(+b.dataset.i, getSel(+b.dataset.i) + (e.deltaY > 0 ? 1 : -1));
+},{passive:false});
+/* Vuốt lên/xuống trên điện thoại */
+let ty = null, tx = null;
+text.addEventListener("touchstart",e=>{
+  if(!e.target.closest(".hl")) return; ty = e.touches[0].clientY; tx = e.touches[0].clientX;
+},{passive:true});
+text.addEventListener("touchend",e=>{
+  const b = e.target.closest(".hl"); if(!b || ty===null) return;
+  const dy = ty - e.changedTouches[0].clientY, dx = tx - e.changedTouches[0].clientX; ty = null;
+  if(Math.abs(dy) > 22 && Math.abs(dy) > Math.abs(dx)){
+    e.preventDefault();
+    setSel(+b.dataset.i, getSel(+b.dataset.i) + (dy > 0 ? 1 : -1));
+  }
+});
+text.addEventListener("keydown",e=>{
+  const b = e.target.closest(".hl"); if(!b || !/^Arrow(Up|Down)$/.test(e.key)) return;
+  e.preventDefault(); setSel(+b.dataset.i, getSel(+b.dataset.i) + (e.key==="ArrowDown"?1:-1));
+});
+
+pop.addEventListener("mouseenter",()=>clearTimeout(hideTimer));
+pop.addEventListener("mouseleave",scheduleHide);
+pop.addEventListener("click",e=>{
+  e.stopPropagation();
+  const chip = e.target.closest(".chip");
+  if(chip){ pinned = true; setSel(popIdx, +chip.dataset.k); return; }
+  if(e.target.closest(".say")) speak(opts(cur,popIdx)[getSel(popIdx)].w);
+});
+document.addEventListener("click",()=>hidePop(true));
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") hidePop(true); });
+
+/* ---------- Điều khiển ---------- */
+$("tabs").addEventListener("click",e=>{
+  const t = e.target.closest(".tab"); if(!t) return;
+  cur = +t.dataset.i; sel = {}; renderPassage();
+});
+$("all").addEventListener("click",()=>{
+  const p = passages[cur], all = upCount() === p.hl.length;
+  hidePop(true);
+  p.hl.forEach((_,i)=>setSel(i, all ? 0 : 1));
+});
+$("tr").addEventListener("click",()=>{
+  showVi = !showVi; $("vi").classList.toggle("show",showVi);
+  $("tr").textContent = showVi ? "Ẩn bản dịch" : "Dịch tiếng Việt";
+});
+$("voice").addEventListener("click",e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  voiceKind = b.dataset.v;
+  [...$("voice").children].forEach(x=>x.setAttribute("aria-pressed", x===b));
+});
+$("rate").addEventListener("click",e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  rate = +b.dataset.r;
+  [...$("rate").children].forEach(x=>x.setAttribute("aria-pressed", x===b));
+});
+$("play").addEventListener("click",()=>{
+  if(speechSynthesis.speaking){ stopSpeech(); return; }
+  speak(fullText());
+});
+
+/* ---------- TTS của trình duyệt ---------- */
+const FEMALE = /zira|samantha|jenny|aria|susan|hazel|libby|sonia|female|karen|moira|tessa|victoria/i;
+const MALE = /david|mark|guy|ryan|daniel|alex|james|george|thomas|male|fred|oliver/i;
+function pickVoice(kind){
+  const en = speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang));
+  const us = en.filter(v=>/en[-_]US/i.test(v.lang));
+  const pool = us.length ? us : en;
+  const re = kind==="female" ? FEMALE : MALE, other = kind==="female" ? MALE : FEMALE;
+  return pool.find(v=>re.test(v.name) && !(kind==="female" && /\bmale\b/i.test(v.name) && !/female/i.test(v.name)))
+      || en.find(v=>re.test(v.name))
+      || pool.find(v=>!other.test(v.name)) || pool[0] || null;
+}
+function speak(t){
+  if(!("speechSynthesis" in window)){ alert("Trình duyệt chưa hỗ trợ đọc văn bản."); return; }
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(t);
+  const v = pickVoice(voiceKind);
+  u.lang = "en-US"; if(v){ u.voice = v; u.lang = v.lang; }
+  u.rate = rate;
+  u.pitch = voiceKind==="female" ? 1.15 : 0.8;
+  u.onstart = ()=>{ $("play").textContent = "■ Dừng"; };
+  u.onend = u.onerror = ()=>{ $("play").textContent = "▶ Nghe"; };
+  speechSynthesis.speak(u);
+}
+function stopSpeech(){ if("speechSynthesis" in window) speechSynthesis.cancel(); $("play").textContent = "▶ Nghe"; }
+
+renderPassage();
+</script>
+</body>
+</html>

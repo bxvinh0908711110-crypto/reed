@@ -1,0 +1,2558 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+>
+
+<title>Compact Lesson Player</title>
+
+<style>
+
+/* =========================================================
+   RESET
+========================================================= */
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+    width: 100%;
+    min-height: 100%;
+    margin: 0;
+}
+
+body {
+
+    min-height: 100vh;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 24px;
+
+    background: #f7f6f3;
+
+    font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Arial,
+        sans-serif;
+}
+
+
+/* =========================================================
+   PLAYER
+========================================================= */
+
+.player {
+
+    width: min(680px, 94vw);
+
+    height: 88px;
+
+    position: relative;
+
+    background: #090909;
+
+    border-radius: 50px;
+
+    overflow: hidden;
+
+    box-shadow:
+        0 14px 35px rgba(0,0,0,.15);
+
+    touch-action: pan-y;
+
+    user-select: none;
+}
+
+
+/* =========================================================
+   VIEWPORT
+========================================================= */
+
+.viewport {
+
+    position: relative;
+
+    width: 100%;
+    height: 100%;
+
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   MAIN SLIDER
+   Lesson <-> Settings
+========================================================= */
+
+.slider {
+
+    position: absolute;
+
+    left: 0;
+    top: 0;
+
+    width: 100%;
+
+    transition:
+        transform .35s cubic-bezier(.22,.8,.25,1);
+}
+
+
+/* Settings mode */
+
+.player.settings .slider {
+
+    transform:
+        translateY(-88px);
+
+}
+
+
+/* =========================================================
+   ROW
+========================================================= */
+
+.row {
+
+    width: 100%;
+    height: 88px;
+
+    padding: 10px 14px;
+
+    display: flex;
+    align-items: center;
+
+}
+
+
+/* =========================================================
+   PLAY BUTTON
+========================================================= */
+
+.play {
+
+    width: 68px;
+    height: 68px;
+
+    flex: 0 0 68px;
+
+    border: 0;
+    border-radius: 50%;
+
+    background: #d9ff73;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+
+    transition:
+        transform .15s ease;
+}
+
+.play:active {
+
+    transform:
+        scale(.92);
+
+}
+
+
+.play-icon {
+
+    width: 0;
+    height: 0;
+
+    border-top:
+        10px solid transparent;
+
+    border-bottom:
+        10px solid transparent;
+
+    border-left:
+        16px solid #151515;
+
+    margin-left: 4px;
+
+}
+
+
+/* =========================================================
+   DIVIDER
+========================================================= */
+
+.divider {
+
+    width: 1px;
+    height: 34px;
+
+    flex-shrink: 0;
+
+    margin:
+        0 14px;
+
+    background:
+        rgba(255,255,255,.24);
+
+}
+
+
+/* =========================================================
+   LESSON CONTENT
+========================================================= */
+
+.lesson-content {
+
+    flex: 1;
+
+    min-width: 0;
+
+    height: 100%;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+    align-items: center;
+
+    position: relative;
+
+    cursor: pointer;
+
+    touch-action: none;
+
+}
+
+
+/* Title */
+
+.lesson-title {
+
+    color: #ffffff;
+
+    font-size: 20px;
+
+    line-height: 1.1;
+
+    font-weight: 700;
+
+    white-space: nowrap;
+
+}
+
+
+/* Subtitle */
+
+.lesson-subtitle {
+
+    margin-top: 4px;
+
+    color: #888888;
+
+    font-size: 13px;
+
+    white-space: nowrap;
+
+}
+
+
+/* =========================================================
+   DOTS
+========================================================= */
+
+.dots {
+
+    display: flex;
+
+    gap: 5px;
+
+    margin-top: 7px;
+
+}
+
+
+.dot {
+
+    width: 5px;
+    height: 5px;
+
+    border-radius: 50%;
+
+    background:
+        #454545;
+
+    transition:
+        background .2s ease,
+        transform .2s ease;
+
+}
+
+
+.dot.active {
+
+    background:
+        #ffffff;
+
+    transform:
+        scale(1.15);
+
+}
+
+
+/* =========================================================
+   CHEVRON
+========================================================= */
+
+.chevron-button {
+
+    width: 36px;
+    height: 36px;
+
+    flex: 0 0 36px;
+
+    border: 0;
+
+    background: transparent;
+
+    color: #777777;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+
+}
+
+
+.chevron {
+
+    width: 12px;
+    height: 12px;
+
+    border-right:
+        2px solid currentColor;
+
+    border-bottom:
+        2px solid currentColor;
+
+    transform:
+        rotate(45deg);
+
+    transition:
+        transform .3s ease;
+
+}
+
+
+.player.settings
+.chevron {
+
+    transform:
+        rotate(225deg);
+
+}
+
+
+/* =========================================================
+   SETTINGS ROW
+========================================================= */
+
+.settings-row {
+
+    width: 100%;
+    height: 88px;
+
+    padding:
+        10px 14px;
+
+    display: flex;
+    align-items: center;
+
+}
+
+
+/* =========================================================
+   SETTING GROUP
+========================================================= */
+
+.setting-group {
+
+    flex: 1;
+
+    height: 100%;
+
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+
+    gap: 6px;
+
+}
+
+
+/* =========================================================
+   SETTING BUTTON
+========================================================= */
+
+.setting {
+
+    width: 52px;
+    height: 52px;
+
+    border: 0;
+
+    border-radius: 50%;
+
+    background: transparent;
+
+    color: #777777;
+
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+
+    cursor: pointer;
+
+    transition:
+        background .2s ease,
+        color .2s ease,
+        transform .15s ease;
+
+}
+
+
+.setting:hover {
+
+    background:
+        rgba(255,255,255,.06);
+
+}
+
+
+.setting:active {
+
+    transform:
+        scale(.9);
+
+}
+
+
+.setting.active {
+
+    background:
+        #303034;
+
+    color:
+        #ffffff;
+
+}
+
+
+/* =========================================================
+   ICONS
+========================================================= */
+
+.icon {
+
+    width: 29px;
+    height: 29px;
+
+    fill:
+        currentColor;
+
+}
+
+
+.speed-icon {
+
+    width: 34px;
+    height: 34px;
+
+}
+
+
+/* =========================================================
+   HORIZONTAL LESSON PICKER
+========================================================= */
+
+.lesson-picker {
+
+    position: absolute;
+
+    inset: 0;
+
+    z-index: 100;
+
+    background:
+        #191919;
+
+    border-radius:
+        50px;
+
+    overflow: hidden;
+
+    opacity: 0;
+
+    transform:
+        scale(.96);
+
+    pointer-events:
+        none;
+
+    transition:
+        opacity .18s ease,
+        transform .22s ease;
+
+}
+
+
+.player.picker-open
+.lesson-picker {
+
+    opacity: 1;
+
+    transform:
+        scale(1);
+
+    pointer-events:
+        auto;
+
+}
+
+
+/* =========================================================
+   PICKER LABEL
+========================================================= */
+
+.picker-label {
+
+    position: absolute;
+
+    top: 9px;
+
+    left: 0;
+    right: 0;
+
+    text-align: center;
+
+    color:
+        rgba(255,255,255,.38);
+
+    font-size:
+        9px;
+
+    letter-spacing:
+        1.6px;
+
+    z-index: 30;
+
+    pointer-events:
+        none;
+
+}
+
+
+/* =========================================================
+   NUMBER PICKER
+========================================================= */
+
+.number-picker {
+
+    position: absolute;
+
+    inset: 0;
+
+    overflow: hidden;
+
+    cursor: grab;
+
+    touch-action: none;
+
+}
+
+
+.number-picker.dragging {
+
+    cursor:
+        grabbing;
+
+}
+
+
+/* =========================================================
+   NUMBER TRACK
+========================================================= */
+
+.number-track {
+
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    height: 100%;
+
+    display: flex;
+
+    align-items: center;
+
+    width: max-content;
+
+    will-change:
+        transform;
+
+    user-select:
+        none;
+
+}
+
+
+/* =========================================================
+   SPACERS
+========================================================= */
+
+.number-spacer {
+
+    width:
+        calc(50% - 29px);
+
+    min-width:
+        calc(50% - 29px);
+
+    height: 1px;
+
+    flex-shrink: 0;
+
+}
+
+
+/* =========================================================
+   LESSON NUMBER
+========================================================= */
+
+.lesson-number {
+
+    width: 58px;
+    height: 58px;
+
+    flex:
+        0 0 58px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius:
+        50%;
+
+    color:
+        rgba(255,255,255,.23);
+
+    font-size:
+        19px;
+
+    font-weight:
+        400;
+
+    transition:
+        color .12s ease,
+        background .12s ease,
+        transform .12s ease;
+
+    pointer-events:
+        none;
+
+}
+
+
+.lesson-number.near {
+
+    color:
+        rgba(255,255,255,.52);
+
+}
+
+
+.lesson-number.active {
+
+    color:
+        #ffffff;
+
+    background:
+        #303035;
+
+    font-size:
+        21px;
+
+    font-weight:
+        600;
+
+    transform:
+        scale(1.08);
+
+}
+
+
+/* =========================================================
+   LEFT / RIGHT FADE
+========================================================= */
+
+.lesson-picker::before,
+.lesson-picker::after {
+
+    content: "";
+
+    position: absolute;
+
+    top: 0;
+    bottom: 0;
+
+    width: 100px;
+
+    z-index: 20;
+
+    pointer-events:
+        none;
+
+}
+
+
+/* Left */
+
+.lesson-picker::before {
+
+    left: 0;
+
+    background:
+        linear-gradient(
+            to right,
+            #191919 0%,
+            rgba(25,25,25,.9) 35%,
+            rgba(25,25,25,0) 100%
+        );
+
+}
+
+
+/* Right */
+
+.lesson-picker::after {
+
+    right: 0;
+
+    background:
+        linear-gradient(
+            to left,
+            #191919 0%,
+            rgba(25,25,25,.9) 35%,
+            rgba(25,25,25,0) 100%
+        );
+
+}
+
+
+/* =========================================================
+   CENTER MARKER
+========================================================= */
+
+.number-picker::after {
+
+    content: "";
+
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    width: 58px;
+    height: 58px;
+
+    transform:
+        translate(-50%, -50%);
+
+    border-radius:
+        50%;
+
+    border:
+        1px solid
+        rgba(255,255,255,.08);
+
+    pointer-events:
+        none;
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 480px) {
+
+    body {
+
+        padding:
+            12px;
+
+    }
+
+
+    .player {
+
+        width:
+            calc(100vw - 24px);
+
+        height:
+            76px;
+
+        border-radius:
+            42px;
+
+    }
+
+
+    .row,
+    .settings-row {
+
+        height:
+            76px;
+
+        padding:
+            8px 10px;
+
+    }
+
+
+    .player.settings
+    .slider {
+
+        transform:
+            translateY(-76px);
+
+    }
+
+
+    .play {
+
+        width:
+            60px;
+
+        height:
+            60px;
+
+        flex-basis:
+            60px;
+
+    }
+
+
+    .divider {
+
+        margin:
+            0 9px;
+
+        height:
+            30px;
+
+    }
+
+
+    .lesson-title {
+
+        font-size:
+            17px;
+
+    }
+
+
+    .lesson-subtitle {
+
+        font-size:
+            11px;
+
+    }
+
+
+    .setting {
+
+        width:
+            44px;
+
+        height:
+            44px;
+
+    }
+
+
+    .icon {
+
+        width:
+            25px;
+
+        height:
+            25px;
+
+    }
+
+
+    .speed-icon {
+
+        width:
+            29px;
+
+        height:
+            29px;
+
+    }
+
+
+    .lesson-number {
+
+        width:
+            54px;
+
+        flex-basis:
+            54px;
+
+        height:
+            54px;
+
+        font-size:
+            18px;
+
+    }
+
+
+    .lesson-number.active {
+
+        font-size:
+            20px;
+
+    }
+
+
+    .number-spacer {
+
+        width:
+            calc(50% - 27px);
+
+        min-width:
+            calc(50% - 27px);
+
+    }
+
+}
+
+</style>
+</head>
+
+
+<body>
+
+
+<!-- =========================================================
+     PLAYER
+========================================================= -->
+
+<div
+    class="player"
+    id="player">
+
+
+    <!-- =====================================================
+         VIEWPORT
+    ====================================================== -->
+
+    <div class="viewport">
+
+
+        <!-- =================================================
+             SLIDER
+        ================================================== -->
+
+        <div class="slider">
+
+
+            <!-- =============================================
+                 LESSON ROW
+            ============================================== -->
+
+            <div class="row">
+
+
+                <!-- PLAY -->
+
+                <button
+                    class="play"
+                    id="playButton"
+                    aria-label="Play">
+
+                    <span
+                        class="play-icon">
+                    </span>
+
+                </button>
+
+
+                <!-- DIVIDER -->
+
+                <span
+                    class="divider">
+                </span>
+
+
+                <!-- LESSON -->
+
+                <div
+                    class="lesson-content"
+                    id="lessonContent">
+
+                    <div
+                        class="lesson-title"
+                        id="lessonTitle">
+                        Lesson 2
+                    </div>
+
+                    <div
+                        class="lesson-subtitle"
+                        id="lessonSubtitle">
+                        Going to School
+                    </div>
+
+                    <div
+                        class="dots"
+                        id="dots">
+                    </div>
+
+                </div>
+
+
+                <!-- SETTINGS BUTTON -->
+
+                <button
+                    class="chevron-button"
+                    id="openSettings"
+                    aria-label="Open settings">
+
+                    <span
+                        class="chevron">
+                    </span>
+
+                </button>
+
+            </div>
+
+
+
+            <!-- =============================================
+                 SETTINGS ROW
+            ============================================== -->
+
+            <div
+                class="settings-row">
+
+
+                <!-- PLAY -->
+
+                <button
+                    class="play"
+                    aria-label="Play">
+
+                    <span
+                        class="play-icon">
+                    </span>
+
+                </button>
+
+
+                <!-- DIVIDER -->
+
+                <span
+                    class="divider">
+                </span>
+
+
+                <!-- =========================================
+                     CHARACTER
+                ========================================== -->
+
+                <div
+                    class="setting-group">
+
+
+                    <!-- CHARACTER 1 -->
+
+                    <button
+                        class="setting active"
+                        data-setting="character1"
+                        aria-label="Character 1">
+
+                        <svg
+                            class="icon"
+                            viewBox="0 0 64 64">
+
+                            <circle
+                                cx="32"
+                                cy="17"
+                                r="10">
+                            </circle>
+
+                            <path
+                                d="
+                                M15 51
+                                C16 39 21 32 32 32
+                                C43 32 48 39 49 51
+                                Z">
+                            </path>
+
+                        </svg>
+
+                    </button>
+
+
+                    <!-- CHARACTER 2 -->
+
+                    <button
+                        class="setting"
+                        data-setting="character2"
+                        aria-label="Character 2">
+
+                        <svg
+                            class="icon"
+                            viewBox="0 0 64 64">
+
+                            <circle
+                                cx="32"
+                                cy="17"
+                                r="8">
+                            </circle>
+
+                            <path
+                                d="
+                                M19 50
+                                C20 40 25 34 32 34
+                                C39 34 44 40 45 50
+                                Z">
+                            </path>
+
+                        </svg>
+
+                    </button>
+
+                </div>
+
+
+                <!-- DIVIDER -->
+
+                <span
+                    class="divider">
+                </span>
+
+
+                <!-- =========================================
+                     SPEED
+                ========================================== -->
+
+                <div
+                    class="setting-group">
+
+
+                    <!-- SLOW -->
+
+                    <button
+                        class="setting active"
+                        data-setting="slow"
+                        aria-label="Slow">
+
+                        <svg
+                            class="speed-icon"
+                            viewBox="0 0 64 64">
+
+                            <circle
+                                cx="25"
+                                cy="34"
+                                r="14"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="5">
+                            </circle>
+
+                            <path
+                                d="
+                                M25 34
+                                C25 27
+                                36 27
+                                36 35
+                                C36 42
+                                27 46
+                                20 43
+                                "
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="4"
+                                stroke-linecap="round">
+                            </path>
+
+                            <path
+                                d="
+                                M40 45 H54
+                                "
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="5"
+                                stroke-linecap="round">
+                            </path>
+
+                        </svg>
+
+                    </button>
+
+
+                    <!-- FAST -->
+
+                    <button
+                        class="setting"
+                        data-setting="fast"
+                        aria-label="Fast">
+
+                        <svg
+                            class="speed-icon"
+                            viewBox="0 0 64 64">
+
+                            <path
+                                d="
+                                M11 39
+                                C18 27
+                                31 25
+                                42 31
+                                L51 25
+                                L48 35
+                                L57 36
+                                L48 42
+                                C40 50
+                                26 52
+                                16 47
+                                Z
+                                "
+                                fill="currentColor">
+                            </path>
+
+                            <path
+                                d="
+                                M18 24 H33
+                                M13 18 H25
+                                "
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="4"
+                                stroke-linecap="round">
+                            </path>
+
+                        </svg>
+
+                    </button>
+
+                </div>
+
+
+                <!-- CLOSE SETTINGS -->
+
+                <button
+                    class="chevron-button"
+                    id="closeSettings"
+                    aria-label="Close settings">
+
+                    <span
+                        class="chevron">
+                    </span>
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         HORIZONTAL LESSON PICKER
+    ====================================================== -->
+
+    <div
+        class="lesson-picker"
+        id="lessonPicker">
+
+
+        <div
+            class="picker-label">
+
+            LESSON
+
+        </div>
+
+
+        <div
+            class="number-picker"
+            id="numberPicker">
+
+
+            <div
+                class="number-track"
+                id="numberTrack">
+
+
+                <!-- Spacer -->
+
+                <div
+                    class="number-spacer">
+                </div>
+
+
+                <!-- Numbers -->
+
+                <div
+                    class="lesson-number"
+                    data-id="1">
+                    01
+                </div>
+
+                <div
+                    class="lesson-number"
+                    data-id="2">
+                    02
+                </div>
+
+                <div
+                    class="lesson-number"
+                    data-id="3">
+                    03
+                </div>
+
+                <div
+                    class="lesson-number"
+                    data-id="4">
+                    04
+                </div>
+
+                <div
+                    class="lesson-number"
+                    data-id="5">
+                    05
+                </div>
+
+                <div
+                    class="lesson-number"
+                    data-id="6">
+                    06
+                </div>
+
+                <div
+                    class="lesson-number"
+                    data-id="7">
+                    07
+                </div>
+
+                <div
+                    class="lesson-number"
+                    data-id="8">
+                    08
+                </div>
+
+                <div
+                    class="lesson-number"
+                    data-id="9">
+                    09
+                </div>
+
+                <div
+                    class="lesson-number"
+                    data-id="10">
+                    10
+                </div>
+
+                <div
+                    class="lesson-number"
+                    data-id="11">
+                    11
+                </div>
+
+                <div
+                    class="lesson-number"
+                    data-id="12">
+                    12
+                </div>
+
+                <div
+                    class="lesson-number"
+                    data-id="13">
+                    13
+                </div>
+
+                <div
+                    class="lesson-number"
+                    data-id="14">
+                    14
+                </div>
+
+                <div
+                    class="lesson-number"
+                    data-id="15">
+                    15
+                </div>
+
+                <div
+                    class="lesson-number"
+                    data-id="16">
+                    16
+                </div>
+
+                <div
+                    class="lesson-number"
+                    data-id="17">
+                    17
+                </div>
+
+                <div
+                    class="lesson-number"
+                    data-id="18">
+                    18
+                </div>
+
+                <div
+                    class="lesson-number"
+                    data-id="19">
+                    19
+                </div>
+
+                <div
+                    class="lesson-number"
+                    data-id="20">
+                    20
+                </div>
+
+
+                <!-- Spacer -->
+
+                <div
+                    class="number-spacer">
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<script>
+
+/* =========================================================
+   LESSON DATA
+========================================================= */
+
+const lessonData = [
+
+    {
+        title: "Lesson 1",
+        subtitle: "Hello"
+    },
+
+    {
+        title: "Lesson 2",
+        subtitle: "Going to School"
+    },
+
+    {
+        title: "Lesson 3",
+        subtitle: "My Family"
+    },
+
+    {
+        title: "Lesson 4",
+        subtitle: "At School"
+    },
+
+    {
+        title: "Lesson 5",
+        subtitle: "My Friends"
+    },
+
+    {
+        title: "Lesson 6",
+        subtitle: "Food & Drinks"
+    },
+
+    {
+        title: "Lesson 7",
+        subtitle: "My Hobbies"
+    },
+
+    {
+        title: "Lesson 8",
+        subtitle: "Weekend"
+    },
+
+    {
+        title: "Lesson 9",
+        subtitle: "Daily Routine"
+    },
+
+    {
+        title: "Lesson 10",
+        subtitle: "My House"
+    },
+
+    {
+        title: "Lesson 11",
+        subtitle: "Animals"
+    },
+
+    {
+        title: "Lesson 12",
+        subtitle: "Weather"
+    },
+
+    {
+        title: "Lesson 13",
+        subtitle: "Clothes"
+    },
+
+    {
+        title: "Lesson 14",
+        subtitle: "Transportation"
+    },
+
+    {
+        title: "Lesson 15",
+        subtitle: "My Hobbies"
+    },
+
+    {
+        title: "Lesson 16",
+        subtitle: "Sports"
+    },
+
+    {
+        title: "Lesson 17",
+        subtitle: "Shopping"
+    },
+
+    {
+        title: "Lesson 18",
+        subtitle: "At the Park"
+    },
+
+    {
+        title: "Lesson 19",
+        subtitle: "Holiday"
+    },
+
+    {
+        title: "Lesson 20",
+        subtitle: "Review"
+    }
+
+];
+
+
+/* =========================================================
+   MAIN ELEMENTS
+========================================================= */
+
+const player =
+    document.getElementById(
+        "player"
+    );
+
+const lessonContent =
+    document.getElementById(
+        "lessonContent"
+    );
+
+const lessonTitle =
+    document.getElementById(
+        "lessonTitle"
+    );
+
+const lessonSubtitle =
+    document.getElementById(
+        "lessonSubtitle"
+    );
+
+const dots =
+    document.getElementById(
+        "dots"
+    );
+
+const numberPicker =
+    document.getElementById(
+        "numberPicker"
+    );
+
+const numberTrack =
+    document.getElementById(
+        "numberTrack"
+    );
+
+const numbers =
+    [
+        ...document.querySelectorAll(
+            ".lesson-number"
+        )
+    ];
+
+const settings =
+    [
+        ...document.querySelectorAll(
+            ".setting"
+        )
+    ];
+
+
+/* =========================================================
+   CURRENT LESSON
+========================================================= */
+
+/*
+    Index bắt đầu từ 0.
+
+    Lesson 2 = index 1
+*/
+
+let currentLesson = 1;
+
+
+/* =========================================================
+   CREATE DOTS
+========================================================= */
+
+lessonData.forEach(
+    (item, index) => {
+
+        const dot =
+            document.createElement(
+                "span"
+            );
+
+        dot.className =
+            "dot";
+
+        if (
+            index === currentLesson
+        ) {
+
+            dot.classList.add(
+                "active"
+            );
+
+        }
+
+        dots.appendChild(
+            dot
+        );
+
+    }
+);
+
+
+const dotElements =
+    [
+        ...document.querySelectorAll(
+            ".dot"
+        )
+    ];
+
+
+/* =========================================================
+   UPDATE MAIN LESSON
+========================================================= */
+
+function updateMainLesson(
+    index
+) {
+
+    index =
+        Math.max(
+            0,
+            Math.min(
+                lessonData.length - 1,
+                index
+            )
+        );
+
+
+    currentLesson =
+        index;
+
+
+    const data =
+        lessonData[index];
+
+
+    lessonTitle.textContent =
+        data.title;
+
+
+    lessonSubtitle.textContent =
+        data.subtitle;
+
+
+    dotElements.forEach(
+        (dot, i) => {
+
+            dot.classList.toggle(
+                "active",
+                i === index
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   SETTINGS
+========================================================= */
+
+function openSettings() {
+
+    player.classList.add(
+        "settings"
+    );
+
+}
+
+
+function closeSettings() {
+
+    player.classList.remove(
+        "settings"
+    );
+
+}
+
+
+document
+    .getElementById(
+        "openSettings"
+    )
+    .addEventListener(
+        "click",
+        openSettings
+    );
+
+
+document
+    .getElementById(
+        "closeSettings"
+    )
+    .addEventListener(
+        "click",
+        closeSettings
+    );
+
+
+/* =========================================================
+   SETTING SELECT
+========================================================= */
+
+settings.forEach(
+    button => {
+
+        button.addEventListener(
+            "click",
+            event => {
+
+                const group =
+                    button.parentElement;
+
+
+                group
+                    .querySelectorAll(
+                        ".setting"
+                    )
+                    .forEach(
+                        item => {
+
+                            item.classList
+                                .remove(
+                                    "active"
+                                );
+
+                        }
+                    );
+
+
+                button.classList.add(
+                    "active"
+                );
+
+
+                console.log(
+                    "Selected setting:",
+                    button.dataset.setting
+                );
+
+            }
+        );
+
+    }
+);
+
+
+/* =========================================================
+   HORIZONTAL PICKER STATE
+========================================================= */
+
+let pickerIndex =
+    currentLesson;
+
+let isDragging =
+    false;
+
+let startX =
+    0;
+
+let startOffset =
+    0;
+
+let currentOffset =
+    0;
+
+
+/* =========================================================
+   GET CENTER OFFSET
+========================================================= */
+
+function getCenterOffset(
+    index
+) {
+
+    const item =
+        numbers[index];
+
+
+    const pickerWidth =
+        numberPicker.clientWidth;
+
+
+    const itemCenter =
+        item.offsetLeft +
+        item.offsetWidth / 2;
+
+
+    return (
+        pickerWidth / 2 -
+        itemCenter
+    );
+
+}
+
+
+/* =========================================================
+   UPDATE NUMBER STYLES
+========================================================= */
+
+function updatePickerNumbers() {
+
+    numbers.forEach(
+        (number, index) => {
+
+            number.classList.remove(
+                "active",
+                "near"
+            );
+
+
+            if (
+                index === pickerIndex
+            ) {
+
+                number.classList.add(
+                    "active"
+                );
+
+            }
+
+
+            if (
+                Math.abs(
+                    index -
+                    pickerIndex
+                ) === 1
+            ) {
+
+                number.classList.add(
+                    "near"
+                );
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   MOVE TO NUMBER
+========================================================= */
+
+function moveToLesson(
+    index,
+    animate = true
+) {
+
+    index =
+        Math.max(
+            0,
+            Math.min(
+                numbers.length - 1,
+                index
+            )
+        );
+
+
+    pickerIndex =
+        index;
+
+
+    const target =
+        getCenterOffset(
+            index
+        );
+
+
+    numberTrack.style.transition =
+        animate
+            ? "transform .22s cubic-bezier(.22,.8,.25,1)"
+            : "none";
+
+
+    numberTrack.style.transform =
+        `translateX(${target}px)`;
+
+
+    currentOffset =
+        target;
+
+
+    updatePickerNumbers();
+
+}
+
+
+/* =========================================================
+   OPEN PICKER
+========================================================= */
+
+function openPicker() {
+
+    /*
+     * Nếu đang ở Settings,
+     * quay về Lesson trước.
+     */
+
+    player.classList.remove(
+        "settings"
+    );
+
+
+    pickerIndex =
+        currentLesson;
+
+
+    player.classList.add(
+        "picker-open"
+    );
+
+
+    requestAnimationFrame(
+        () => {
+
+            moveToLesson(
+                currentLesson,
+                false
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   CLOSE PICKER
+========================================================= */
+
+function closePicker() {
+
+    player.classList.remove(
+        "picker-open"
+    );
+
+}
+
+
+/* =========================================================
+   FIND CLOSEST NUMBER
+========================================================= */
+
+function findClosestNumber() {
+
+    const center =
+        numberPicker.clientWidth / 2;
+
+
+    let closestIndex =
+        0;
+
+    let closestDistance =
+        Infinity;
+
+
+    numbers.forEach(
+        (number, index) => {
+
+            const itemCenter =
+                number.offsetLeft +
+                number.offsetWidth / 2 +
+                currentOffset;
+
+
+            const distance =
+                Math.abs(
+                    center -
+                    itemCenter
+                );
+
+
+            if (
+                distance <
+                closestDistance
+            ) {
+
+                closestDistance =
+                    distance;
+
+                closestIndex =
+                    index;
+
+            }
+
+        }
+    );
+
+
+    pickerIndex =
+        closestIndex;
+
+
+    updatePickerNumbers();
+
+}
+
+
+/* =========================================================
+   POINTER DOWN
+========================================================= */
+
+numberPicker.addEventListener(
+    "pointerdown",
+    event => {
+
+        isDragging =
+            true;
+
+
+        startX =
+            event.clientX;
+
+
+        startOffset =
+            currentOffset;
+
+
+        numberPicker.classList.add(
+            "dragging"
+        );
+
+
+        numberPicker.setPointerCapture(
+            event.pointerId
+        );
+
+
+        numberTrack.style.transition =
+            "none";
+
+    }
+);
+
+
+/* =========================================================
+   POINTER MOVE
+========================================================= */
+
+numberPicker.addEventListener(
+    "pointermove",
+    event => {
+
+        if (
+            !isDragging
+        ) return;
+
+
+        const delta =
+            event.clientX -
+            startX;
+
+
+        let newOffset =
+            startOffset +
+            delta;
+
+
+        /*
+         * Giới hạn trái/phải
+         */
+
+        const firstOffset =
+            getCenterOffset(0);
+
+        const lastOffset =
+            getCenterOffset(
+                numbers.length - 1
+            );
+
+
+        const maxOffset =
+            firstOffset;
+
+        const minOffset =
+            lastOffset;
+
+
+        newOffset =
+            Math.max(
+                minOffset,
+                Math.min(
+                    maxOffset,
+                    newOffset
+                )
+            );
+
+
+        currentOffset =
+            newOffset;
+
+
+        numberTrack.style.transform =
+            `translateX(${newOffset}px)`;
+
+
+        findClosestNumber();
+
+    }
+);
+
+
+/* =========================================================
+   POINTER UP
+========================================================= */
+
+numberPicker.addEventListener(
+    "pointerup",
+    finishPicker
+);
+
+
+numberPicker.addEventListener(
+    "pointercancel",
+    finishPicker
+);
+
+
+function finishPicker() {
+
+    if (
+        !isDragging
+    ) return;
+
+
+    isDragging =
+        false;
+
+
+    numberPicker.classList.remove(
+        "dragging"
+    );
+
+
+    /*
+     * Snap về số gần nhất
+     */
+
+    moveToLesson(
+        pickerIndex,
+        true
+    );
+
+
+    /*
+     * Chọn lesson
+     */
+
+    setTimeout(
+        () => {
+
+            updateMainLesson(
+                pickerIndex
+            );
+
+
+            closePicker();
+
+        },
+        180
+    );
+
+}
+
+
+/* =========================================================
+   LONG PRESS
+========================================================= */
+
+let pressTimer =
+    null;
+
+let pressStartX =
+    0;
+
+let pressStartY =
+    0;
+
+
+lessonContent.addEventListener(
+    "pointerdown",
+    event => {
+
+        /*
+         * Không long press khi picker
+         * đã mở.
+         */
+
+        if (
+            player.classList.contains(
+                "picker-open"
+            )
+        ) return;
+
+
+        pressStartX =
+            event.clientX;
+
+        pressStartY =
+            event.clientY;
+
+
+        /*
+         * 500ms
+         */
+
+        pressTimer =
+            setTimeout(
+                () => {
+
+                    openPicker();
+
+                },
+                500
+            );
+
+    }
+);
+
+
+/* =========================================================
+   CANCEL LONG PRESS
+========================================================= */
+
+lessonContent.addEventListener(
+    "pointermove",
+    event => {
+
+        const dx =
+            event.clientX -
+            pressStartX;
+
+        const dy =
+            event.clientY -
+            pressStartY;
+
+
+        /*
+         * Di chuyển trước 500ms
+         * = không phải long press
+         */
+
+        if (
+            Math.abs(dx) > 10 ||
+            Math.abs(dy) > 10
+        ) {
+
+            clearTimeout(
+                pressTimer
+            );
+
+        }
+
+    }
+);
+
+
+lessonContent.addEventListener(
+    "pointerup",
+    () => {
+
+        clearTimeout(
+            pressTimer
+        );
+
+    }
+);
+
+
+lessonContent.addEventListener(
+    "pointercancel",
+    () => {
+
+        clearTimeout(
+            pressTimer
+        );
+
+    }
+);
+
+
+/* =========================================================
+   SWIPE UP / DOWN
+========================================================= */
+
+let swipeStartY =
+    0;
+
+let swiping =
+    false;
+
+
+player.addEventListener(
+    "touchstart",
+    event => {
+
+        /*
+         * Không swipe khi picker mở.
+         */
+
+        if (
+            player.classList.contains(
+                "picker-open"
+            )
+        ) return;
+
+
+        swipeStartY =
+            event.touches[0].clientY;
+
+        swiping =
+            true;
+
+    },
+    {
+        passive: true
+    }
+);
+
+
+player.addEventListener(
+    "touchend",
+    event => {
+
+        if (
+            !swiping
+        ) return;
+
+
+        const endY =
+            event.changedTouches[0].clientY;
+
+
+        const distance =
+            endY -
+            swipeStartY;
+
+
+        /*
+         * Swipe UP
+         */
+
+        if (
+            distance < -30
+        ) {
+
+            openSettings();
+
+        }
+
+
+        /*
+         * Swipe DOWN
+         */
+
+        if (
+            distance > 30
+        ) {
+
+            closeSettings();
+
+        }
+
+
+        swiping =
+            false;
+
+    },
+    {
+        passive: true
+    }
+);
+
+
+/* =========================================================
+   KEYBOARD SUPPORT
+========================================================= */
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        /*
+         * Arrow left/right
+         * khi picker đang mở
+         */
+
+        if (
+            player.classList.contains(
+                "picker-open"
+            )
+        ) {
+
+            if (
+                event.key ===
+                "ArrowLeft"
+            ) {
+
+                moveToLesson(
+                    pickerIndex - 1
+                );
+
+            }
+
+
+            if (
+                event.key ===
+                "ArrowRight"
+            ) {
+
+                moveToLesson(
+                    pickerIndex + 1
+                );
+
+            }
+
+
+            if (
+                event.key ===
+                "Enter"
+            ) {
+
+                updateMainLesson(
+                    pickerIndex
+                );
+
+                closePicker();
+
+            }
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   RESIZE
+========================================================= */
+
+window.addEventListener(
+    "resize",
+    () => {
+
+        if (
+            player.classList.contains(
+                "picker-open"
+            )
+        ) {
+
+            moveToLesson(
+                pickerIndex,
+                false
+            );
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   INITIAL
+========================================================= */
+
+updateMainLesson(
+    currentLesson
+);
+
+updatePickerNumbers();
+
+</script>
+
+</body>
+</html>

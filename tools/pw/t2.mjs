@@ -1,0 +1,12 @@
+import { chromium, devices } from 'playwright';
+import { pathToFileURL } from 'url';
+const b=await chromium.launch(); const ctx=await b.newContext({...devices['iPhone 13']});
+const p=await ctx.newPage(); const cdp=await ctx.newCDPSession(p);
+p.on('console',m=>console.log('PAGE',m.text()));
+await p.goto(pathToFileURL('E:/Your English/index.html').href); await p.waitForTimeout(4500);
+await p.evaluate(()=>{['touchstart','touchmove','touchend','touchcancel','pointercancel'].forEach(t=>addEventListener(t,e=>{ if(t!=='touchmove'||!window.__m){console.log(t,e.cancelable,e.defaultPrevented, t.startsWith('touch')&&e.target.className||''); } if(t==='touchmove')window.__m=1},{capture:true,passive:true}));
+ const o=goStep; window.goStep=function(d){console.log('goStep',d,stepping,scrollY,JSON.stringify(snapYs().slice(0,3)),lockBoundY);return o(d)}; });
+const T=(type,x,y)=>cdp.send('Input.dispatchTouchEvent',{type,touchPoints:type==='touchEnd'?[]:[{x,y}]});
+await T('touchStart',200,600);for(let i=1;i<=8;i++){await T('touchMove',200,600-i*40);await p.waitForTimeout(16);}await T('touchEnd');
+await p.waitForTimeout(900); console.log('y',await p.evaluate(()=>scrollY));
+await b.close();

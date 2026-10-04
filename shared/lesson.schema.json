@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Reed lesson (hợp đồng dữ liệu giữa app học viên, admin và database)",
+  "type": "object",
+  "required": ["title", "template", "phrases"],
+  "properties": {
+    "title": { "type": "string", "minLength": 1 },
+    "level": { "type": "string", "default": "A1" },
+    "scene_key": { "type": "string" },
+    "template": { "type": "string", "description": "Câu chuyện có chỗ trống {0},{1}... mỗi chỗ ứng với 1 phrase.idx" },
+    "status": { "enum": ["draft", "published", "archived"], "default": "draft" },
+    "phrases": {
+      "type": "array", "minItems": 3, "maxItems": 8,
+      "items": {
+        "type": "object", "required": ["idx", "base", "upgrade"],
+        "properties": {
+          "idx": { "type": "integer", "minimum": 0 },
+          "base": { "type": "string" }, "upgrade": { "type": "string" },
+          "level": { "type": "string", "default": "A2" },
+          "vn": { "type": "string" }, "example": { "type": "string" }
+        }
+      }
+    }
+  },
+  "x-rules": [
+    "Mọi {n} trong template phải có phrase.idx = n, và ngược lại (kiểm tra trước khi xuất bản).",
+    "Spec v3: 3-4 cụm mục tiêu cho mỗi đoạn ~50 từ (hiện có bài 5-7 cụm, admin sẽ cảnh báo, không chặn)."
+  ]
+}

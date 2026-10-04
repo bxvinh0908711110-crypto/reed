@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Scroll Upgrade Vocabulary Demo</title>
+  <style>
+    body { font-family: -apple-system, sans-serif; background: #F9FAFB; display: flex; justify-content: center; padding: 50px; }
+    .card { background: #FFF; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); max-width: 520px; }
+    .passage { font-size: 1.25rem; line-height: 2.2; color: #374151; }
+    
+    /* Khung từ vựng trượt cuộn */
+    .vocab-wheel {
+      display: inline-flex;
+      align-items: center;
+      position: relative;
+      vertical-align: middle;
+      background: #FEF3C7;
+      color: #92400E;
+      padding: 2px 10px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: ns-resize; /* Con trỏ hình mũi tên lên/xuống */
+      user-select: none;
+      transition: all 0.25s ease;
+      overflow: hidden;
+      height: 1.6em;
+      border: 1.5px solid #F59E0B;
+    }
+    
+    .vocab-wheel:hover {
+      background: #FDE68A;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+    }
+    
+    /* Đổi màu theo cấp độ */
+    .vocab-wheel.b1 { background: #D1FAE5; color: #065F46; border-color: #10B981; }
+    .vocab-wheel.b2 { background: #A7F3D0; color: #047857; border-color: #059669; }
+
+    .wheel-container {
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .wheel-item {
+      height: 1.6em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .badge {
+      font-size: 0.65rem;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-weight: 800;
+      background: rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="passage">
+    On weekends, I usually 
+    
+    <!-- Từ vựng 1 (Có thể lăn chuột) -->
+    <span class="vocab-wheel" onwheel="handleWheel(event, this)">
+      <span class="wheel-container" data-index="0">
+        <span class="wheel-item"><span class="badge">A1</span>go out with</span>
+        <span class="wheel-item"><span class="badge">B1</span>hang out with</span>
+        <span class="wheel-item"><span class="badge">B2</span>socialize with</span>
+      </span>
+    </span>
+    
+    my friends, 
+    
+    <!-- Từ vựng 2 (Có thể lăn chuột) -->
+    <span class="vocab-wheel" onwheel="handleWheel(event, this)">
+      <span class="wheel-container" data-index="0">
+        <span class="wheel-item"><span class="badge">A1</span>watch a movie</span>
+        <span class="wheel-item"><span class="badge">B1</span>enjoy a good film</span>
+        <span class="wheel-item"><span class="badge">B2</span>catch a blockbuster</span>
+      </span>
+    </span>,
+    
+    or have coffee.
+  </div>
+</div>
+
+<script>
+  function handleWheel(e, el) {
+    e.preventDefault(); // Ngăn cuộn trang web
+    const container = el.querySelector('.wheel-container');
+    const totalItems = container.children.length;
+    let currentIndex = parseInt(container.getAttribute('data-index') || 0);
+
+    // Xử lý hướng lăn chuột (Lăn xuống -> Nâng cấp B1/B2, Lăn lên -> Trở về A1)
+    if (e.deltaY > 0) {
+      currentIndex = Math.min(currentIndex + 1, totalItems - 1);
+    } else {
+      currentIndex = Math.max(currentIndex - 1, 0);
+    }
+
+    container.setAttribute('data-index', currentIndex);
+    container.style.transform = `translateY(-${currentIndex * 1.6}em)`;
+
+    // Cập nhật class màu sắc theo cấp độ
+    el.classList.remove('b1', 'b2');
+    if (currentIndex === 1) el.classList.add('b1');
+    if (currentIndex === 2) el.classList.add('b2');
+  }
+</script>
+
+</body>
+</html>
