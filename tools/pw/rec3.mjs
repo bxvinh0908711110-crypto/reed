@@ -10,8 +10,11 @@ for(const [name,opts] of [['mobile',{...devices['iPhone 13']}],['desktop',{viewp
   const st=()=>p.evaluate(()=>({state:Rec.state,mic:document.querySelector('#micBtn').className,player:document.querySelector('#player').className,sheet:document.querySelector('#recSheet').hidden}));
   const clip=async f=>p.screenshot({path:`shots/r3_${name}_${f}.png`,clip:{x:0,y:p.viewportSize().height-100,width:p.viewportSize().width,height:100}});
   await clip('0'); await p.click('#micBtn'); await p.waitForTimeout(2200); console.log(name,'recording ->',JSON.stringify(await st())); await clip('1');
-  await p.click('#player .play'); await p.waitForTimeout(500); console.log(name,'after stop ->',JSON.stringify(await st())); await clip('2');
-  await p.click('#micBtn'); await p.waitForTimeout(300); console.log(name,'tap while playing (stop) ->',(await st()).mic);
+  await p.click('#player .play'); await p.waitForTimeout(500); console.log(name,'after stop ->',JSON.stringify(await st()),await p.evaluate(()=>[document.querySelector('#recSheet').className,document.querySelector('.rmine').className])); await p.screenshot({path:`shots/r3_${name}_pill.png`,clip:{x:0,y:p.viewportSize().height-190,width:p.viewportSize().width,height:190}}); await clip('2');
+  await p.click('#micBtn'); await p.waitForTimeout(300); console.log(name,'tap while playing (stop) ->',(await st()).mic,'pill still open:',!(await st()).sheet);
+  await p.click('#recSheet .rmodel'); await p.waitForTimeout(500); console.log(name,'model btn ->',await p.evaluate(()=>[document.querySelector('.rmodel').className,document.querySelector('#micBtn').className])); await p.click('#recSheet .rmodel'); await p.waitForTimeout(200);
+  await p.click('#recSheet .rmine'); await p.waitForTimeout(500); console.log(name,'mine btn ->',await p.evaluate(()=>[document.querySelector('.rmine').className])); await p.click('#recSheet .rmine'); await p.waitForTimeout(200);
+  await p.click('#recSheet .rdone'); await p.waitForTimeout(500); console.log(name,'Xong -> closed:',(await st()).sheet || await p.evaluate(()=>!document.querySelector('#recSheet').classList.contains('on')));
   await clip('3');
   await p.mouse.move(0,0); await p.waitForTimeout(300);
   await p.click('#micBtn'); await p.waitForTimeout(1200); console.log(name,'tap = re-record ->',(await st()).state);
