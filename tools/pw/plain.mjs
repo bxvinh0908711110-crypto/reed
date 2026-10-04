@@ -1,0 +1,10 @@
+import { chromium, devices } from 'playwright'; import http from 'http'; import fs from 'fs';
+const types={'.svg':'image/svg+xml','.html':'text/html'};
+const srv=http.createServer((q,r)=>{const u=decodeURIComponent(q.url.split('?')[0]).replace(/^\//,'');try{const e=u.slice(u.lastIndexOf('.'));if(types[e])r.setHeader('Content-Type',types[e]);r.end(fs.readFileSync('E:/Your English/'+u))}catch{r.statusCode=404;r.end()}}).listen(8792);
+const b=await chromium.launch(); const ctx=await b.newContext({...devices['iPhone 13']}); await ctx.route('**/*supabase.co/**',r=>r.abort());
+const p=await ctx.newPage(); await p.goto('http://localhost:8792/index.html'); await p.waitForTimeout(5500);
+await p.click('#topics button[data-k="tech"]'); await p.waitForTimeout(1000);
+console.log(await p.evaluate(()=>P[0].sents.map(s=>s.recap?'recap':(s.idx.length?'phrase':'PLAIN')).join(',')));
+await p.evaluate(()=>{const pp=P[0];const s=pp.sents[pp.sents.length-2];scrollTo(0,pp.el.getBoundingClientRect().top+scrollY+(s.lo+s.hi)/2)}); await p.waitForTimeout(1200);
+await p.screenshot({path:'shots/plain.png',clip:{x:0,y:90,width:390,height:420}});
+await b.close(); srv.close();

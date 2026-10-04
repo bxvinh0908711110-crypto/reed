@@ -8,8 +8,8 @@ const texts = new Set();
 for (const p of ALL) {
   const raw = p.tpl.split(/(?<=[.!?])\s+/).map(t => ({ tpl: t, idx: [...t.matchAll(/\{(\d)\}/g)].map(m => +m[1]) }));
   const slides = []; let pending = [];
-  raw.forEach(t => { if (!t.idx.length) pending.push(t); else { slides.push({ lines: [...pending, t] }); pending = []; } });
-  if (pending.length) { if (slides.length) slides[slides.length - 1].lines.push(...pending); else slides.push({ lines: pending }); }
+  raw.forEach(t => { if (!t.idx.length) pending.push(t); else { if (pending.length) { slides.push({ lines: pending }); pending = []; } slides.push({ lines: [t] }); } });
+  if (pending.length) slides.push({ lines: pending });
   const word = (i, up) => up ? p.hl[i].u : p.hl[i].o;
   for (const sl of slides) {
     const idx = sl.lines.flatMap(l => l.idx), joined = sl.lines.map(l => l.tpl).join(' ');
