@@ -9,9 +9,9 @@ for(const [name,opts] of [['mobile',{...devices['iPhone 13']}],['desktop',{viewp
   console.log(name,'welcome open:',await p.evaluate(()=>[Tour.welcomeOpen,!document.querySelector('#welcome').hidden])); await p.screenshot({path:`shots/wel_${name}.png`});
   await p.mouse.wheel(0,500); await p.waitForTimeout(500); console.log(name,'gesture blocked:',await p.evaluate(()=>scrollY===0));
   await p.click('#welcome .w1'); await p.waitForTimeout(1500);
-  for(let n=1;n<=6;n++){ await p.waitForTimeout(900);
+  for(let n=1;n<=8;n++){ await p.waitForTimeout(900);
     const o=await p.evaluate(()=>{const a=document.querySelector('#tourArrow');const d=a.querySelector('.ta').getAttribute('d');return {n:document.querySelector('#tourCard .tn').textContent,arrow:a.classList.contains('on'),d:d.slice(0,40)}});
-    console.log(name,JSON.stringify(o)); await p.screenshot({path:`shots/tour2_${name}_${n}.png`}); if(n<6) await p.click('#tourCard .tg2'); }
+    console.log(name,JSON.stringify(o)); await p.screenshot({path:`shots/tour2_${name}_${n}.png`}); if(n<8) await p.click('#tourCard .tg2'); }
   await p.click('#tourCard .tg2'); await p.waitForTimeout(700);
   console.log(name,'done:',await p.evaluate(()=>[Tour.active,localStorage.getItem('reed_tour_done'),document.querySelector('#tourArrow').hidden]),'errors',errs);
   await ctx.close();
