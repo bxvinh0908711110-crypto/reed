@@ -1,0 +1,22 @@
+import { chromium, devices } from 'playwright'; import http from 'http'; import fs from 'fs';
+const srv = http.createServer((q, r) => { const f = 'E:/Your English/' + decodeURIComponent(q.url.split('?')[0]).replace(/^\//, ''); try { r.end(fs.readFileSync(f)); } catch { r.statusCode = 404; r.end(); } }).listen(8779);
+const b = await chromium.launch();
+const run = async (label, ctxOpts) => {
+  const ctx = await b.newContext(ctxOpts); const p = await ctx.newPage();
+  const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('console', m => m.type() === 'error' && errs.push(m.text()));
+  await p.goto('http://localhost:8779/index.html'); await p.waitForTimeout(5500);
+  console.log(label, 'errors:', errs.slice(0, 3), 'lessons in topic:', await p.evaluate(() => [curTopic, passages.length]));
+  await p.screenshot({ path: `tools/pw/shots/hero_${label}.png` });
+  await p.click('#topics button[data-k="school"]'); await p.waitForTimeout(900);
+  console.log(' after school:', await p.evaluate(() => [curTopic, passages.length, passages[0].topic, Math.round(scrollY), document.querySelectorAll('.passage').length]));
+  await p.screenshot({ path: `tools/pw/shots/school_${label}.png` });
+  await p.evaluate(() => scrollTo(0, 0)); await p.waitForTimeout(500);
+  await p.click('#topics button[data-k="work"]'); await p.waitForTimeout(400);
+  console.log(' work (soon) toast:', await p.evaluate(() => [document.querySelector('#toast').className, document.querySelector('#toast').textContent, curTopic]));
+  await p.click('#topics button[data-k="family"]'); await p.waitForTimeout(900);
+  console.log(' after family:', await p.evaluate(() => [curTopic, passages[0].topic, unlockedCount, Math.round(scrollY)]), 'errors:', errs.slice(0, 3));
+  await ctx.close();
+};
+await run('desktop', { viewport: { width: 1280, height: 800 } });
+await run('mobile', { ...devices['iPhone 13'] });
+await b.close(); srv.close();

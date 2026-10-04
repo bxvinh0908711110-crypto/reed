@@ -77,8 +77,22 @@ body{margin:0;background:var(--bg);color:var(--ink);
 .foot .sv[hidden]{display:none}
 
 /* ---- Hero ---- */
-.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:0 6vw;position:relative}
+.hero{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;justify-content:center;padding:0 6vw;position:relative}
 .hero h1{font-size:clamp(40px,8vw,120px);line-height:1.02;letter-spacing:-.045em;font-weight:800;margin:0 0 28px;max-width:11em}
+ .hero .rot{display:inline-block;padding:0 .12em;border-radius:.14em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+#rotWord{display:inline-block;transition:opacity .28s ease,transform .28s ease}
+#rotWord.out{opacity:0;transform:translateY(.25em)}
+.topics{display:flex;gap:8px;margin-top:28px;padding:9px;background:var(--leaf);border-radius:999px;width:max-content;max-width:100%;
+  overflow-x:auto;scrollbar-width:none;touch-action:pan-x;-webkit-overflow-scrolling:touch}
+.topics::-webkit-scrollbar{display:none}
+.topics button{flex:0 0 auto;display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border:0;border-radius:999px;background:#fff;color:var(--ink);
+  font:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .2s ease,color .2s ease,transform .15s ease}
+.topics button:active{transform:scale(.95)}
+.topics button[aria-pressed=true]{background:var(--accent);color:#fff}
+.topics button[data-soon]{opacity:.55}
+.toast{position:fixed;z-index:70;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 100px);transform:translate(-50%,8px);padding:10px 16px;border-radius:999px;
+  background:#0b0b0b;color:#fff;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease;white-space:nowrap}
+.toast.on{opacity:1;transform:translate(-50%,0)}
 .hero p{font-size:clamp(16px,1.6vw,22px);color:var(--muted);max-width:30em;margin:0;line-height:1.5}
 .cue{position:absolute;left:6vw;bottom:9vh;font-size:14px;color:var(--muted);letter-spacing:.06em;animation:bob 1.8s ease-in-out infinite}
 @keyframes bob{50%{transform:translateY(8px)}}
@@ -337,10 +351,13 @@ body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webki
 </aside>
 
 <section class="hero">
-  <h1>Scroll down to <span class="ph2" style="color:var(--accent);background:var(--leaf)">sound more natural</span></h1>
-  <p>Each lesson is an everyday situation, split into short sentences. As you scroll, simple words slowly turn into more natural ones.</p>
-  <div class="cue">SCROLL ↓</div>
+  <i class="snap" style="top:0"></i>
+  <h1>You read to<br><span class="ph2 rot" style="color:var(--accent);background:var(--leaf)"><span id="rotWord">speak</span> better.</span></h1>
+  <p>Each lesson is an everyday situation, split into short sentences. As you read, simple words slowly turn into more natural ones.</p>
+  <nav class="topics" id="topics" aria-label="Topics"></nav>
+  <div class="cue">PICK A TOPIC, THEN SCROLL ↓</div>
 </section>
+<div id="toast" class="toast" role="status"></div>
 
 <main id="main"></main>
 
@@ -419,8 +436,8 @@ family:`<svg class="scene" viewBox="0 0 400 200" role="img" aria-label="Family i
 </svg>`
 };
 
-const passages = (window.__PASSAGES&&window.__PASSAGES.length) ? window.__PASSAGES : [
-{ id:1, topic:"My Hobbies", level:"A1", scene:"hobbies",
+const ALL = (window.__PASSAGES&&window.__PASSAGES.length) ? window.__PASSAGES : [
+{ id:1, topic:"My Hobbies", level:"A1", scene:"hobbies", cat:"lifestyle",
   tpl:"My name is Anna and I have {0} hobbies. In my {1} time, I {2} listening to music and reading books. On the weekend, I usually play football with my friends in the park. I also like {3} food for my family. {4} makes me happy and relaxed after a busy day.",
   hl:[
    {o:"many",u:"a lot of",lv:"A2",vn:"a more natural way to say 'many'",ex:"I have a lot of homework today."},
@@ -429,7 +446,7 @@ const passages = (window.__PASSAGES&&window.__PASSAGES.length) ? window.__PASSAG
    {o:"cooking good",u:"making delicious",lv:"A2",vn:"a tastier way to describe good food",ex:"She is making delicious cookies."},
    {o:"It",u:"All of this",lv:"A2",vn:"refers to everything just mentioned",ex:"All of this makes me feel calm."}
   ]},
-{ id:2, topic:"Going to School", level:"A1", scene:"school",
+{ id:2, topic:"Going to School", level:"A1", scene:"school", cat:"school",
   tpl:"I go to school {0}. I get up early in the morning and {1} a big breakfast. {2} I walk to school with my friend. My school is {3} my house. I like my classes and my teachers. School is {4} every day.",
   hl:[
    {o:"from Monday to Friday",u:"on weekdays",lv:"A2",vn:"a shorter way to say the five working days",ex:"The shop is open on weekdays."},
@@ -438,7 +455,7 @@ const passages = (window.__PASSAGES&&window.__PASSAGES.length) ? window.__PASSAG
    {o:"near",u:"not far from",lv:"A2",vn:"a softer way to say something is close",ex:"The park is not far from here."},
    {o:"fun",u:"enjoyable",lv:"A2",vn:"a more grown-up way to say 'fun'",ex:"The trip was very enjoyable."}
   ]},
-{ id:3, topic:"My Family", level:"A1", scene:"family",
+{ id:3, topic:"My Family", level:"A1", scene:"family", cat:"family",
   tpl:"I live with {0}, and {1} in a nice house. My dad {2}, and my mom {3}. Every evening, we {4} together in the living room and {5} about our day. I love my family {6}.",
   hl:[
    {o:"my mom and dad",u:"my parents",lv:"A2",vn:"a single word for mother and father together",ex:"My parents live in Hanoi."},
@@ -450,6 +467,17 @@ const passages = (window.__PASSAGES&&window.__PASSAGES.length) ? window.__PASSAG
    {o:"very much",u:"so much",lv:"A2",vn:"a warmer way to say 'very much'",ex:"I miss you so much."}
   ]}
 ];
+/* ---------- Chủ đề (topic): thanh chọn ở trang đầu; mỗi chủ đề có tiến trình mở khoá riêng ---------- */
+const TOPICS=[
+  {k:"family",label:"Family",icon:'<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'},
+  {k:"friends",label:"Friends",icon:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>'},
+  {k:"school",label:"School",icon:'<path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/>'},
+  {k:"work",label:"Work",icon:'<path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/>'},
+  {k:"lifestyle",label:"Lifestyle",icon:'<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>'},
+  {k:"health",label:"Health",icon:'<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/>'},
+  {k:"tech",label:"Tech",icon:'<path d="M18 5a2 2 0 0 1 2 2v8.526a2 2 0 0 0 .212.897l1.068 2.127a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45l1.068-2.127A2 2 0 0 0 4 15.526V7a2 2 0 0 1 2-2z"/><path d="M20.054 15.987H3.946"/>'}
+];
+let passages=[], curTopic="family";
 
 /* Chưa có phương án nâng cấp phụ cho vòng demo này (chỉ 1 mức A1 -> A2 theo yêu cầu) */
 const EXTRA = {};
@@ -468,7 +496,7 @@ const ease=x=>{x=clamp((x-.3)/.4);return x*x*(3-2*x)};   /* giữ yên ở hai �
 const UNIT=.45, RAMP=.3;                                   /* đơn vị cuộn = 45% chiều cao màn hình */
 
 /* ---------- Tách bài thành từng câu ---------- */
-const P = passages.map((p,pi)=>{
+function makeP(){ return passages.map((p,pi)=>{
   const raw = p.tpl.split(/(?<=[.!?])\s+/).map(t=>{
     const idx=[...t.matchAll(/\{(\d)\}/g)].map(m=>+m[1]);
     const steps=idx.map(i=>opts(pi,i).length-1);
@@ -489,9 +517,8 @@ const P = passages.map((p,pi)=>{
   });
   sents.push({recap:true,weight:2.2,idx:[],steps:[],total:0});
   return {sents};
-});
-const F = passages.map(()=>({}));       /* vị trí (số lẻ) hiện tại của từng cụm */
-const recapMode = passages.map(()=> "up");
+}); }
+let P=[], F=[], recapMode=[];   /* F: vị trí (số lẻ) hiện tại của từng cụm */
 
 /* ---------- Dựng giao diện ---------- */
 const recapHTML=(pi,mode)=>passages[pi].tpl.replace(/\{(\d)\}/g,(_,i)=>{
@@ -591,12 +618,12 @@ let active={pi:0,si:0}, live=[], raf=0, lastT=0;
 
 /* ---------- Mở khóa bài theo tiến trình: cuộn hết 1 bài (tới trang tổng kết) mới mở bài kế tiếp,
    tránh việc cuộn ào ào bỏ qua bài. Trạng thái lưu localStorage nên lần sau vào lại không bị khoá lại. */
-const UNLOCK_KEY="reed_unlocked";
+const UNLOCK_KEY=()=>"reed_unlocked_"+curTopic;
 function loadUnlocked(){
-  try{ const n=+localStorage.getItem(UNLOCK_KEY); return n>=1?Math.min(n,passages.length):1; }catch(e){ return 1; }
+  try{ const n=+localStorage.getItem(UNLOCK_KEY()); return n>=1?Math.min(n,passages.length):1; }catch(e){ return 1; }
 }
-let unlockedCount=loadUnlocked(), lockBoundY=Infinity;
-function saveUnlocked(){ try{ localStorage.setItem(UNLOCK_KEY,String(unlockedCount)); }catch(e){} }
+let unlockedCount=1, lockBoundY=Infinity;
+function saveUnlocked(){ try{ localStorage.setItem(UNLOCK_KEY(),String(unlockedCount)); }catch(e){} }
 function refreshLocks(){
   P.forEach((pp,pi)=>{
     const locked=pi>=unlockedCount;
@@ -610,6 +637,14 @@ function refreshLocks(){
 }
 function unlockUpTo(n){
   if(n>unlockedCount && n<=passages.length){ unlockedCount=n; saveUnlocked(); refreshLocks(); }
+}
+function fadeJump(getY){
+  let ov=$("#fadeOv");
+  if(!ov){ ov=document.createElement("div"); ov.id="fadeOv";
+    ov.style.cssText="position:fixed;inset:0;z-index:30;pointer-events:none;opacity:0;transition:opacity .14s ease;background:var(--bg)";
+    document.body.appendChild(ov); }
+  ov.style.opacity=1;
+  setTimeout(()=>{ scrollTo(0,getY()); requestAnimationFrame(()=>requestAnimationFrame(()=>{ ov.style.opacity=0; })); },150);
 }
 function jumpToLesson(pi){
   if(pi<0||pi>=unlockedCount) return;
@@ -792,11 +827,12 @@ function goStep(dir){
     else { scrollTo(0,t); stepping=false; }
   })(t0);
 }
-function ownScroller(el){
+function ownScroller(el,axis){   /* axis "xy": cảm ứng (cả cuộn ngang); mặc định chỉ cuộn dọc (lăn chuột) */
   for(;el&&el.nodeType===1&&el!==document.body;el=el.parentElement){
     if(el.closest&&el.id==="player") return true;
-    const o=getComputedStyle(el).overflowY;
+    const cs=getComputedStyle(el), o=cs.overflowY;
     if((o==="auto"||o==="scroll")&&el.scrollHeight>el.clientHeight+1) return true;
+    if(axis==="xy"&&(cs.overflowX==="auto"||cs.overflowX==="scroll")&&el.scrollWidth>el.clientWidth+1) return "x";
   }
   return false;
 }
@@ -807,11 +843,14 @@ addEventListener("wheel",e=>{
   if(wheelLocked||Math.abs(e.deltaY)<3) return;
   wheelLocked=true; goStep(e.deltaY>0?1:-1);
 },{passive:false});
-let tY=null, tX=0, tOwn=false, swipeAt=0;
+let tY=null, tX=0, tOwn=false, swipeAt=0, hOwn=false;
 /* iOS vẫn có thể bắn "click" sau khi vuốt: nuốt nó để không đổi từ/cuộn ngược ngoài ý muốn */
 document.addEventListener("click",e=>{ if(performance.now()-swipeAt<600){ e.stopImmediatePropagation(); e.preventDefault(); } },true);
-addEventListener("touchstart",e=>{ tY=e.touches[0].clientY; tX=e.touches[0].clientX; tOwn=ownScroller(e.target); },{passive:true});
-addEventListener("touchmove",e=>{ if(!tOwn && tY!==null && e.cancelable) e.preventDefault(); },{passive:false});
+addEventListener("touchstart",e=>{ tY=e.touches[0].clientY; tX=e.touches[0].clientX; const o=ownScroller(e.target,"xy"); tOwn=!!o; hOwn=o==="x"; },{passive:true});
+addEventListener("touchmove",e=>{
+  if(tOwn&&hOwn&&tY!==null){ const dy=Math.abs(e.touches[0].clientY-tY), dx=Math.abs(e.touches[0].clientX-tX); if(dy>dx+6){ tOwn=false; hOwn=false; } }   /* bắt đầu trên thanh chủ đề nhưng vuốt dọc → vẫn chuyển bước */
+  if(!tOwn && tY!==null && e.cancelable) e.preventDefault();
+},{passive:false});
 addEventListener("touchend",e=>{
   if(tY===null||tOwn){ tY=null; return; }
   const dy=tY-e.changedTouches[0].clientY, dx=tX-e.changedTouches[0].clientX; tY=null;
@@ -1196,7 +1235,33 @@ $("#rate").addEventListener("click",e=>{const b=e.target.closest("button");if(!b
   [...$("#rate").children].forEach(x=>x.setAttribute("aria-pressed",x===b))});
 
 /* ---------- Khởi động ---------- */
-build(); buildPlayer(); layout(); measure(); movePills(); update();
+(function(){
+  const w=$("#rotWord"), words=["speak","write","listen","learn"]; let i=0;
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  setInterval(()=>{ w.classList.add("out"); setTimeout(()=>{ i=(i+1)%words.length; w.textContent=words[i]; w.classList.remove("out"); },280); },2400);
+})();
+const hasLessons=k=>ALL.some(p=>p.cat===k);
+function setTopic(k,jump){
+  curTopic=k; try{localStorage.setItem("reed_topic",k)}catch(e){}
+  passages=ALL.filter(p=>p.cat===k);
+  P=makeP(); F=passages.map(()=>({})); recapMode=passages.map(()=>"up");
+  unlockedCount=loadUnlocked(); active={pi:0,si:0}; live=[];
+  build(); buildPlayer(); layout(); measure(); movePills(); update();
+  document.querySelectorAll("#topics button").forEach(b=>{ b.setAttribute("aria-pressed",b.dataset.k===k); });
+  if(jump) fadeJump(()=>{ const pp=P[0]; return pp.el.getBoundingClientRect().top+scrollY+pp.sents[0].lo; });
+}
+(function initTopics(){
+  const bar=$("#topics"), toast=$("#toast"); let tt=0;
+  bar.innerHTML=TOPICS.map(t=>`<button type="button" data-k="${t.k}" aria-pressed="false"${hasLessons(t.k)?"":' data-soon="1"'}><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${t.icon}</svg><span>${t.label}</span></button>`).join("");
+  bar.addEventListener("click",e=>{
+    const b=e.target.closest("button"); if(!b) return;
+    if(b.dataset.soon){ toast.textContent=b.textContent+" lessons are coming soon"; toast.classList.add("on"); clearTimeout(tt); tt=setTimeout(()=>toast.classList.remove("on"),1800); return; }
+    setTopic(b.dataset.k,true);
+  });
+  let saved=null; try{saved=localStorage.getItem("reed_topic")}catch(e){}
+  const first=TOPICS.find(t=>hasLessons(t.k));
+  setTopic(saved&&hasLessons(saved)?saved:(first?first.k:"family"),false);
+})();
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{layout();measure();movePills();update()});
 /* Kích thước trang thay đổi rất nhiều khi layout() vừa chạy xong (thanh cuộn có thể xuất hiện),
    nên đo lại một lần nữa sau khi trình duyệt đã ổn định bố cục để tránh sai lệch nhỏ về độ rộng chữ. */
@@ -1207,15 +1272,18 @@ requestAnimationFrame(()=>requestAnimationFrame(()=>{ layout(); measure(); moveP
 /* ---------- Nạp bài học: Supabase (có cache) → dự phòng dữ liệu nhúng sẵn trong app ---------- */
 (async function(){
   const SB="https://mmadhhjjfqnlhitklfep.supabase.co", KEY="sb_publishable_oHn1ilWP4TE7ICb2HLVOiA_FPwNz7oh", CK="reed_lessons_v1";
-  const q="/rest/v1/lessons?select=id,position,title,level,scene_key,template,version,phrases(idx,base,upgrade,level,vn,example)&status=eq.published&order=position";
-  const toPassages=rows=>rows.map(r=>({id:r.position,uid:r.id,version:r.version,topic:r.title,level:r.level||"A1",scene:r.scene_key,tpl:r.template,
+  const q=c=>"/rest/v1/lessons?select=id,position,title,level,scene_key,"+(c?"category,":"")+"template,version,phrases(idx,base,upgrade,level,vn,example)&status=eq.published&order=position";
+  const TITLE_CAT={"My Hobbies":"lifestyle","Going to School":"school","My Family":"family"};
+  const toPassages=rows=>rows.map(r=>({id:r.position,uid:r.id,version:r.version,topic:r.title,level:r.level||"A1",scene:r.scene_key,cat:r.category||TITLE_CAT[r.title]||"lifestyle",tpl:r.template,
     hl:(r.phrases||[]).sort((a,b)=>a.idx-b.idx).map(p=>({o:p.base,u:p.upgrade,lv:p.level||"A2",vn:p.vn||"",ex:p.example||""}))}));
   /* chỉ nhận bài hợp lệ: mọi {n} trong template phải có cụm tương ứng, và có ít nhất 1 cụm */
   const valid=p=>p.tpl&&p.hl.length&&[...p.tpl.matchAll(/\{(\d+)\}/g)].every(m=>+m[1]<p.hl.length)&&p.hl.length===new Set([...p.tpl.matchAll(/\{(\d+)\}/g)].map(m=>m[1])).size;
   let list=null;
   try{
     const ctrl=new AbortController(), t=setTimeout(()=>ctrl.abort(),3500);
-    const res=await fetch(SB+q,{headers:{apikey:KEY},signal:ctrl.signal}); clearTimeout(t);
+    let res=await fetch(SB+q(true),{headers:{apikey:KEY},signal:ctrl.signal});
+    if(res.status===400) res=await fetch(SB+q(false),{headers:{apikey:KEY},signal:ctrl.signal});   /* cột category chưa tạo → vẫn nạp được */
+    clearTimeout(t);
     if(res.ok){ const rows=await res.json(); const ps=toPassages(rows).filter(valid); if(ps.length){ list=ps; try{localStorage.setItem(CK,JSON.stringify(ps))}catch(e){} } }
   }catch(e){}
   if(!list){ try{ const c=JSON.parse(localStorage.getItem(CK)||"null"); if(Array.isArray(c)&&c.length) list=c; }catch(e){} }
