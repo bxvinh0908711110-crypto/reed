@@ -3,6 +3,7 @@
 import fs from 'fs';
 const h = fs.readFileSync('E:/Your English/index.html', 'utf8');
 const ALL = new Function('return ' + h.match(/const ALL = [^\n]*: (\[[\s\S]*?\n\]);/)[1])();
+ALL.push(new Function('return ' + h.match(/const PRACTICE=(\{[\s\S]*?\n  \]\});/)[1])());   // bài tập làm
 const AUDIO = JSON.parse(h.match(/const AUDIO=(\{[^\n]*\});/)[1]);
 const texts = new Set();
 for (const p of ALL) {
