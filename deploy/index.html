@@ -134,6 +134,23 @@ body{margin:0;background:var(--bg);color:var(--ink);
   transition:left .38s cubic-bezier(.2,.8,.2,1),top .38s cubic-bezier(.2,.8,.2,1),width .38s cubic-bezier(.2,.8,.2,1),height .38s cubic-bezier(.2,.8,.2,1),border-radius .3s}
 .tourSpot::after{content:"";position:absolute;inset:-5px;border-radius:inherit;border:2px solid rgba(228,255,164,.9);animation:tourPulse 1.6s ease-in-out infinite}
 @keyframes tourPulse{0%,100%{opacity:.9;transform:scale(1)}50%{opacity:.25;transform:scale(1.03)}}
+.tourArrow{position:fixed;inset:0;width:100%;height:100%;z-index:81;pointer-events:none;overflow:visible;fill:none;stroke:#e4ffa4;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.35));opacity:0;transition:opacity .3s ease .12s}
+.tourArrow.on{opacity:1}
+.welcome{position:fixed;inset:0;z-index:85;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(8,10,28,.58);
+  opacity:0;transition:opacity .3s ease}
+.welcome.on{opacity:1}
+.welcome[hidden]{display:none}
+.welcome .wc{width:min(380px,100%);background:#fff;border-radius:24px;padding:26px 24px 22px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.4);
+  transform:translateY(12px) scale(.97);transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.welcome.on .wc{transform:none}
+.welcome .wi{font-size:38px;line-height:1;margin-bottom:10px}
+.welcome h3{margin:0 0 8px;font-size:21px;font-weight:800;letter-spacing:-.02em}
+.welcome p{margin:0 0 20px;color:#55514c;font-size:15px;line-height:1.55}
+.welcome .wb{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.welcome .wb button{flex:1 1 120px;font:inherit;font-size:15px;font-weight:700;border-radius:999px;padding:12px 18px;cursor:pointer;border:1.5px solid #0b0b0b;background:#fff;color:#0b0b0b}
+.welcome .wb .w1{background:var(--accent);border-color:var(--accent);color:#fff}
+@media (prefers-reduced-motion:reduce){.welcome,.welcome .wc,.tourArrow{transition:none}}
 .tourCard{position:fixed;z-index:81;left:0;top:0;width:min(360px,calc(100vw - 24px));padding:16px 18px 14px;border-radius:20px;background:#fff;color:#0b0b0b;
   box-shadow:0 18px 44px rgba(0,0,0,.35);opacity:0;transform:translateY(8px);transition:opacity .25s ease,transform .25s ease,left .38s cubic-bezier(.2,.8,.2,1),top .38s cubic-bezier(.2,.8,.2,1)}
 .tourCard.on{opacity:1;transform:none}
@@ -425,6 +442,12 @@ body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webki
 <div id="toast" class="toast" role="status"></div>
 <div id="tourBlock" class="tourBlock" hidden></div>
 <div id="tourSpot" class="tourSpot" hidden></div>
+<svg id="tourArrow" class="tourArrow" hidden aria-hidden="true"><path class="ta" d=""/><path class="th" d=""/></svg>
+<div id="welcome" class="welcome" hidden role="dialog" aria-modal="true" aria-labelledby="wTitle">
+  <div class="wc"><div class="wi">👋</div><h3 id="wTitle">Chào mừng đến Reed</h3>
+    <p>Học tiếng Anh qua những câu ngắn mỗi ngày. Bạn có muốn xem hướng dẫn nhanh (khoảng 30 giây) không?</p>
+    <div class="wb"><button class="w2" type="button">Đã hiểu</button><button class="w1" type="button">Xem hướng dẫn</button></div></div>
+</div>
 <div id="tourCard" class="tourCard" role="dialog" aria-live="polite" hidden>
   <div class="th"><span class="tn"></span><button class="tk" type="button">Bỏ qua</button></div>
   <div class="tt"></div>
@@ -1002,7 +1025,7 @@ function renderSave(pp,pi,i,h){
 let stepping=false, wheelQuietT=0, wheelLocked=false;
 function snapYs(){ return [...document.querySelectorAll(".snap")].map(e=>e.getBoundingClientRect().top+scrollY).sort((a,b)=>a-b); }
 function goStep(dir){
-  if(stepping||(typeof Tour!=="undefined"&&Tour.active)) return;
+  if(stepping||(typeof Tour!=="undefined"&&(Tour.active||Tour.welcomeOpen))) return;
   const ys=snapYs(), y=scrollY;
   const t = dir>0 ? ys.find(v=>v>y+2) : [...ys].reverse().find(v=>v<y-2);
   if(t===undefined || (dir>0 && t>lockBoundY+1)) return;
@@ -1482,7 +1505,7 @@ const Tips=(function(){
     if(t.ring) a.classList.add("tip-ring");
   }
   function blocked(){
-    return paused||(typeof Practice!=="undefined"&&Practice.active)||(typeof Tour!=="undefined"&&Tour.active)||document.hidden||stepping||switching||!P.length||
+    return paused||(typeof Practice!=="undefined"&&Practice.active)||(typeof Tour!=="undefined"&&(Tour.active||Tour.welcomeOpen))||document.hidden||stepping||switching||!P.length||
       $("#reed-splash")&&getComputedStyle($("#reed-splash")).display!=="none"||
       player.classList.contains("picker-open")||player.classList.contains("settings")||
       !$("#notebook").hidden;
@@ -1608,18 +1631,34 @@ const Tour=(function(){
     spot.style.left=x+"px"; spot.style.top=y+"px"; spot.style.width=w+"px"; spot.style.height=h+"px";
     spot.style.borderRadius=(st.r===999?Math.min(w,h)/2:st.r)+"px";
     const cw=card.offsetWidth, ch=card.offsetHeight, W=innerWidth, H=innerHeight;
-    let top = (y+h/2 > H*.55) ? y-ch-18 : y+h+18;
-    if(top<10) top=y+h+18; if(top+ch>H-10) top=Math.max(10,y-ch-18);
-    if(top<10) top=Math.min(H-ch-10,y+h+18);   /* mục tiêu quá lớn: đặt thẻ ở mép dưới */
+    const G=46;   /* khoảng trống giữa thẻ và vùng nổi: chỗ cho mũi tên */
+    let top = (y+h/2 > H*.55) ? y-ch-G : y+h+G;
+    if(top<10) top=y+h+G; if(top+ch>H-10) top=Math.max(10,y-ch-G);
+    if(top<10) top=Math.min(H-ch-10,y+h+G);   /* mục tiêu quá lớn: đặt thẻ ở mép dưới */
     let left=x+w/2-cw/2; left=Math.max(12,Math.min(W-cw-12,left));
     card.style.left=left+"px"; card.style.top=top+"px";
+    arrow(left,top,cw,ch,x,y,w,h);
+  }
+  /* Mũi tên cong từ thẻ chỉ vào vùng được làm nổi (như demo) */
+  const arr=$("#tourArrow"), pA=arr.querySelector(".ta"), pH=arr.querySelector(".th");
+  function arrow(cl,ct,cw,ch,x,y,w,h){
+    const cb=ct+ch, sb=y+h, cx0=x+w/2;
+    let sx,sy,ex,ey;
+    if(cb+10<=y){ sx=Math.max(cl+28,Math.min(cl+cw-28,cx0)); sy=cb+3; ex=Math.max(x+14,Math.min(x+w-14,cx0)); ey=y-9; }
+    else if(ct-10>=sb){ sx=Math.max(cl+28,Math.min(cl+cw-28,cx0)); sy=ct-3; ex=Math.max(x+14,Math.min(x+w-14,cx0)); ey=sb+9; }
+    else { arr.classList.remove("on"); return; }
+    const dir=(ex>=sx?-1:1), mx=(sx+ex)/2+dir*42, my=(sy+ey)/2;
+    pA.setAttribute("d","M"+sx+" "+sy+" Q"+mx+" "+my+" "+ex+" "+ey);
+    const a=Math.atan2(ey-my,ex-mx), L=11, o=.55;
+    pH.setAttribute("d","M"+(ex-L*Math.cos(a-o))+" "+(ey-L*Math.sin(a-o))+" L"+ex+" "+ey+" L"+(ex-L*Math.cos(a+o))+" "+(ey-L*Math.sin(a+o)));
+    arr.hidden=false; arr.classList.add("on");
   }
   function show(){
     const st=steps[i];
     if(st.go) st.go();
     nEl.textContent=(i+1)+"/"+steps.length; tEl.textContent=st.t;
     backB.hidden=i===0; tryB.hidden=!st.last; nextB.textContent=st.last?"Xong":"Tiếp"; skipB.hidden=!!st.last;
-    card.classList.remove("on");
+    card.classList.remove("on"); arr.classList.remove("on");
     setTimeout(()=>{ if(!api.active) return; /* chờ cuộn/dựng xong rồi mới đo */
       if(!(st.el&&st.el())){ if(i<steps.length-1){ i++; show(); } else end(true); return; }
       measure(); card.classList.add("on"); },60);
@@ -1627,7 +1666,7 @@ const Tour=(function(){
   function loop(){ if(!api.active) return; measure(); raf=requestAnimationFrame(loop); }
   function end(markDone){
     api.active=false; cancelAnimationFrame(raf);
-    blk.hidden=spot.hidden=card.hidden=true; card.classList.remove("on");
+    blk.hidden=spot.hidden=card.hidden=true; card.classList.remove("on"); arr.classList.remove("on"); arr.hidden=true;
     try{ localStorage.setItem(DONE,"1"); }catch(e){}
     try{ Tips.mark(["swipe","tap","listen","hold"]); }catch(e){}
     let saved=null; try{ saved=localStorage.getItem("reed_topic"); }catch(e){}
@@ -1652,11 +1691,22 @@ const Tour=(function(){
   addEventListener("keydown",e=>{ if(!api.active) return;
     if(e.key==="Escape") end(true); else if(e.key==="ArrowRight"||e.key==="Enter") nextB.click(); else if(e.key==="ArrowLeft") backB.click();
     e.preventDefault(); e.stopPropagation(); },true);
+  /* Hộp chào mừng ở lần vào đầu: "Xem hướng dẫn" hoặc "Đã hiểu" (không bắt người dùng đi tìm nút ?) */
+  const wel=$("#welcome"); api.welcomeOpen=false;
+  function welcomeHide(){ api.welcomeOpen=false; wel.classList.remove("on"); setTimeout(()=>{ wel.hidden=true; },300); }
+  api.welcome=function(){
+    if(api.active||api.welcomeOpen) return;
+    api.welcomeOpen=true; wel.hidden=false; requestAnimationFrame(()=>wel.classList.add("on"));
+    wel.querySelector(".w1").focus({preventScroll:true});
+  };
+  wel.querySelector(".w1").addEventListener("click",()=>{ welcomeHide(); setTimeout(()=>api.start(),320); });
+  wel.querySelector(".w2").addEventListener("click",()=>{ welcomeHide(); try{ localStorage.setItem(DONE,"1"); }catch(e){} });
+  addEventListener("keydown",e=>{ if(api.welcomeOpen&&e.key==="Escape"){ wel.querySelector(".w2").click(); } },true);
   api.maybeStart=function(){
     let d=false; try{ d=!!localStorage.getItem(DONE)||!!localStorage.getItem("reed_practice_done")||!!(JSON.parse(localStorage.getItem("reed_tips")||"{}").swipe_done); }catch(e){}
     if(d) return;
     const sp=$("#reed-splash"); let n=0;
-    const w=setInterval(()=>{ n++; if(!sp||getComputedStyle(sp).display==="none"||n>80){ clearInterval(w); if(!api.active) api.start(); } },250);
+    const w=setInterval(()=>{ n++; if(!sp||getComputedStyle(sp).display==="none"||n>80){ clearInterval(w); if(!api.active) api.welcome(); } },250);
   };
   return api;
 })();
