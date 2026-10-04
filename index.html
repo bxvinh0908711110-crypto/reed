@@ -167,9 +167,8 @@ body{margin:0;background:var(--bg);color:var(--ink);
   transition:background .2s ease,transform .15s ease}
 .player .mic:active{transform:scale(.9)}
 .player .mic .pl,.player .mic .bd{display:none}
-.player .mic.has .bd{display:flex;position:absolute;top:-5px;right:-5px;width:16px;height:16px;border-radius:50%;background:#d9ff73;color:#0b0b0b;align-items:center;justify-content:center;box-shadow:0 0 0 2.5px #090909}
-.player .mic.has .bd svg{width:9px;height:9px}
-.player .mic.has .mi{transform:translate(-1px,1px)}
+.player .mic.has .bd{display:block;position:absolute;top:2px;right:2px;width:10px;height:10px;border-radius:50%;background:#d9ff73;box-shadow:0 0 0 2.5px #090909}
+.player .mic.has .bd svg{display:none}
 .player .mic.playing{color:#d9ff73}
 .player .mic.playing .bd{display:none}
 .player .mic.playing .mi{display:none}
@@ -368,7 +367,7 @@ body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webki
 
 @media (max-width:480px){
   .player .mic{width:32px;height:32px;flex-basis:32px;margin-left:4px}
-  .player .mic.has .bd{width:15px;height:15px;top:-5px;right:-5px}
+  .player .mic.has .bd{width:9px;height:9px;top:1px;right:1px}
   .player .rl-text{font-size:12px}
   .player .rcancel2{padding:8px 14px;font-size:13px}
   .recSheet{bottom:calc(env(safe-area-inset-bottom,0px) + 86px);padding:8px 10px}
@@ -501,8 +500,7 @@ body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webki
   <div class="cue">SCROLL ↓</div>
 </section>
 <div id="toast" class="toast" role="status"></div>
-<div id="recSheet" class="recSheet" hidden role="dialog" aria-label="Nghe lại giọng đọc">
-  <div class="rst rev"><div class="rrow"><button class="rb rmine" type="button"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>Giọng bạn</button><button class="rb rmodel" type="button"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>Giọng mẫu</button><button class="rb rdone" type="button">Xong</button></div></div>
+<div id="recSheet" class="recSheet" hidden role="dialog" aria-label="Ghi âm">
   <div class="rst err"><span class="rerr"></span><button class="rb rdone" type="button">Đóng</button></div>
 </div>
 <div id="tourBlock" class="tourBlock" hidden></div>
@@ -1107,7 +1105,7 @@ let stepping=false, wheelQuietT=0, wheelLocked=false;
 function snapYs(){ return [...document.querySelectorAll(".snap")].map(e=>e.getBoundingClientRect().top+scrollY).sort((a,b)=>a-b); }
 function goStep(dir){
   if(stepping||(typeof Tour!=="undefined"&&(Tour.active||Tour.welcomeOpen))) return;
-  if(typeof Rec!=="undefined"&&Rec.open){ if(Rec.state==="recording") return; Rec.close(); }   /* đang ghi: dừng rồi mới sang bước khác */
+  if(typeof Rec!=="undefined"){ if(Rec.open){ if(Rec.state==="recording") return; Rec.close(); } else if(Rec.playing()) Rec.stopPlay(); }   /* đang ghi: dừng rồi mới sang bước khác */
   const ys=snapYs(), y=scrollY;
   const t = dir>0 ? ys.find(v=>v>y+2) : [...ys].reverse().find(v=>v<y-2);
   if(t===undefined || (dir>0 && t>lockBoundY+1)) return;
@@ -1706,7 +1704,7 @@ const Tour=(function(){
       {t:(coarse?"Chạm":"Bấm")+" vào cụm được tô sáng để đổi sang cách nói tự nhiên hơn (A1 → A2). Giải nghĩa hiện ngay bên dưới.", el:()=>{ const si=phraseSlide(); const sl=si>=0&&P[0].sents[si]; return sl&&sl.ph&&sl.ph[0]; }, r:12,
         enter:()=>{ const si=phraseSlide(); if(si>=0) scrollTo(0,yOfSlide(si)); }},
       {t:"Bấm ▶ để nghe câu đang đọc.", el:()=>$("#player .play"), r:999},
-      {t:"Bấm micro để đọc to câu này. Ghi xong, app phát lại giọng bạn rồi giọng mẫu. Bấm lại micro để ghi lại, nhấn giữ để nghe lại bản đã lưu.", el:()=>$("#micBtn"), r:999},
+      {t:"Bấm micro để đọc to câu này. Ghi xong, app tự phát lại giọng bạn rồi giọng mẫu. Có chấm xanh nghĩa là đã có bản ghi: bấm để nghe lại, nhấn giữ để ghi lại.", el:()=>$("#micBtn"), r:999},
       {t:"Bấm ⌄ để mở cài đặt: chọn giọng nam / nữ và tốc độ chậm / thường.", el:()=>$("#player"), r:30, wait:480,
         enter:()=>{ player.classList.add("settings"); }, leave:()=>{ player.classList.remove("settings"); }},
       {t:"Chạm vào dấu trang để lưu cụm này vào sổ tay.", el:()=>{ const pp=P[0]; return pp&&pp.sv&&!pp.sv.hidden?pp.sv:$("#nbBtn"); }, r:999},
@@ -1822,14 +1820,13 @@ const Tour=(function(){
   return api;
 })();
 
-/* ---------- Ghi âm giọng đọc: thanh player biến thành thanh ghi âm → dừng → thẻ nghe lại / so với giọng mẫu.
-   Bản ghi chỉ lưu trong máy (IndexedDB). ---------- */
+/* ---------- Ghi âm giọng đọc (chỉ nút mic): chạm mic để ghi → thanh player biến thành thanh ghi âm → dừng → tự phát lại
+   giọng bạn rồi giọng mẫu. Có bản ghi: chạm mic = nghe lại, nhấn giữ mic = ghi lại. Bản ghi chỉ lưu trong máy (IndexedDB). ---------- */
 const Rec=(function(){
   const sheet=$("#recSheet"), micB=$("#micBtn");
-  const bMine=sheet.querySelector(".rmine"), bModel=sheet.querySelector(".rmodel");
   const live=$("#recLive"), liveTxt=live.querySelector(".rl-text"), timeEl=live.querySelector(".rtime"), bars=[...live.querySelectorAll(".wave i")], errEl=sheet.querySelector(".rerr");
-    const api={state:"idle", open:false};
-  let stream=null, mr=null, chunks=[], t0=0, tmr=0, ac=null, an=null, raf=0, curText="", curKey="", curBlob=null, mine=null, seq=0, hist=[], lastPush=0;
+  const api={state:"idle", open:false};
+  let stream=null, mr=null, chunks=[], t0=0, tmr=0, tmr2=0, ac=null, an=null, raf=0, curText="", curKey="", curBlob=null, mine=null, seq=0, hist=[], lastPush=0;
   const MAX=60, NB=bars.length;
   /* ---- IndexedDB: giữ tối đa 20 bản ghi gần nhất ---- */
   function db(){ return new Promise((res,rej)=>{ const r=indexedDB.open("reed_rec",1); r.onupgradeneeded=()=>r.result.createObjectStore("rec"); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
@@ -1839,14 +1836,13 @@ const Rec=(function(){
       tx.oncomplete=res; tx.onerror=res; }); }catch(e){} }
   const keyOf=t=>(passages[active.pi]?passages[active.pi].topic:"")+"|"+t;
   const fmt=s=>Math.floor(s/60)+":"+String(Math.floor(s%60)).padStart(2,"0");
-  const setState=s=>{ api.state=s; sheet.classList.remove("s-rev","s-err"); if(s==="review") sheet.classList.add("s-rev"); if(s==="err") sheet.classList.add("s-err"); };
-  function showSheet(){ api.open=true; sheet.hidden=false; requestAnimationFrame(()=>sheet.classList.add("on")); }
-  function hideSheet(){ sheet.classList.remove("on"); setTimeout(()=>{ if(!api.open||api.state==="idle") sheet.hidden=true; },260); }
-  function stopPlay(){ if(mine){ mine.pause(); mine=null; } stopAll(); micB.classList.remove("playing"); [bMine,bModel].forEach(b=>b.classList.remove("on")); seq++; }
+  function showErr(){ api.state="err"; api.open=true; sheet.classList.add("s-err"); sheet.hidden=false; requestAnimationFrame(()=>sheet.classList.add("on")); }
+  function hideErr(){ sheet.classList.remove("on"); setTimeout(()=>{ if(api.state!=="err"){ sheet.hidden=true; sheet.classList.remove("s-err"); } },260); }
+  function stopPlay(){ if(mine){ mine.pause(); mine=null; } stopAll(); micB.classList.remove("playing"); seq++; }
   function drawBars(){ bars.forEach((b,k)=>{ if(k<hist.length){ b.className=""; b.style.height=(4+hist[k]*24)+"px"; } else { b.className="off"; b.style.height="6px"; } }); }
-  function stopMeter(){ cancelAnimationFrame(raf); clearInterval(tmr); try{ ac&&ac.close(); }catch(e){} ac=null; an=null; }
+  function stopMeter(){ cancelAnimationFrame(raf); clearInterval(tmr); clearInterval(tmr2); try{ ac&&ac.close(); }catch(e){} ac=null; an=null; }
   function release(){ stopMeter(); if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; } player.classList.remove("recording"); micB.classList.remove("rec"); }
-  function fail(msg){ release(); mr=null; errEl.textContent=msg; setState("err"); showSheet(); }
+  function fail(msg){ release(); mr=null; errEl.textContent=msg; showErr(); }
   async function refreshDot(){ const r=await dbGet(keyOf(currentText())); micB.classList.toggle("has",!!r); }
 
   async function start(){
@@ -1860,50 +1856,46 @@ const Rec=(function(){
     mr.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
     mr.onstop=()=>{ const type=(mr&&mr.mimeType)||mime||"audio/webm"; const blob=new Blob(chunks,{type}); const wasRec=api.state==="recording"; if(wasRec){ api.state="idle"; api.open=false; } release(); if(!wasRec) return;
       if(blob.size<800){ return fail("Chưa nghe thấy tiếng. Hãy đọc to hơn và thử lại."); }
-      curBlob=blob; dbPut(curKey,{blob,type,at:Date.now(),text:curText}); micB.classList.add("has"); showPill(); playSeq(); };
+      curBlob=blob; dbPut(curKey,{blob,type,at:Date.now(),text:curText}); micB.classList.add("has"); playSeq(); };
     mr.start(250); t0=performance.now(); timeEl.textContent="0:00"; hist=[]; lastPush=0; drawBars(); liveTxt.textContent=curText;
-    player.classList.remove("settings"); player.classList.add("recording"); micB.classList.add("rec"); api.state="recording"; api.open=true; hideSheet();
+    player.classList.remove("settings"); player.classList.add("recording"); micB.classList.add("rec"); api.state="recording"; api.open=true; hideErr();
     tmr=setInterval(()=>{ const s=(performance.now()-t0)/1000; timeEl.textContent=fmt(s); if(s>=MAX) stop(); },200);
-    let lvl=0;
     try{ ac=new (window.AudioContext||window.webkitAudioContext)(); const src=ac.createMediaStreamSource(stream); an=ac.createAnalyser(); an.fftSize=512; src.connect(an); const d=new Uint8Array(an.fftSize);
-      const draw=now=>{ if(!an) return; an.getByteTimeDomainData(d); let sum=0; for(let i=0;i<d.length;i++){ const v=(d[i]-128)/128; sum+=v*v; } lvl=Math.min(1,Math.sqrt(sum/d.length)*5);
+      const draw=now=>{ if(!an) return; an.getByteTimeDomainData(d); let sum=0; for(let i=0;i<d.length;i++){ const v=(d[i]-128)/128; sum+=v*v; } const lvl=Math.min(1,Math.sqrt(sum/d.length)*5);
         if(now-lastPush>140){ lastPush=now; hist.push(lvl); if(hist.length>NB) hist.shift(); drawBars(); } raf=requestAnimationFrame(draw); }; raf=requestAnimationFrame(draw); }
     catch(e){ tmr2=setInterval(()=>{ hist.push(.2+Math.random()*.5); if(hist.length>NB) hist.shift(); drawBars(); },140); }
   }
-  let tmr2=0;
   function stop(){ clearInterval(tmr2); if(mr&&mr.state!=="inactive") mr.stop(); }
-  /* Nghe lại ngay sau khi ghi: giọng bạn → giọng mẫu. Trong lúc phát nút mic thành ▶ xanh, chạm để dừng. */
-  function showPill(){ setState("review"); showSheet(); }
-  /* Nghe lại: giọng bạn → giọng mẫu (tự phát sau khi ghi). Nút mic thành ▶ xanh trong lúc phát, chạm để dừng. */
-  function playMine(cb,keep){ if(!curBlob) return; if(!keep) stopPlay(); const my=++seq; micB.classList.add("playing"); bMine.classList.add("on");
-    const a=new Audio(URL.createObjectURL(curBlob)); mine=a; const end=()=>{ if(my!==seq) return; bMine.classList.remove("on"); if(!cb) micB.classList.remove("playing"); };
-    a.onended=()=>{ if(my!==seq) return; mine=null; end(); if(cb) cb(); }; a.onerror=end; a.play().catch(end); }
-  function playModel(cb,keep){ if(!keep) stopPlay(); const my=++seq; micB.classList.add("playing"); bModel.classList.add("on");
-    speak(curText,()=>{ if(my!==seq) return; bModel.classList.remove("on"); micB.classList.remove("playing"); if(cb) cb(); }); }
-  function playSeq(){ if(!curBlob) return; stopPlay(); playMine(()=>{ const my=seq; setTimeout(()=>{ if(my!==seq) return; playModel(null,true); },350); },true); }
-  function close(){ if(api.state==="recording") cancelRec(); stopPlay(); api.open=false; api.state="idle"; hideSheet(); }
+  /* Nghe lại: giọng bạn → giọng mẫu. Trong lúc phát nút mic thành ▶ xanh, chạm để dừng. */
+  function playSeq(){
+    if(!curBlob) return; stopPlay(); micB.classList.add("playing"); const my=++seq;
+    const done=()=>{ if(my===seq) micB.classList.remove("playing"); };
+    const a=new Audio(URL.createObjectURL(curBlob)); mine=a;
+    a.onended=()=>{ if(my!==seq) return; mine=null; setTimeout(()=>{ if(my!==seq) return; speak(curText,done); },350); };
+    a.onerror=done; a.play().catch(done);
+  }
+  function close(){ if(api.state==="recording") cancelRec(); stopPlay(); api.open=false; api.state="idle"; hideErr(); }
   function cancelRec(){ api.state="idle"; api.open=false; clearInterval(tmr2); try{ if(mr&&mr.state!=="inactive") mr.stop(); }catch(e){} release(); }
-  /* chạm: ghi (hoặc ghi lại); đang phát thì dừng phát. Nhấn giữ khi đã có bản ghi: nghe lại bản đã lưu. */
+  /* chạm: chưa có bản ghi → ghi; có bản ghi → nghe lại; đang phát → dừng. Nhấn giữ (khi đã có bản ghi): ghi lại. */
   let lpT=0, lpFired=false;
   async function onMic(){
     if(lpFired){ lpFired=false; return; }
     if(api.state==="recording") return;
     if(micB.classList.contains("playing")){ stopPlay(); return; }
-    if(api.open){ close(); }
-    start();
+    if(api.open) close();
+    const t=currentText(); curText=t; curKey=keyOf(t);
+    const old=await dbGet(curKey);
+    if(old&&old.blob){ curBlob=old.blob; playSeq(); } else start();
   }
   micB.addEventListener("click",onMic);
   micB.addEventListener("pointerdown",()=>{ lpFired=false; clearTimeout(lpT);
-    lpT=setTimeout(async()=>{ if(api.state==="recording"||!micB.classList.contains("has")) return;
-      const t=currentText(); curText=t; curKey=keyOf(t); const old=await dbGet(curKey); if(old&&old.blob){ curBlob=old.blob; lpFired=true; showPill(); playSeq(); } },480); });
+    lpT=setTimeout(()=>{ if(api.state==="recording"||!micB.classList.contains("has")) return; lpFired=true; if(api.open) close(); start(); },480); });
   ["pointerup","pointerleave","pointercancel"].forEach(ev=>micB.addEventListener(ev,()=>clearTimeout(lpT)));
   micB.addEventListener("contextmenu",e=>e.preventDefault());
-  bMine.addEventListener("click",()=>{ if(bMine.classList.contains("on")){ stopPlay(); } else playMine(); });
-  bModel.addEventListener("click",()=>{ if(bModel.classList.contains("on")){ stopPlay(); } else playModel(); });
   $("#recCancel").addEventListener("click",()=>{ cancelRec(); });
   sheet.querySelectorAll(".rdone").forEach(b=>b.addEventListener("click",close));
   addEventListener("keydown",e=>{ if(api.open&&e.key==="Escape"){ if(api.state==="recording") cancelRec(); else close(); } });
-  api.close=close; api.stop=stop; api.refreshDot=refreshDot;
+  api.close=close; api.stop=stop; api.refreshDot=refreshDot; api.playing=()=>micB.classList.contains("playing"); api.stopPlay=stopPlay;
   let lastSig=""; setInterval(()=>{ const sg=active.pi+":"+active.si+":"+(F[active.pi]?JSON.stringify(F[active.pi]):""); if(sg!==lastSig){ lastSig=sg; if(!api.open) refreshDot(); } },600);
   return api;
 })();

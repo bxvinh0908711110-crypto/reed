@@ -1,11 +1,10 @@
-/* ---------- Ghi âm giọng đọc: thanh player biến thành thanh ghi âm → dừng → thẻ nghe lại / so với giọng mẫu.
-   Bản ghi chỉ lưu trong máy (IndexedDB). ---------- */
+/* ---------- Ghi âm giọng đọc (chỉ nút mic): chạm mic để ghi → thanh player biến thành thanh ghi âm → dừng → tự phát lại
+   giọng bạn rồi giọng mẫu. Có bản ghi: chạm mic = nghe lại, nhấn giữ mic = ghi lại. Bản ghi chỉ lưu trong máy (IndexedDB). ---------- */
 const Rec=(function(){
-  const sheet=$("#recSheet"), txt=sheet.querySelector(".rtxt"), micB=$("#micBtn");
+  const sheet=$("#recSheet"), micB=$("#micBtn");
   const live=$("#recLive"), liveTxt=live.querySelector(".rl-text"), timeEl=live.querySelector(".rtime"), bars=[...live.querySelectorAll(".wave i")], errEl=sheet.querySelector(".rerr");
-  const bMine=sheet.querySelector(".rmine"), bModel=sheet.querySelector(".rmodel"), bCmp=sheet.querySelector(".rcmp");
   const api={state:"idle", open:false};
-  let stream=null, mr=null, chunks=[], t0=0, tmr=0, ac=null, an=null, raf=0, curText="", curKey="", curBlob=null, mine=null, seq=0, cmpTok=0, hist=[], lastPush=0;
+  let stream=null, mr=null, chunks=[], t0=0, tmr=0, tmr2=0, ac=null, an=null, raf=0, curText="", curKey="", curBlob=null, mine=null, seq=0, hist=[], lastPush=0;
   const MAX=60, NB=bars.length;
   /* ---- IndexedDB: giữ tối đa 20 bản ghi gần nhất ---- */
   function db(){ return new Promise((res,rej)=>{ const r=indexedDB.open("reed_rec",1); r.onupgradeneeded=()=>r.result.createObjectStore("rec"); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
@@ -15,14 +14,13 @@ const Rec=(function(){
       tx.oncomplete=res; tx.onerror=res; }); }catch(e){} }
   const keyOf=t=>(passages[active.pi]?passages[active.pi].topic:"")+"|"+t;
   const fmt=s=>Math.floor(s/60)+":"+String(Math.floor(s%60)).padStart(2,"0");
-  const setState=s=>{ api.state=s; sheet.classList.remove("s-rev","s-err"); if(s==="review") sheet.classList.add("s-rev"); if(s==="err") sheet.classList.add("s-err"); };
-  function showSheet(){ api.open=true; sheet.hidden=false; requestAnimationFrame(()=>sheet.classList.add("on")); }
-  function hideSheet(){ sheet.classList.remove("on"); setTimeout(()=>{ if(!api.open||api.state==="idle") sheet.hidden=true; },260); }
-  function stopPlay(){ if(mine){ mine.pause(); mine=null; } stopAll(); [bMine,bModel,bCmp].forEach(b=>b.classList.remove("on")); seq++; cmpTok++; }
+  function showErr(){ api.state="err"; api.open=true; sheet.classList.add("s-err"); sheet.hidden=false; requestAnimationFrame(()=>sheet.classList.add("on")); }
+  function hideErr(){ sheet.classList.remove("on"); setTimeout(()=>{ if(api.state!=="err"){ sheet.hidden=true; sheet.classList.remove("s-err"); } },260); }
+  function stopPlay(){ if(mine){ mine.pause(); mine=null; } stopAll(); micB.classList.remove("playing"); seq++; }
   function drawBars(){ bars.forEach((b,k)=>{ if(k<hist.length){ b.className=""; b.style.height=(4+hist[k]*24)+"px"; } else { b.className="off"; b.style.height="6px"; } }); }
-  function stopMeter(){ cancelAnimationFrame(raf); clearInterval(tmr); try{ ac&&ac.close(); }catch(e){} ac=null; an=null; }
+  function stopMeter(){ cancelAnimationFrame(raf); clearInterval(tmr); clearInterval(tmr2); try{ ac&&ac.close(); }catch(e){} ac=null; an=null; }
   function release(){ stopMeter(); if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; } player.classList.remove("recording"); micB.classList.remove("rec"); }
-  function fail(msg){ release(); mr=null; errEl.textContent=msg; txt.textContent=""; setState("err"); showSheet(); }
+  function fail(msg){ release(); mr=null; errEl.textContent=msg; showErr(); }
   async function refreshDot(){ const r=await dbGet(keyOf(currentText())); micB.classList.toggle("has",!!r); }
 
   async function start(){
@@ -34,42 +32,46 @@ const Rec=(function(){
     const mime=["audio/webm;codecs=opus","audio/mp4","audio/webm","audio/ogg"].find(m=>MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(m))||"";
     chunks=[]; try{ mr=new MediaRecorder(stream,mime?{mimeType:mime}:undefined); }catch(e){ return fail("Không khởi động được bộ ghi âm trên thiết bị này."); }
     mr.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
-    mr.onstop=()=>{ const type=(mr&&mr.mimeType)||mime||"audio/webm"; const blob=new Blob(chunks,{type}); const wasRec=api.state==="recording"; release(); if(!wasRec) return;
+    mr.onstop=()=>{ const type=(mr&&mr.mimeType)||mime||"audio/webm"; const blob=new Blob(chunks,{type}); const wasRec=api.state==="recording"; if(wasRec){ api.state="idle"; api.open=false; } release(); if(!wasRec) return;
       if(blob.size<800){ return fail("Chưa nghe thấy tiếng. Hãy đọc to hơn và thử lại."); }
-      curBlob=blob; dbPut(curKey,{blob,type,at:Date.now(),text:curText}); micB.classList.add("has"); review(); };
+      curBlob=blob; dbPut(curKey,{blob,type,at:Date.now(),text:curText}); micB.classList.add("has"); playSeq(); };
     mr.start(250); t0=performance.now(); timeEl.textContent="0:00"; hist=[]; lastPush=0; drawBars(); liveTxt.textContent=curText;
-    player.classList.remove("settings"); player.classList.add("recording"); micB.classList.add("rec"); api.state="recording"; api.open=true; hideSheet();
+    player.classList.remove("settings"); player.classList.add("recording"); micB.classList.add("rec"); api.state="recording"; api.open=true; hideErr();
     tmr=setInterval(()=>{ const s=(performance.now()-t0)/1000; timeEl.textContent=fmt(s); if(s>=MAX) stop(); },200);
-    let lvl=0;
     try{ ac=new (window.AudioContext||window.webkitAudioContext)(); const src=ac.createMediaStreamSource(stream); an=ac.createAnalyser(); an.fftSize=512; src.connect(an); const d=new Uint8Array(an.fftSize);
-      const draw=now=>{ if(!an) return; an.getByteTimeDomainData(d); let sum=0; for(let i=0;i<d.length;i++){ const v=(d[i]-128)/128; sum+=v*v; } lvl=Math.min(1,Math.sqrt(sum/d.length)*5);
+      const draw=now=>{ if(!an) return; an.getByteTimeDomainData(d); let sum=0; for(let i=0;i<d.length;i++){ const v=(d[i]-128)/128; sum+=v*v; } const lvl=Math.min(1,Math.sqrt(sum/d.length)*5);
         if(now-lastPush>140){ lastPush=now; hist.push(lvl); if(hist.length>NB) hist.shift(); drawBars(); } raf=requestAnimationFrame(draw); }; raf=requestAnimationFrame(draw); }
     catch(e){ tmr2=setInterval(()=>{ hist.push(.2+Math.random()*.5); if(hist.length>NB) hist.shift(); drawBars(); },140); }
   }
-  let tmr2=0;
   function stop(){ clearInterval(tmr2); if(mr&&mr.state!=="inactive") mr.stop(); }
-  function review(){ txt.textContent=curText; setState("review"); showSheet(); }
-  function playMine(cb,keep){ if(!curBlob) return; if(!keep) stopPlay(); const my=++seq; const a=new Audio(URL.createObjectURL(curBlob)); mine=a; bMine.classList.add("on");
-    a.onended=()=>{ if(my!==seq) return; mine=null; bMine.classList.remove("on"); if(cb) cb(); }; a.play().catch(()=>{ bMine.classList.remove("on"); }); }
-  function playModel(cb,keep){ if(!keep) stopPlay(); const my=++seq; bModel.classList.add("on"); speak(curText,()=>{ if(my!==seq) return; bModel.classList.remove("on"); if(cb) cb(); }); }
-  function compare(){ stopPlay(); const tok=++cmpTok; bCmp.classList.add("on");
-    playMine(()=>{ if(tok!==cmpTok) return; setTimeout(()=>{ if(tok!==cmpTok) return; playModel(()=>{ if(tok===cmpTok) bCmp.classList.remove("on"); },true); },350); },true); }
-  function close(){ if(api.state==="recording") cancelRec(); stopPlay(); api.open=false; api.state="idle"; hideSheet(); }
+  /* Nghe lại: giọng bạn → giọng mẫu. Trong lúc phát nút mic thành ▶ xanh, chạm để dừng. */
+  function playSeq(){
+    if(!curBlob) return; stopPlay(); micB.classList.add("playing"); const my=++seq;
+    const done=()=>{ if(my===seq) micB.classList.remove("playing"); };
+    const a=new Audio(URL.createObjectURL(curBlob)); mine=a;
+    a.onended=()=>{ if(my!==seq) return; mine=null; setTimeout(()=>{ if(my!==seq) return; speak(curText,done); },350); };
+    a.onerror=done; a.play().catch(done);
+  }
+  function close(){ if(api.state==="recording") cancelRec(); stopPlay(); api.open=false; api.state="idle"; hideErr(); }
   function cancelRec(){ api.state="idle"; api.open=false; clearInterval(tmr2); try{ if(mr&&mr.state!=="inactive") mr.stop(); }catch(e){} release(); }
+  /* chạm: chưa có bản ghi → ghi; có bản ghi → nghe lại; đang phát → dừng. Nhấn giữ (khi đã có bản ghi): ghi lại. */
+  let lpT=0, lpFired=false;
   async function onMic(){
+    if(lpFired){ lpFired=false; return; }
     if(api.state==="recording") return;
-    if(api.open){ close(); return; }
+    if(micB.classList.contains("playing")){ stopPlay(); return; }
+    if(api.open) close();
     const t=currentText(); curText=t; curKey=keyOf(t);
     const old=await dbGet(curKey);
-    if(old&&old.blob){ curBlob=old.blob; review(); } else start();
+    if(old&&old.blob){ curBlob=old.blob; playSeq(); } else start();
   }
   micB.addEventListener("click",onMic);
+  micB.addEventListener("pointerdown",()=>{ lpFired=false; clearTimeout(lpT);
+    lpT=setTimeout(()=>{ if(api.state==="recording"||!micB.classList.contains("has")) return; lpFired=true; if(api.open) close(); start(); },480); });
+  ["pointerup","pointerleave","pointercancel"].forEach(ev=>micB.addEventListener(ev,()=>clearTimeout(lpT)));
+  micB.addEventListener("contextmenu",e=>e.preventDefault());
   $("#recCancel").addEventListener("click",()=>{ cancelRec(); });
   sheet.querySelectorAll(".rdone").forEach(b=>b.addEventListener("click",close));
-  sheet.querySelector(".rredo").addEventListener("click",()=>{ stopPlay(); start(); });
-  bMine.addEventListener("click",()=>{ if(mine){ stopPlay(); } else playMine(); });
-  bModel.addEventListener("click",()=>{ if(bModel.classList.contains("on")){ stopPlay(); } else playModel(); });
-  bCmp.addEventListener("click",()=>{ if(bCmp.classList.contains("on")){ stopPlay(); } else compare(); });
   addEventListener("keydown",e=>{ if(api.open&&e.key==="Escape"){ if(api.state==="recording") cancelRec(); else close(); } });
   api.close=close; api.stop=stop; api.refreshDot=refreshDot;
   let lastSig=""; setInterval(()=>{ const sg=active.pi+":"+active.si+":"+(F[active.pi]?JSON.stringify(F[active.pi]):""); if(sg!==lastSig){ lastSig=sg; if(!api.open) refreshDot(); } },600);
