@@ -122,9 +122,9 @@ body{margin:0;background:var(--bg);color:var(--ink);
 .label{position:absolute;top:74px;left:0;font-size:12px;font-weight:600;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
 .sents{display:grid;grid-template-columns:minmax(0,1fr);max-height:calc(100vh - 260px);max-height:calc(100dvh - 260px);overflow:hidden}
 .sent{grid-area:1/1;opacity:0;pointer-events:none;will-change:opacity,transform}
-.line{font-size:clamp(30px,4.5vw,66px);line-height:1.22;letter-spacing:-.035em;font-weight:500;color:#3b3b3b;margin:0}
+.line{font-size:calc(var(--fit,1) * clamp(30px,4.5vw,66px));line-height:1.22;letter-spacing:-.035em;font-weight:500;color:#3b3b3b;margin:0}
 .sent .line+.line{margin-top:16px}
-.line.plain{font-size:clamp(22px,2.7vw,40px);color:var(--muted)}   /* câu không có cụm từ để học: thu nhỏ, bớt nổi bật vì không quan trọng bằng */
+.line.plain{font-size:calc(var(--fit,1) * clamp(22px,2.7vw,40px));color:var(--muted)}   /* câu không có cụm từ để học: thu nhỏ, bớt nổi bật vì không quan trọng bằng */
 .cap{display:flex;align-items:baseline;gap:4px 10px;flex-wrap:wrap;margin-top:22px;min-height:28px;
   font-size:clamp(14px,1.3vw,18px);color:var(--muted);max-width:100%;overflow:hidden}
 .cap b{color:var(--ink);font-weight:800;font-size:1.15em;flex:0 0 auto}
@@ -271,14 +271,16 @@ body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webki
   /* Foot nằm trong luồng flex (không còn absolute) → vùng chữ + chú thích luôn dừng phía trên Sentence x/y, không đè nhau */
   .left{display:flex;flex-direction:column;justify-content:flex-start;min-height:0;min-width:0;max-width:100%}
   .sents,.foot{min-width:0;max-width:100%}
-  .sents{margin-top:34px;flex:1 1 auto;min-height:0;max-height:none;align-content:center}
+  .sents{margin-top:34px;flex:1 1 0;min-height:0;max-height:none;align-content:center}
   .foot{position:static;flex:0 0 auto;margin-bottom:84px;padding-top:10px}
   /* Câu/đoạn dài trên màn hình hẹp: chữ nhỏ lại một chút để đỡ tràn dòng, và nếu vẫn dài
      quá thì tự cuộn bên trong thay vì đè lên thanh điều khiển cố định phía dưới. */
   .recap .line{font-size:calc(var(--rs) * clamp(15px,4vw,22px));line-height:1.5}
-  .line{font-size:clamp(24px,7vw,66px)}
-  .line.plain{font-size:clamp(16px,4.2vw,26px)}
+  .line{font-size:calc(var(--fit,1) * clamp(24px,7vw,66px))}
+  .line.plain{font-size:calc(var(--fit,1) * clamp(16px,4.2vw,26px))}
 }
+
+@media (max-width:820px) and (max-height:620px){ .art{max-height:17vh} .label{display:none} .sents{margin-top:8px} .foot{margin-bottom:76px} }
 
 /* ==================== Màn hình mở đầu (splash) ==================== */
 #reed-splash{--navy:#00148c;--cyan:#2fd7fc;--ease:cubic-bezier(.16,1,.3,1);--s:1;
@@ -407,6 +409,30 @@ body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webki
 
 <script type="text/plain" id="appSrc">
 const scenes = {
+friends:`<svg class="scene" viewBox="0 0 400 200" role="img" aria-label="Two best friends with games, food and a pet">
+<rect width="400" height="200" fill="#fde7c8"/><rect y="150" width="400" height="50" fill="#e8b774"/>
+<circle cx="345" cy="45" r="22" fill="#ffd66b"/>
+<g><rect x="120" y="95" width="46" height="70" rx="16" fill="#3f8fd6"/><circle cx="143" cy="72" r="24" fill="#f1c19a"/><rect x="128" y="160" width="12" height="22" rx="4" fill="#2b4f7a"/><rect x="146" y="160" width="12" height="22" rx="4" fill="#2b4f7a"/></g>
+<g><rect x="234" y="95" width="46" height="70" rx="16" fill="#7bc77e"/><circle cx="257" cy="72" r="24" fill="#f1c19a"/><rect x="242" y="160" width="12" height="22" rx="4" fill="#3f7a42"/><rect x="260" y="160" width="12" height="22" rx="4" fill="#3f7a42"/></g>
+<path d="M160 118l30-6M240 118l-30-6" stroke="#f1c19a" stroke-width="9" stroke-linecap="round"/>
+<g transform="translate(176,100)"><rect width="48" height="26" rx="12" fill="#2b2622"/><circle cx="14" cy="13" r="4" fill="#fff"/><path d="M32 8v10M27 13h10" stroke="#ffd66b" stroke-width="3"/></g>
+<path d="M200 60c-8-14-26-2-14 10l14 14 14-14c12-12-6-24-14-10z" fill="#e4715a"/>
+<g transform="translate(40,140)"><ellipse cx="22" cy="26" rx="22" ry="16" fill="#ffb84d"/><circle cx="22" cy="8" r="12" fill="#ffb84d"/><path d="M12 -2l-4-8 10 4M32 -2l4-8-10 4" fill="#ffb84d"/></g>
+</svg>`,
+work:`<svg class="scene" viewBox="0 0 400 200" role="img" aria-label="A small coffee shop">
+<rect width="400" height="200" fill="#f3dfc6"/><rect y="150" width="400" height="50" fill="#a8704a"/>
+<rect x="0" y="0" width="400" height="38" fill="#e4715a"/>
+<g fill="#fff"><path d="M0 38h50v10q-25 12-50 0zM50 38h50v10q-25 12-50 0zM100 38h50v10q-25 12-50 0zM150 38h50v10q-25 12-50 0zM200 38h50v10q-25 12-50 0zM250 38h50v10q-25 12-50 0zM300 38h50v10q-25 12-50 0zM350 38h50v10q-25 12-50 0z"/></g>
+<rect x="30" y="110" width="340" height="70" rx="8" fill="#7a4a2b"/><rect x="24" y="102" width="352" height="14" rx="6" fill="#a8704a"/>
+<g transform="translate(60,52)"><rect width="70" height="52" rx="6" fill="#2b2622"/><rect x="8" y="8" width="54" height="14" rx="3" fill="#ffd66b"/><rect x="26" y="34" width="18" height="18" rx="3" fill="#8a8580"/></g>
+<g transform="translate(168,70)"><path d="M0 12h60l-6 38a8 8 0 0 1-8 7H14a8 8 0 0 1-8-7z" fill="#fff" stroke="#7a4a2b" stroke-width="4"/><path d="M60 20h8a10 10 0 0 1 0 22h-8" fill="none" stroke="#7a4a2b" stroke-width="4"/><path d="M18 2q-6-10 0-18M32 2q-6-10 0-18M46 2q-6-10 0-18" stroke="#c9b79c" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+<g transform="translate(278,62)"><rect width="76" height="38" rx="8" fill="#3f8fd6"/><text x="38" y="26" font-family="Inter,Arial,sans-serif" font-size="20" font-weight="800" text-anchor="middle" fill="#fff">OPEN</text></g>
+</svg>`,
+weekend:`<svg class="scene" viewBox="0 0 400 200" role="img" aria-label="Laundry and shopping on the weekend">
+<rect width="400" height="200" fill="#d6edf8"/><circle cx="348" cy="40" r="22" fill="#ffd66b"/><rect y="150" width="400" height="50" fill="#c9d8b0"/>
+<g transform="translate(50,56)"><rect width="104" height="110" rx="12" fill="#fff" stroke="#8a8580" stroke-width="4"/><rect x="10" y="10" width="84" height="18" rx="5" fill="#e4e4e4"/><circle cx="26" cy="19" r="4" fill="#e4715a"/><circle cx="52" cy="68" r="31" fill="#bfe3f2" stroke="#8a8580" stroke-width="5"/><path d="M30 70q11-12 22 0t22 0" stroke="#3f8fd6" stroke-width="4" fill="none"/></g>
+<g transform="translate(220,84)"><path d="M0 10h130l-14 70a10 10 0 0 1-10 8H24a10 10 0 0 1-10-8z" fill="#ffb84d" stroke="#a8402e" stroke-width="4"/><path d="M26 10c0-26 12-40 39-40s39 14 39 40" fill="none" stroke="#a8402e" stroke-width="5"/><circle cx="40" cy="4" r="14" fill="#e4715a"/><rect x="62" y="-14" width="26" height="30" rx="5" fill="#7bc77e"/><rect x="92" y="-2" width="22" height="22" rx="4" fill="#fff" stroke="#a8402e" stroke-width="3"/></g>
+</svg>`,
 hobbies:`<svg class="scene" viewBox="0 0 400 200" role="img" aria-label="Hobbies: football, music and books">
 <rect width="400" height="200" fill="#bfe3f2"/>
 <circle cx="335" cy="45" r="24" fill="#ffd66b"/>
@@ -444,34 +470,61 @@ family:`<svg class="scene" viewBox="0 0 400 200" role="img" aria-label="Family i
 };
 
 const ALL = (window.__PASSAGES&&window.__PASSAGES.length) ? window.__PASSAGES : [
-{ id:1, topic:"My Hobbies", level:"A1", scene:"hobbies", cat:"lifestyle",
-  tpl:"My name is Anna and I have {0} hobbies. In my {1} time, I {2} listening to music and reading books. On the weekend, I usually play football with my friends in the park. I also like {3} food for my family. {4} makes me happy and relaxed after a busy day.",
+{ id:1, topic:"My Family", level:"A1", scene:"family", cat:"family", tpl:"My name is Anna. I live with my {0} in a nice house. My {1} also live with us. Every evening, we eat dinner together and {2} about our day. I love my family {3}.",
   hl:[
-   {o:"many",u:"a lot of",lv:"A2",vn:"a more natural way to say 'many'",ex:"I have a lot of homework today."},
-   {o:"free",u:"spare",lv:"A2",vn:"time when you are not working",ex:"I like reading in my spare time."},
-   {o:"love",u:"enjoy",lv:"A2",vn:"a calmer way to say you like something",ex:"I enjoy walking in the park."},
-   {o:"cooking good",u:"making delicious",lv:"A2",vn:"a tastier way to describe good food",ex:"She is making delicious cookies."},
-   {o:"It",u:"All of this",lv:"A2",vn:"refers to everything just mentioned",ex:"All of this makes me feel calm."}
+   {"o":"father and mother","u":"parents","lv":"A2","vn":"a single word for mother and father together","ex":"My parents live in Hanoi."},
+   {"o":"sister and brother","u":"siblings","lv":"A2","vn":"a single word for your brothers and sisters","ex":"I have two siblings."},
+   {"o":"talk","u":"chat","lv":"A2","vn":"a relaxed way to say 'talk'","ex":"We chat about our day."},
+   {"o":"very much","u":"a lot","lv":"A2","vn":"a natural way to say how much you love someone","ex":"I miss you a lot."}
   ]},
-{ id:2, topic:"Going to School", level:"A1", scene:"school", cat:"school",
-  tpl:"I go to school {0}. I get up early in the morning and {1} a big breakfast. {2} I walk to school with my friend. My school is {3} my house. I like my classes and my teachers. School is {4} every day.",
+{ id:2, topic:"Best Friend", level:"A1", scene:"friends", cat:"friends", tpl:"Do you have a best friend? I do. My best friend is John. We {0} games, food and animals. I am {1} to {2}.",
   hl:[
-   {o:"from Monday to Friday",u:"on weekdays",lv:"A2",vn:"a shorter way to say the five working days",ex:"The shop is open on weekdays."},
-   {o:"eat",u:"have",lv:"A2",vn:"a common way to say 'eat a meal'",ex:"We have breakfast at seven."},
-   {o:"Then,",u:"After that,",lv:"A2",vn:"a natural way to connect two actions",ex:"After that, we went home."},
-   {o:"near",u:"not far from",lv:"A2",vn:"a softer way to say something is close",ex:"The park is not far from here."},
-   {o:"fun",u:"enjoyable",lv:"A2",vn:"a more grown-up way to say 'fun'",ex:"The trip was very enjoyable."}
+   {"o":"like the same things about","u":"have a lot in common, such as","lv":"A2","vn":"a natural way to say you share interests","ex":"We have a lot in common, such as music and movies."},
+   {"o":"so happy","u":"really happy","lv":"A2","vn":"a more natural way to strengthen 'happy'","ex":"I am really happy today."},
+   {"o":"have a friend like him","u":"have such a friend","lv":"A2","vn":"a shorter way to say 'a friend like him'","ex":"I am lucky to have such a friend."}
   ]},
-{ id:3, topic:"My Family", level:"A1", scene:"family", cat:"family",
-  tpl:"I live with {0}, and {1} in a nice house. My dad {2}, and my mom {3}. Every evening, we {4} together in the living room and {5} about our day. I love my family {6}.",
+{ id:3, topic:"Where is my school?", level:"A1", scene:"school", cat:"school", tpl:"Hello, I am Vy and I am a student at a new school. Every morning, I {0} with my best friend. My school is near {1}, so we {2} together {3}. There are many {4} {5}. {6} where my school is?",
   hl:[
-   {o:"my mom and dad",u:"my parents",lv:"A2",vn:"a single word for mother and father together",ex:"My parents live in Hanoi."},
-   {o:"my brother and sister",u:"my siblings",lv:"A2",vn:"a single word for your brothers and sisters",ex:"I have two siblings."},
-   {o:"works in a hospital",u:"is a doctor",lv:"A2",vn:"names the job directly",ex:"My uncle is a doctor."},
-   {o:"works in a school",u:"is a teacher",lv:"A2",vn:"names the job directly",ex:"My aunt is a teacher."},
-   {o:"sit",u:"gather",lv:"A2",vn:"to come together as a group",ex:"We gather every Sunday."},
-   {o:"talk",u:"chat",lv:"A2",vn:"a relaxed way to say 'talk'",ex:"We chat about our day."},
-   {o:"very much",u:"so much",lv:"A2",vn:"a warmer way to say 'very much'",ex:"I miss you so much."}
+   {"o":"go to school by foot","u":"walk to school","lv":"A2","vn":"one verb instead of 'go ... by foot'","ex":"I walk to work every day."},
+   {"o":"a place where we can have fun","u":"a playground","lv":"A2","vn":"one word for a place where children play","ex":"The kids are at the playground."},
+   {"o":"can play","u":"often play there","lv":"A2","vn":"tells how often and where","ex":"We often play there on Sundays."},
+   {"o":"after we study at school","u":"after school","lv":"A2","vn":"shorter and more natural","ex":"I meet my friends after school."},
+   {"o":"trees","u":"green trees","lv":"A2","vn":"adds a clear picture","ex":"We sat under the green trees."},
+   {"o":"along the way I go to school","u":"along the road to my school","lv":"A2","vn":"a clearer way to describe the road","ex":"There are shops along the road to my house."},
+   {"o":"Do you know","u":"Do you have an idea","lv":"A2","vn":"a friendly way to ask someone to guess","ex":"Do you have an idea where the park is?"}
+  ]},
+{ id:4, topic:"Love what you do", level:"A1", scene:"work", cat:"work", tpl:"Tom {0} at a small coffee shop. He {1} making drinks for customers. {2} he likes talking with them and {3} love his coffee. When customers {4} the coffee shop, they always feel happy because they can {5}. This is why Tom loves what he does.",
+  hl:[
+   {"o":"has a job","u":"works","lv":"A2","vn":"the usual verb for having a job","ex":"My sister works at a bank."},
+   {"o":"likes","u":"enjoys","lv":"A2","vn":"a warmer way to say 'like'","ex":"He enjoys cooking."},
+   {"o":"One more thing is","u":"Also,","lv":"A2","vn":"a short way to add another point","ex":"Also, the food is cheap."},
+   {"o":"people","u":"many customers","lv":"A2","vn":"names exactly who is talking about it","ex":"Many customers come back every week."},
+   {"o":"go to","u":"drop by","lv":"A2","vn":"a casual way to say visit for a short time","ex":"Drop by my house anytime."},
+   {"o":"have good coffee","u":"drink good coffee","lv":"A2","vn":"'drink' is the natural verb for coffee","ex":"I drink coffee every morning."}
+  ]},
+{ id:5, topic:"My Weekend", level:"A1", scene:"weekend", cat:"lifestyle", tpl:"I often {0} early on Saturday mornings. I {1} with my family in the kitchen. And then, I {2}. In the afternoon, I {3} at a supermarket near my house. I {4} my weekend.",
+  hl:[
+   {"o":"get up","u":"wake up","lv":"A2","vn":"a natural way to say you stop sleeping","ex":"I wake up at six every day."},
+   {"o":"eat breakfast","u":"have breakfast","lv":"A2","vn":"'have' is the common verb for meals","ex":"We have breakfast at seven."},
+   {"o":"put my clothes into the washing machine","u":"do laundry","lv":"A2","vn":"one phrase for washing clothes","ex":"I do laundry on Sundays."},
+   {"o":"go and buy things","u":"go shopping","lv":"A2","vn":"the common phrase for buying things","ex":"We go shopping on Saturdays."},
+   {"o":"like","u":"enjoy","lv":"A2","vn":"a warmer way to say 'like'","ex":"I enjoy my weekend."}
+  ]},
+{ id:1, topic:"My Hobbies", level:"A1", scene:"hobbies", cat:"lifestyle", tpl:"My name is Anna and I have {0} hobbies. In my {1} time, I {2} listening to music and reading books. On the weekend, I usually play football with my friends in the park. I also like {3} food for my family. {4} makes me happy and relaxed after a busy day.",
+  hl:[
+   {"o":"many","u":"a lot of","lv":"A2","vn":"a more natural way to say 'many'","ex":"I have a lot of homework today."},
+   {"o":"free","u":"spare","lv":"A2","vn":"time when you are not working","ex":"I like reading in my spare time."},
+   {"o":"love","u":"enjoy","lv":"A2","vn":"a calmer way to say you like something","ex":"I enjoy walking in the park."},
+   {"o":"cooking good","u":"making delicious","lv":"A2","vn":"a tastier way to describe good food","ex":"She is making delicious cookies."},
+   {"o":"It","u":"All of this","lv":"A2","vn":"refers to everything just mentioned","ex":"All of this makes me feel calm."}
+  ]},
+{ id:2, topic:"Going to School", level:"A1", scene:"school", cat:"school", tpl:"I go to school {0}. I get up early in the morning and {1} a big breakfast. {2} I walk to school with my friend. My school is {3} my house. I like my classes and my teachers. School is {4} every day.",
+  hl:[
+   {"o":"from Monday to Friday","u":"on weekdays","lv":"A2","vn":"a shorter way to say the five working days","ex":"The shop is open on weekdays."},
+   {"o":"eat","u":"have","lv":"A2","vn":"a common way to say 'eat a meal'","ex":"We have breakfast at seven."},
+   {"o":"Then,","u":"After that,","lv":"A2","vn":"a natural way to connect two actions","ex":"After that, we went home."},
+   {"o":"near","u":"not far from","lv":"A2","vn":"a softer way to say something is close","ex":"The park is not far from here."},
+   {"o":"fun","u":"enjoyable","lv":"A2","vn":"a more grown-up way to say 'fun'","ex":"The trip was very enjoyable."}
   ]}
 ];
 /* ---------- Chủ đề (topic): thanh chọn ở trang đầu; mỗi chủ đề có tiến trình mở khoá riêng ---------- */
@@ -545,7 +598,7 @@ function build(){
         <div class="sents">${sents}</div>
         <div class="foot"><span class="pos"></span><div class="bar"><i></i></div><button class="sv" hidden aria-label="Save to vocabulary" aria-pressed="false">${BOOKMARK(false)}</button>
           <div class="tg" data-p="${pi}" hidden><i class="pill"></i><button data-m="base" aria-pressed="false">A1</button><button data-m="up" aria-pressed="true">A2</button></div></div></div>
-      <div class="art">${scenes[p.scene].replace("<svg ",'<svg preserveAspectRatio="xMidYMid slice" ')}</div>
+      <div class="art">${(scenes[p.scene]||scenes.hobbies).replace("<svg ",'<svg preserveAspectRatio="xMidYMid slice" ')}</div>
       <div class="lockOv" hidden><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><b>Lesson ${pi+1} is locked</b><span>Finish Lesson ${pi} to unlock it</span></div>
     </div></section>`;
   }).join("");
@@ -585,7 +638,20 @@ function stabilize(){
     s.ph.forEach(ph=>{ ph._floor=0; setPhrase(ph, ph._f ?? 0); });
   }));
 }
+/* Co chữ từng slide cho vừa khung hiển thị (màn hình thấp / slide dài), thay vì để bị cắt mất dòng đầu */
+function fitSlides(){
+  P.forEach(pp=>{
+    const box=pp.el&&pp.el.querySelector(".sents"); if(!box) return;
+    pp.sents.forEach(s=>{
+      const el=s.el; if(!el||s.recap) return;
+      const nat=()=>{ el.style.alignSelf="start"; const h=el.offsetHeight; el.style.alignSelf=""; return h; };   /* chiều cao thật của nội dung (các slide cùng 1 ô lưới nên scrollHeight bị kéo theo slide cao nhất) */
+      let f=1; el.style.setProperty("--fit",1);
+      for(let k=0;k<8&&nat()>box.clientHeight&&f>.5;k++){ f=Math.max(.5,f*.92); el.style.setProperty("--fit",f.toFixed(3)); }
+    });
+  });
+}
 function layout(){
+  fitSlides();
   const vh=innerHeight;
   P.forEach(pp=>{
     let acc=0;
@@ -957,7 +1023,7 @@ function tick(t){
 }
 let ticking=false;
 addEventListener("scroll",()=>{ if(!ticking){ticking=true;requestAnimationFrame(()=>{ticking=false;update()})} },{passive:true});
-addEventListener("resize",()=>{ layout(); measure(); movePills(); update(); });
+addEventListener("resize",()=>{ layout(); measure(); movePills(); update(); fitSlides(); });
 /* Trình duyệt di động ẩn/hiện thanh địa chỉ làm innerHeight đổi liên tục mà không phải lúc nào
    cũng bắn sự kiện "resize" — nghe thêm visualViewport để tính lại kịp thời, tránh chữ/nút bị
    lệch khỏi vị trí đã tính trước đó (và vô tình che mất nút bấm bên dưới). */
@@ -1253,7 +1319,7 @@ function setTopic(k,jump){
   passages=ALL.filter(p=>p.cat===k);
   P=makeP(); F=passages.map(()=>({})); recapMode=passages.map(()=>"up");
   unlockedCount=loadUnlocked(); active={pi:0,si:0}; live=[];
-  build(); buildPlayer(); layout(); measure(); movePills(); update();
+  build(); buildPlayer(); layout(); measure(); movePills(); update(); fitSlides();   /* fit sau update() vì chú thích (.cap) chỉ có chữ sau khi update chạy */
   document.querySelectorAll("#topics button").forEach(b=>{ b.setAttribute("aria-pressed",b.dataset.k===k); });
   if(jump) fadeJump(()=>{ const pp=P[0]; return pp.el.getBoundingClientRect().top+scrollY+pp.sents[0].lo; });
 }
@@ -1269,7 +1335,7 @@ function setTopic(k,jump){
   const first=TOPICS.find(t=>hasLessons(t.k));
   setTopic(saved&&hasLessons(saved)?saved:(first?first.k:"family"),false);
 })();
-if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{layout();measure();movePills();update()});
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{layout();measure();movePills();update();fitSlides()});
 /* Kích thước trang thay đổi rất nhiều khi layout() vừa chạy xong (thanh cuộn có thể xuất hiện),
    nên đo lại một lần nữa sau khi trình duyệt đã ổn định bố cục để tránh sai lệch nhỏ về độ rộng chữ. */
 requestAnimationFrame(()=>requestAnimationFrame(()=>{ layout(); measure(); movePills(); update(); }));
@@ -1280,7 +1346,7 @@ requestAnimationFrame(()=>requestAnimationFrame(()=>{ layout(); measure(); moveP
 (async function(){
   const SB="https://mmadhhjjfqnlhitklfep.supabase.co", KEY="sb_publishable_oHn1ilWP4TE7ICb2HLVOiA_FPwNz7oh", CK="reed_lessons_v1";
   const q=c=>"/rest/v1/lessons?select=id,position,title,level,scene_key,"+(c?"category,":"")+"template,version,phrases(idx,base,upgrade,level,vn,example)&status=eq.published&order=position";
-  const TITLE_CAT={"My Hobbies":"lifestyle","Going to School":"school","My Family":"family"};
+  const TITLE_CAT={"My Hobbies":"lifestyle","Going to School":"school","My Family":"family","Best Friend":"friends","Where is my school?":"school","Love what you do":"work","My Weekend":"lifestyle"};
   const toPassages=rows=>rows.map(r=>({id:r.position,uid:r.id,version:r.version,topic:r.title,level:r.level||"A1",scene:r.scene_key,cat:r.category||TITLE_CAT[r.title]||"lifestyle",tpl:r.template,
     hl:(r.phrases||[]).sort((a,b)=>a.idx-b.idx).map(p=>({o:p.base,u:p.upgrade,lv:p.level||"A2",vn:p.vn||"",ex:p.example||""}))}));
   /* chỉ nhận bài hợp lệ: mọi {n} trong template phải có cụm tương ứng, và có ít nhất 1 cụm */
