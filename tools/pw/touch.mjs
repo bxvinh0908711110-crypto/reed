@@ -1,7 +1,7 @@
 import { chromium, devices } from 'playwright';
 import { pathToFileURL } from 'url';
 const b=await chromium.launch(); const ctx=await b.newContext({...devices['iPhone 13'],userAgent:devices['iPhone 13'].userAgent});
-const p=await ctx.newPage(); const cdp=await ctx.newCDPSession(p);
+await ctx.addInitScript(()=>{localStorage.setItem('reed_tour_done','1')}); const p=await ctx.newPage(); const cdp=await ctx.newCDPSession(p);
 await p.goto(pathToFileURL('E:/Your English/index.html').href); await p.waitForTimeout(4500);
 const T=(type,x,y)=>cdp.send('Input.dispatchTouchEvent',{type,touchPoints:type==='touchEnd'?[]:[{x,y}]});
 async function swipe(x,y1,y2,steps=8,dt=16){await T('touchStart',x,y1);for(let i=1;i<=steps;i++){await T('touchMove',x,y1+(y2-y1)*i/steps);await p.waitForTimeout(dt);}await T('touchEnd');}
