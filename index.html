@@ -397,8 +397,8 @@ body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webki
 
 @media (max-width:820px){
   .top{flex-wrap:wrap;row-gap:10px;padding:14px 5vw 6px}
-  .top .topics{order:3;width:100%;margin:0}
-  .top .topics{padding:3px}
+  .top .topics{order:3;width:calc(100% + 10vw);max-width:none;margin:0 -5vw;padding:5px 5vw;border-radius:0;gap:6px;
+    scroll-padding:0 5vw;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
   .top .topics button{padding:6px 11px}
   .stage{grid-template-columns:minmax(0,1fr);grid-template-rows:auto 1fr;gap:3vh;align-content:start;padding-top:112px}
   .art{grid-row:1;aspect-ratio:16/9;max-height:19vh;justify-self:stretch;border-width:2.5px;border-radius:20px;box-shadow:5px 5px 0 var(--leaf)}
@@ -1934,6 +1934,7 @@ function setTopic(k,jump){
   unlockedCount=loadUnlocked(); active={pi:0,si:0}; live=[];
   build(); buildPlayer(); layout(); measure(); movePills(); update(); fitSlides();   /* fit sau update() vì chú thích (.cap) chỉ có chữ sau khi update chạy */
   document.querySelectorAll("#topics button").forEach(b=>{ b.setAttribute("aria-pressed",b.dataset.k===k); });
+  { const bar=$("#topics"), cur=bar.querySelector(`button[data-k="${k}"]`); if(cur&&bar.scrollWidth>bar.clientWidth) bar.scrollTo({left:cur.offsetLeft-(bar.clientWidth-cur.offsetWidth)/2,behavior:"smooth"}); }
   if(jump) scrollTo(0, firstLessonY());
 }
 const firstLessonY=()=>{   /* điểm dừng (snap) đầu tiên của bài đầu — để cú vuốt kế tiếp sang ngay bước 2 */
