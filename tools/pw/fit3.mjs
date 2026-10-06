@@ -4,7 +4,7 @@ const srv=http.createServer((q,r)=>{const u=decodeURIComponent(q.url.split('?')[
 const b=await chromium.launch();
 const devs=[['SE',{...devices['iPhone SE']}],['13',{...devices['iPhone 13']}],['14PM',{...devices['iPhone 14 Pro Max']}],['d1280',{viewport:{width:1280,height:720}}],['d1366',{viewport:{width:1366,height:768}}],['d1920',{viewport:{width:1920,height:1080}}]];
 for(const [name,opts] of devs){
-  const ctx=await b.newContext(opts); await ctx.route('**/*supabase.co/**',r=>r.abort());
+  const ctx=await b.newContext(opts); await ctx.addInitScript(()=>{localStorage.setItem('reed_tour_done','1');localStorage.setItem('reed_tips',JSON.stringify({swipe_done:1,tap_done:1,listen_done:1,hold_done:1,recap_done:1,save_done:1}))}); await ctx.route('**/*supabase.co/**',r=>r.abort());
   const p=await ctx.newPage(); await p.goto('http://localhost:8786/index.html'); await p.waitForTimeout(5500);
   let bad=[],minFit=1;
   for(const k of ['family','friends','school','work','lifestyle','health','tech']){

@@ -70,7 +70,7 @@ body{margin:0;background:var(--bg);color:var(--ink);
 .nbItem .rm{margin-left:auto;border:0;background:none;color:var(--muted);cursor:pointer;font-size:15px;line-height:1;padding:4px}
 .nbEmpty{color:var(--muted);font-size:14px;padding:50px 10px;text-align:center;line-height:1.6}
 .foot .sv{border:1.5px solid var(--grey);background:#fff;color:var(--muted);
-  width:34px;height:34px;padding:0;border-radius:999px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex:none;
+  width:28px;height:28px;padding:0;border-radius:999px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex:none;
   transition:opacity .2s ease,visibility .2s ease}
 .foot .sv svg{display:block}
 .foot .sv.on{background:var(--leaf);border-color:var(--leaf);color:var(--accent)}
@@ -87,13 +87,15 @@ body{margin:0;background:var(--bg);color:var(--ink);
 @media (min-width:821px){ .top{padding-top:28px} }
 @media (min-width:1320px){ .top{min-height:88px} .top .topics{position:absolute;left:50%;top:22px;transform:translateX(-50%);margin:0} }
 @media (min-width:821px) and (max-width:1180px){ .top .topics{margin-left:16px;margin-right:12px} .top .topics button{padding:8px 10px} }
-.topics{display:flex;gap:8px;padding:7px;background:var(--leaf);border-radius:999px;width:max-content;max-width:100%;min-width:0;
+.topics{display:flex;gap:4px;padding:4px;background:var(--leaf);border-radius:999px;width:max-content;max-width:100%;min-width:0;
   overflow-x:auto;scrollbar-width:none;touch-action:pan-x;-webkit-overflow-scrolling:touch}
 .topics::-webkit-scrollbar{display:none}
-.topics button{flex:0 0 auto;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border:0;border-radius:999px;background:#fff;color:var(--ink);
+.topics button{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border:0;border-radius:999px;background:transparent;color:var(--ink);
   font:inherit;font-size:13px;font-weight:700;letter-spacing:0;cursor:pointer;white-space:nowrap;transition:background .2s ease,color .2s ease,transform .15s ease}
 .topics button:active{transform:scale(.95)}
 .topics button[aria-pressed=true]{background:var(--accent);color:#fff}
+.topics button svg{width:18px;height:18px}
+@media (hover:hover){.topics button:not([aria-pressed=true]):hover{background:rgba(255,255,255,.6)}}
 .topics button[data-soon]{opacity:.55}
 .toast{position:fixed;z-index:70;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 100px);transform:translate(-50%,8px);padding:10px 16px;border-radius:999px;
   background:#0b0b0b;color:#fff;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease;white-space:nowrap}
@@ -220,7 +222,7 @@ body{margin:0;background:var(--bg);color:var(--ink);
 /* ---- Phrase (chữ nổi bật) ---- */
 .ph,.ph2{background:var(--leaf);   /* A1 và A2 đều trên nền xanh lá; chỉ màu chữ đổi: A1 xanh đậm → A2 đỏ */
   color:color-mix(in srgb,var(--a2) calc(var(--u,1)*100%),var(--a1));border-radius:.1em}
-.ph,.ph2{font-weight:800;letter-spacing:-.04em}
+.ph,.ph2{font-weight:700;letter-spacing:-.035em}
 .ph{display:inline-block;margin:0 .03em;position:relative;vertical-align:top;height:1.16em;line-height:1.16;
   padding:0 .14em;white-space:nowrap;cursor:pointer}
 .ph .o{position:absolute;left:.14em;top:0;white-space:nowrap;opacity:0}
@@ -261,7 +263,7 @@ body{margin:0;background:var(--bg);color:var(--ink);
 .rcw[data-m=up] .base{transform:translateY(-6px)}
 .rcw[data-m=base] .up{transform:translateY(6px)}
 .rcw[data-m=up] .up,.rcw[data-m=base] .base{opacity:1;filter:none;transform:none;transition-duration:.45s;transition-delay:.18s}
-.recap mark{font-weight:800;letter-spacing:-.04em;padding:0 .14em;border-radius:.1em;cursor:pointer;
+.recap mark{font-weight:700;letter-spacing:-.035em;padding:0 .14em;border-radius:.1em;cursor:pointer;
   -webkit-box-decoration-break:clone;box-decoration-break:clone}
 .recap mark.m0{background:var(--leaf);color:var(--a1)}
 .recap mark.m1{background:var(--leaf);color:var(--a2)}
@@ -274,10 +276,10 @@ body{margin:0;background:var(--bg);color:var(--ink);
 .tg button{position:relative;z-index:1;border:0;background:none;font:inherit;font-size:14px;font-weight:600;padding:8px 18px;cursor:pointer;color:var(--ink);transition:color .35s}
 .tg button[aria-pressed=true]{color:#fff}
 .foot{position:absolute;left:0;right:0;bottom:92px;display:flex;align-items:center;gap:14px;font-size:12px;color:var(--muted)}
-.bar{flex:1;height:3px;background:var(--grey);border-radius:3px;overflow:hidden}
+.bar{flex:1;height:5px;background:var(--grey);border-radius:5px;overflow:hidden}
 .bar i{display:block;height:100%;width:0;background:var(--accent)}
-.art{border:6px solid var(--accent);border-radius:36px;overflow:hidden;aspect-ratio:1/1;
-  width:100%;max-height:72vh;justify-self:end;box-shadow:12px 12px 0 var(--leaf)}
+.art{border:3px solid var(--accent);border-radius:28px;overflow:hidden;aspect-ratio:1/1;
+  width:100%;max-height:68vh;justify-self:end;box-shadow:8px 8px 0 var(--leaf)}
 .art{transition:opacity .8s ease,transform .8s cubic-bezier(.2,.8,.2,1)}
 .passage:not(.on) .art{opacity:.25;transform:scale(.96) translateY(10px)}
 .label{transition:opacity .6s}
@@ -395,10 +397,10 @@ body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webki
 @media (max-width:820px){
   .top{flex-wrap:wrap;row-gap:10px;padding:14px 5vw 6px}
   .top .topics{order:3;width:100%;margin:0}
-  .top .topics{padding:5px}
-  .top .topics button{padding:7px 12px}
+  .top .topics{padding:3px}
+  .top .topics button{padding:6px 11px}
   .stage{grid-template-columns:minmax(0,1fr);grid-template-rows:auto 1fr;gap:3vh;align-content:start;padding-top:112px}
-  .art{grid-row:1;aspect-ratio:16/9;max-height:21vh;justify-self:stretch;border-width:4px;border-radius:24px;box-shadow:8px 8px 0 var(--leaf)}
+  .art{grid-row:1;aspect-ratio:16/9;max-height:19vh;justify-self:stretch;border-width:2.5px;border-radius:20px;box-shadow:5px 5px 0 var(--leaf)}
   .left{grid-row:2;height:auto;align-self:stretch}
   .label{top:0}
   /* Foot nằm trong luồng flex (không còn absolute) → vùng chữ + chú thích luôn dừng phía trên Sentence x/y, không đè nhau */
