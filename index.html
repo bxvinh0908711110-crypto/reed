@@ -507,7 +507,7 @@ body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webki
   <i class="snap" style="top:0"></i>
   <h1>You read to<br><span class="ph2 rot" style="color:var(--accent);background:var(--leaf)"><span id="rotWord">speak</span> better.</span></h1>
   <p>Simple. Word to Word. Easy and Fun.</p>
-  <div class="cue">SCROLL ↓</div>
+  <i id="homeAnchor" aria-hidden="true" style="position:fixed;left:50%;bottom:26px;width:2px;height:2px;pointer-events:none"></i>
 </section>
 <div id="toast" class="toast" role="status"></div>
 <div id="recSheet" class="recSheet" hidden role="dialog" aria-label="Nghe lại giọng đọc">
@@ -1562,7 +1562,7 @@ const Tips=(function(){
   const phiOn=(s)=>s&&s.idx&&s.idx.length;
   const TIPS={
     swipe:{ icon:coarse?"👆":"🖱️", text:coarse?"Vuốt lên để sang bước tiếp":"Cuộn chuột xuống để sang bước tiếp", dwell:2000, max:3,
-      ok:()=>{ const y=firstLessonY(); return scrollY<=y+4; }, anchor:()=>player.classList.contains("away")?$(".hero .cue"):$("#player") },
+      ok:()=>{ const y=firstLessonY(); return scrollY<=y+4; }, anchor:()=>player.classList.contains("away")?$("#homeAnchor"):$("#player") },
     tap:{ icon:"✨", text:coarse?"Chạm vào cụm được tô sáng để xem cách nói tự nhiên hơn":"Bấm vào cụm được tô sáng để xem cách nói tự nhiên hơn", dwell:2200, max:2,
       need:["swipe"], pref:"down", under:()=>{ const {s}=cur(); return s&&s.el&&s.el.querySelector(".line"); }, ok:()=>{ const {s}=cur(); return phiOn(s)&&!s.recap&&(F[active.pi][s.idx[0]]||0)<.5; }, anchor:()=>{ const {s}=cur(); return s&&s.ph&&s.ph[0]; }, ring:true },
     listen:{ icon:"🔊", text:"Bấm ▶ để nghe. Bấm ⌄ để đổi giọng và tốc độ", dwell:900, max:2,
