@@ -301,6 +301,9 @@ body{margin:0;background:var(--bg);color:var(--ink);
    Cỡ thu nhỏ lại gần bằng dock gọn trước đây (~56px) — bản 88px trước quá to so với phần còn lại của app. */
 .player{position:fixed;z-index:40;left:50%;bottom:20px;transform:translateX(-50%);width:min(92vw,420px);
   height:50px;background:var(--bar);border-radius:25px;overflow:hidden;box-shadow:0 10px 25px rgba(0,0,0,.28);touch-action:pan-y}
+.player{transition:transform .45s cubic-bezier(.2,.8,.2,1),opacity .3s ease}
+.player.away{transform:translate(-50%,calc(100% + 48px));opacity:0;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.player{transition:none}}
 .player .viewport{width:100%;height:100%;overflow:hidden;position:relative}
 .player .slider{width:100%;position:absolute;left:0;top:0;transition:transform .35s cubic-bezier(.22,.8,.25,1)}
 .player.settings .slider{transform:translateY(-50px)}
@@ -878,6 +881,7 @@ function fitSlides(){
   });
   if(typeof measure==="function") measure();   /* chiều rộng từng cụm (ph._w) phụ thuộc cỡ chữ → đo lại */
 }
+let heroEnd=1e9;   /* trước khi tính xong: ẩn thanh player */
 function layout(){
   fitSlides();
   const vh=innerHeight;
@@ -898,6 +902,7 @@ function layout(){
     pp.el.querySelectorAll(".snap").forEach(e=>e.remove());
     ys.forEach(y=>{ const d=document.createElement("i"); d.className="snap"; d.style.top=Math.round(y)+"px"; pp.el.appendChild(d); });
   });
+  heroEnd=(typeof firstLessonY==="function"&&P.length)?firstLessonY():0;   /* từ điểm này trở xuống mới hiện thanh player */
   refreshLocks();   /* vị trí các bài đổi theo layout -> tính lại ranh giới khoá */
 }
 
@@ -1168,6 +1173,7 @@ addEventListener("keydown",e=>{
 });
 function update(){
   if(scrollY>lockBoundY){ scrollTo(0,lockBoundY); return; }   /* chặn cuộn vào bài chưa mở khoá */
+  player.classList.toggle("away",scrollY<heroEnd-6);   /* trang chủ (chưa vào bài): ẩn thanh, vào bài thì trượt lên */
   const vh=innerHeight;
   let act=null; live=[];
   P.forEach((pp,pi)=>{
@@ -1556,7 +1562,7 @@ const Tips=(function(){
   const phiOn=(s)=>s&&s.idx&&s.idx.length;
   const TIPS={
     swipe:{ icon:coarse?"👆":"🖱️", text:coarse?"Vuốt lên để sang bước tiếp":"Cuộn chuột xuống để sang bước tiếp", dwell:2000, max:3,
-      ok:()=>{ const y=firstLessonY(); return scrollY<=y+4; }, anchor:()=>$("#player") },
+      ok:()=>{ const y=firstLessonY(); return scrollY<=y+4; }, anchor:()=>player.classList.contains("away")?$(".hero .cue"):$("#player") },
     tap:{ icon:"✨", text:coarse?"Chạm vào cụm được tô sáng để xem cách nói tự nhiên hơn":"Bấm vào cụm được tô sáng để xem cách nói tự nhiên hơn", dwell:2200, max:2,
       need:["swipe"], pref:"down", under:()=>{ const {s}=cur(); return s&&s.el&&s.el.querySelector(".line"); }, ok:()=>{ const {s}=cur(); return phiOn(s)&&!s.recap&&(F[active.pi][s.idx[0]]||0)<.5; }, anchor:()=>{ const {s}=cur(); return s&&s.ph&&s.ph[0]; }, ring:true },
     listen:{ icon:"🔊", text:"Bấm ▶ để nghe. Bấm ⌄ để đổi giọng và tốc độ", dwell:900, max:2,
