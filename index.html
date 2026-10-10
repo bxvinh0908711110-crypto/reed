@@ -217,7 +217,7 @@ body{margin:0;background:var(--bg);color:var(--ink);
 @media (prefers-reduced-motion:reduce){.player .rdot{animation:none}}
 .hero{overflow:hidden}
 .hero>*:not(.snap):not(.heroImg){position:relative;z-index:2}
-.hero>.heroImg{position:absolute;z-index:1;right:var(--hr,-1vw);bottom:var(--hb,0px);width:var(--hw,min(88vw,157dvh));height:auto;max-width:none;pointer-events:none;user-select:none}
+.hero>.heroImg{position:absolute;z-index:1;right:var(--hr,-2.5vw);bottom:var(--hb,0px);width:var(--hw,95vw);height:auto;max-width:none;pointer-events:none;user-select:none}
 .heroCta{display:inline-flex;align-items:center;gap:12px;align-self:flex-start;margin-top:36px;padding:16px 30px;border:0;border-radius:999px;background:var(--accent);color:#fff;
   font:inherit;font-size:17px;font-weight:700;letter-spacing:0;cursor:pointer;box-shadow:0 10px 24px rgba(27,59,255,.28);transition:transform .15s ease,box-shadow .2s ease}
 .heroCta:hover{box-shadow:0 14px 30px rgba(27,59,255,.34)}
@@ -1972,7 +1972,7 @@ const Rec=(function(){
   if(!/[?&](edit|hero)\b/.test(location.search)) return;
   document.body.classList.add("hedit");
   const img=document.querySelector(".heroImg"), pn=$("#heroPanel"), KEY="reed_heroPos";
-  const DEF={desktop:{w:88,r:-1,b:0},mobile:{w:130,r:-14,b:0}};
+  const DEF={desktop:{w:95,r:-2.5,b:0},mobile:{w:130,r:-14,b:0}};
   let st; try{ st=JSON.parse(localStorage.getItem(KEY)||"null"); }catch(e){} st=Object.assign({},DEF,st||{});
   const mode=()=>innerWidth<=820?"mobile":"desktop";
   const els={w:[$("#hpW"),$("#hpWn")],r:[$("#hpR"),$("#hpRn")],b:[$("#hpB"),$("#hpBn")]};
