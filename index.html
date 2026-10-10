@@ -28,7 +28,7 @@ body{margin:0;background:var(--bg);color:var(--ink);
 .top .brandtext b{font-size:16px;font-weight:800;letter-spacing:.08em;color:var(--ink)}
 .top .brandtext i{font-style:normal;font-size:9px;font-weight:700;letter-spacing:.13em;color:var(--muted);text-transform:uppercase;margin-top:3px}
 .top .right{display:flex;align-items:center;gap:10px;pointer-events:none}
-.nbBtn{pointer-events:auto;border:1px solid #e4e2dc;background:#fff;color:var(--ink);border-radius:999px;box-shadow:0 1px 3px rgba(0,0,0,.05);
+.nbBtn{height:32px;box-sizing:border-box;pointer-events:auto;border:1px solid #e4e2dc;background:#fff;color:var(--ink);border-radius:999px;box-shadow:0 1px 3px rgba(0,0,0,.05);
   padding:5px 11px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
 .nbBtn b{background:var(--accent);color:#fff;border-radius:999px;padding:1px 6px;font-size:10.5px;min-width:1.4em;text-align:center}
 .nbBackdrop{position:fixed;inset:0;background:rgba(30,20,10,.32);z-index:48;opacity:0;transition:opacity .35s}
@@ -84,8 +84,8 @@ body{margin:0;background:var(--bg);color:var(--ink);
 #rotWord.out{opacity:0;transform:translateY(.25em)}
 .top .topics{pointer-events:auto;margin-left:32px;flex:0 1 auto}
 .top .right{margin-left:auto}
-@media (min-width:821px){ .top{padding-top:28px} }
-@media (min-width:1320px){ .top{min-height:88px} .top .topics{position:absolute;left:50%;top:22px;transform:translateX(-50%);margin:0} }
+@media (min-width:821px){ .top{height:80px;padding-top:0;padding-bottom:0;align-items:center} }
+@media (min-width:1320px){ .top .topics{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0} }
 @media (min-width:821px) and (max-width:1180px){ .top .topics{margin-left:16px;margin-right:12px} .top .topics button{padding:8px 10px} }
 .topics{display:flex;gap:4px;padding:4px;background:color-mix(in srgb,var(--leaf) 35%,transparent);border-radius:999px;width:max-content;max-width:100%;min-width:0;
   overflow-x:auto;scrollbar-width:none;touch-action:pan-x;-webkit-overflow-scrolling:touch}
@@ -105,7 +105,7 @@ body{margin:0;background:var(--bg);color:var(--ink);
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 #main.entering .label,#main.entering .sents{animation:rise .55s cubic-bezier(.2,.8,.2,1) both}
 #main.entering .art{animation:rise .65s .08s cubic-bezier(.2,.8,.2,1) both}
-.tipBtn{width:30px;height:30px;padding:0;justify-content:center;font-weight:700;font-size:13.5px;margin-right:0;color:var(--muted)}
+.tipBtn{height:32px;width:auto;padding:0 12px;justify-content:center;font-weight:600;font-size:12.5px;margin-right:0;color:var(--ink);white-space:nowrap}
 .tip{position:fixed;z-index:65;left:0;top:0;max-width:min(280px,calc(100vw - 24px));padding:11px 14px;border-radius:14px;background:var(--bar);color:#fff;
   font-size:13.5px;font-weight:600;line-height:1.4;letter-spacing:0;box-shadow:0 10px 28px rgba(0,0,0,.28);cursor:pointer;
   opacity:0;transform:translateY(6px);pointer-events:none;transition:opacity .25s ease,transform .25s ease;display:flex;gap:10px;align-items:center}
@@ -426,6 +426,8 @@ body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webki
   .number-spacer{width:calc(50% - 15px);min-width:calc(50% - 15px)}
 }
 
+@media (max-width:430px){ .top .brandtext i{display:none} }
+@media (max-width:360px){ .top .right{gap:6px} .tipBtn{padding:0 9px} .nbBtn{padding:5px 9px} }
 @media (max-width:820px){
   .top{flex-wrap:wrap;row-gap:10px;padding:14px 5vw 6px}
   .top .topics{order:3;width:calc(100% + 10vw);max-width:none;margin:0 -5vw;padding:5px 5vw;border-radius:0;gap:6px;
@@ -523,7 +525,7 @@ body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webki
   </svg>
 </div>
 <div id="pickBubble"><b>01</b></div>
-<div class="top"><span class="brand"><img src="reed-icon.svg" alt="" width="22" height="23"><span class="brandtext"><b>REED</b><i>Read English Every Day</i></span></span><nav class="topics" id="topics" aria-label="Topics"></nav><span class="right"><button id="tipBtn" class="nbBtn tipBtn" aria-label="Xem lại hướng dẫn" title="Hướng dẫn">?</button><button id="nbBtn" class="nbBtn" aria-label="Vocabulary notebook"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M16 2v20"/></svg> <b id="nbCount">0</b></button></span></div>
+<div class="top"><span class="brand"><img src="reed-icon.svg" alt="" width="22" height="23"><span class="brandtext"><b>REED</b><i>Read English Every Day</i></span></span><nav class="topics" id="topics" aria-label="Topics"></nav><span class="right"><button id="tipBtn" class="nbBtn tipBtn" aria-label="How to Learn: xem lại hướng dẫn" title="How to Learn">How to Learn</button><button id="nbBtn" class="nbBtn" aria-label="Vocabulary notebook"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M16 2v20"/></svg> <b id="nbCount">0</b></button></span></div>
 
 <div id="nbBackdrop" class="nbBackdrop" hidden></div>
 <aside id="notebook" class="nb" hidden>
@@ -1773,7 +1775,7 @@ const Tour=(function(){
           nbOpen();
         },
         leave:()=>{ nbClose(); if(demoAdded){ nbTogglePair(demoAdded); demoAdded=null; } }},
-      {t:(coarse?"Giữ ngón tay":"Nhấn giữ")+" vào tên bài, rồi trượt sang trái / phải để chọn bài khác. Cần xem lại hướng dẫn? Bấm nút “?” trên cùng.", last:true, wait:520, r:30,
+      {t:(coarse?"Giữ ngón tay":"Nhấn giữ")+" vào tên bài, rồi trượt sang trái / phải để chọn bài khác. Cần xem lại hướng dẫn? Bấm nút “How to Learn” trên cùng.", last:true, wait:520, r:30,
         rect:()=>union($("#player").getBoundingClientRect(), $("#pickBubble").getBoundingClientRect()),
         el:()=>$("#player"),
         enter:()=>{ openPicker(); }, leave:()=>{ closePicker(); }}
