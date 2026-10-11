@@ -22,7 +22,9 @@ body{margin:0;background:var(--bg);color:var(--ink);
 .top{position:fixed;z-index:30;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;
   padding:18px 6vw;font-size:13px;letter-spacing:.06em;color:var(--muted);pointer-events:none}
 .top b{font-weight:500}
-.top .brand{display:flex;align-items:center;gap:9px}
+.top .brand{display:flex;align-items:center;gap:9px;pointer-events:auto;cursor:pointer;-webkit-tap-highlight-color:transparent;border-radius:10px;outline-offset:4px;transition:opacity .15s ease}
+.top .brand:hover{opacity:.8}
+.top .brand:active{opacity:.6}
 .top .brand img{display:block;pointer-events:none}
 .top .brandtext{display:flex;flex-direction:column;line-height:1.1}
 .top .brandtext b{font-size:16px;font-weight:800;letter-spacing:.08em;color:var(--ink)}
@@ -544,7 +546,7 @@ body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webki
   </svg>
 </div>
 <div id="pickBubble"><b>01</b></div>
-<div class="top"><span class="brand"><img src="reed-icon.svg" alt="" width="22" height="23"><span class="brandtext"><b>REED</b><i>Read English Every Day</i></span></span><nav class="topics" id="topics" aria-label="Topics"></nav><span class="right"><button id="tipBtn" class="nbBtn tipBtn" aria-label="How to Learn: xem lại hướng dẫn" title="How to Learn">How to Learn</button><button id="nbBtn" class="nbBtn" aria-label="Vocabulary notebook"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M16 2v20"/></svg> <b id="nbCount">0</b></button></span></div>
+<div class="top"><span class="brand" id="brandHome" role="button" tabindex="0" aria-label="Về trang chủ"><img src="reed-icon.svg" alt="" width="22" height="23"><span class="brandtext"><b>REED</b><i>Read English Every Day</i></span></span><nav class="topics" id="topics" aria-label="Topics"></nav><span class="right"><button id="tipBtn" class="nbBtn tipBtn" aria-label="How to Learn: xem lại hướng dẫn" title="How to Learn">How to Learn</button><button id="nbBtn" class="nbBtn" aria-label="Vocabulary notebook"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M16 2v20"/></svg> <b id="nbCount">0</b></button></span></div>
 
 <div id="nbBackdrop" class="nbBackdrop" hidden></div>
 <aside id="notebook" class="nb" hidden>
@@ -1241,6 +1243,23 @@ function goStep(dir){
     else { scrollTo(0,t); stepping=false; tipEvt("step"); }
   })(t0);
 }
+/* Bấm logo: cuộn mượt về đầu trang (hero) */
+function goHome(){
+  if(stepping||(typeof Tour!=="undefined"&&(Tour.active||Tour.welcomeOpen))) return;
+  if(typeof Rec!=="undefined"){ if(Rec.open){ if(Rec.state==="recording") return; Rec.close(); } else if(Rec.playing()) Rec.stopPlay(); }
+  const y=scrollY; if(y<2) return;
+  stopAll();
+  if(document.body.classList.contains("lang-vi")) setLang("en");
+  stepping=true; setTimeout(()=>{ stepping=false; },1400);
+  const T=Math.min(900,Math.max(380,y*.35)), t0=performance.now();
+  (function f(now){
+    const k=Math.min(1,(now-t0)/T), e=1-Math.pow(1-k,3);
+    scrollTo(0,y*(1-e));
+    if(k<1) requestAnimationFrame(f); else { scrollTo(0,0); stepping=false; }
+  })(t0);
+}
+$("#brandHome").addEventListener("click",goHome);
+$("#brandHome").addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); goHome(); } });
 function ownScroller(el,axis){
   if(document.body.classList.contains("hedit")&&el&&el.closest&&el.closest("#heroPanel,.heroImg")) return true;   /* axis "xy": cảm ứng (cả cuộn ngang); mặc định chỉ cuộn dọc (lăn chuột) */
   for(;el&&el.nodeType===1&&el!==document.body;el=el.parentElement){
