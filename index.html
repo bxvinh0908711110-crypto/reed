@@ -1263,13 +1263,13 @@ function goHome(){
   const y=scrollY; if(y<2) return;
   stopAll();
   if(document.body.classList.contains("lang-vi")) setLang("en");
-  stepping=true; setTimeout(()=>{ stepping=false; },1400);
-  const T=Math.min(900,Math.max(380,y*.35)), t0=performance.now();
-  (function f(now){
-    const k=Math.min(1,(now-t0)/T), e=1-Math.pow(1-k,3);
-    scrollTo(0,y*(1-e));
-    if(k<1) requestAnimationFrame(f); else { scrollTo(0,0); stepping=false; }
-  })(t0);
+  /* Nhảy thẳng về đầu (không cuộn qua từng bước ở giữa — mỗi khung hình đều dựng lại nên giật): nội dung mờ nhanh → nhảy → hiện lại */
+  const main=$("#main"), reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  stepping=true; setTimeout(()=>{ stepping=false; },600);
+  const jump=()=>{ scrollTo(0,0); update(); };
+  if(reduce){ jump(); stepping=false; return; }
+  main.classList.add("leaving");
+  setTimeout(()=>{ jump(); requestAnimationFrame(()=>requestAnimationFrame(()=>{ main.classList.remove("leaving"); stepping=false; })); },150);
 }
 $("#brandHome").addEventListener("click",goHome);
 $("#brandHome").addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); goHome(); } });

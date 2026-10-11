@@ -9,7 +9,7 @@ for(const [name,opts] of [['13',devices['iPhone 13']],['d1280',{viewport:{width:
   console.log(name,'đầu trang, bấm logo',await st()); await p.click('#brandHome'); await p.waitForTimeout(300); console.log(' vẫn 0',await st());
   await p.click('#topics button[data-k="work"]'); await p.waitForTimeout(900); await p.evaluate(()=>{goStep(1)}); await p.waitForTimeout(600);
   await p.evaluate(()=>langBtn.click()); await p.waitForTimeout(500); console.log(' trong bài (VI)',await st());
-  await p.click('#brandHome'); await p.waitForTimeout(1500); console.log(' sau bấm logo',await st());
+  await p.evaluate(()=>{window.__ys=[];const f=()=>{__ys.push(Math.round(scrollY));requestAnimationFrame(f)};f()}); await p.click('#brandHome'); await p.waitForTimeout(1500); console.log(' sau bấm logo',await st(),'các vị trí cuộn đã qua:',[...new Set(await p.evaluate(()=>__ys))].join(','));
   await p.evaluate(()=>{goStep(1)}); await p.waitForTimeout(700); console.log(' Start Reading lại được',await st(),errs);
   await ctx.close();
 }
