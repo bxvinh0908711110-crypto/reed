@@ -168,6 +168,17 @@ body{margin:0;background:var(--bg);color:var(--ink);
 .player .mic{position:relative;width:34px;height:34px;flex:0 0 34px;margin-left:6px;border:0;border-radius:50%;background:var(--bar2);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;
   transition:background .2s ease,transform .15s ease}
 .player .mic:active{transform:scale(.9)}
+.player .lang{flex:0 0 auto;margin-left:6px;border:0;border-radius:999px;background:var(--leaf);color:#0b0b0b;font:inherit;font-size:13px;font-weight:800;letter-spacing:.02em;min-width:40px;height:30px;padding:0 12px;cursor:pointer;transition:transform .15s ease}
+.player .lang:active{transform:scale(.92)}
+/* Chế độ dịch (VI): chữ Việt thay chữ Anh; dòng Anh vẫn giữ nguyên bố cục (ẩn bằng visibility) để đo/cuộn không đổi */
+.sent .vt{display:none;margin:0;font-size:calc(var(--fitv,1) * .92 * clamp(30px,4.5vw,66px));line-height:1.25;letter-spacing:-.03em;font-weight:500;color:#3b3b3b}
+body.lang-vi .sent .vt{display:block}
+body.lang-vi .sent:not(.novi):not(.recap) .line{height:0;margin:0!important;overflow:hidden;visibility:hidden;pointer-events:none}
+.rl.rv{opacity:0;pointer-events:none}
+body.lang-vi .rcw.hv .rl:not(.rv){opacity:0!important;pointer-events:none}
+body.lang-vi .rcw.hv .rl.rv{opacity:1;filter:none;transform:none;pointer-events:auto}
+
+body.lang-vi .foot .tg{visibility:hidden}
 .player .mic .pl,.player .mic .bd{display:none}
 .player .mic.has .bd{display:block;position:absolute;top:2px;right:2px;width:10px;height:10px;border-radius:50%;background:#d9ff73;box-shadow:0 0 0 2.5px var(--bar)}
 .player .mic.has .bd svg{display:none}
@@ -191,7 +202,7 @@ body{margin:0;background:var(--bg);color:var(--ink);
 .player.recording .play::after{content:"";width:16px;height:16px;border-radius:3px;background:#fff}
 .player.recording .rec-live{display:flex}
 .player.recording .rcancel2{display:block}
-.player.recording .lesson-content,.player.recording .mic,.player.recording .d2,.player.recording .chevron-button{display:none}
+.player.recording .lesson-content,.player.recording .mic,.player.recording .lang,.player.recording .d2,.player.recording .chevron-button{display:none}
 .recSheet{position:fixed;z-index:70;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 92px);width:min(460px,calc(100vw - 24px));transform:translate(-50%,12px);
   background:var(--bar);color:#fff;border-radius:22px;padding:10px 12px;box-shadow:0 16px 40px rgba(0,0,0,.35);opacity:0;transition:opacity .25s ease,transform .25s ease}
 .recSheet.on{opacity:1;transform:translate(-50%,0)}
@@ -403,6 +414,8 @@ body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webki
 
 @media (max-width:480px){
   .player .mic{width:30px;height:30px;flex-basis:30px;margin-left:4px}
+  .player .lang{height:28px;min-width:36px;padding:0 10px;font-size:12px;margin-left:4px}
+  .sent .vt{font-size:calc(var(--fitv,1) * .92 * clamp(24px,7vw,66px))}
   .player .mic.has .bd{width:9px;height:9px;top:1px;right:1px}
   .player .rl-text{font-size:12px}
   .player .rcancel2{padding:8px 14px;font-size:13px}
@@ -588,6 +601,7 @@ body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webki
           <div class="dots" id="dots"></div>
         </div>
         <div class="rec-live" id="recLive"><div class="rl-text"></div><div class="rl-row"><span class="rdot"></span><span class="rtime">0:00</span><span class="wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div></div>
+        <button class="lang" id="langBtn" type="button" aria-pressed="false" aria-label="Dịch Anh / Việt">EN</button>
         <button class="mic" id="micBtn" type="button" aria-label="Ghi âm giọng đọc"><svg class="mi" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19v3"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><rect x="9" y="2" width="6" height="13" rx="3"/></svg><svg class="pl" viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M8 5v14l11-7z"/></svg><span class="bd"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></span></button>
         <button class="rcancel2" id="recCancel" type="button">Hủy</button>
         <span class="divider d2"></span>
@@ -805,10 +819,10 @@ const UNIT=.45, RAMP=.3;                                   /* đơn vị cuộn 
 
 /* ---------- Tách bài thành từng câu ---------- */
 function makeP(){ return passages.map((p,pi)=>{
-  const raw = p.tpl.split(/(?<=[.!?])\s+/).map(t=>{
+  const raw = p.tpl.split(/(?<=[.!?])\s+/).map((t,k)=>{
     const idx=[...t.matchAll(/\{(\d)\}/g)].map(m=>+m[1]);
     const steps=idx.map(i=>opts(pi,i).length-1);
-    return {tpl:t,idx,steps};
+    return {tpl:t,idx,steps,k};
   });
   /* Mỗi câu có cụm để đổi là 1 bước riêng; các câu không đổi liền nhau gộp thành 1 bước riêng của chúng
      (không dính vào câu trước/sau). */
@@ -857,11 +871,27 @@ const artHTML=p=>{
 /* ảnh lỗi (mất mạng lần đầu...) → quay về tranh SVG vẽ sẵn */
 document.addEventListener("error",e=>{ const t=e.target; if(t&&t.tagName==="IMG"&&t.classList&&t.classList.contains("afg")){
   const art=t.closest(".art"); if(art) art.innerHTML=(scenes[t.dataset.sc]||scenes.hobbies).replace("<svg ",'<svg preserveAspectRatio="xMidYMid slice" '); } },true);
+/* Bản dịch tiếng Việt từng câu (chỉ hiển thị chữ, không có âm thanh). Khoá = id bài (vị trí); mảng theo thứ tự câu của tpl. */
+const VI={
+0:["Chào mừng đến với Reed!","Hôm nay, bạn sẽ thấy cách nó hoạt động.","Đọc một chút mỗi ngày giúp tiếng Anh trở nên dễ dàng."],
+1:["Tên tôi là Anna.","Tôi sống cùng bố mẹ trong một ngôi nhà đẹp.","Anh chị em của tôi cũng sống cùng chúng tôi.","Mỗi buổi tối, chúng tôi ăn tối cùng nhau và trò chuyện về một ngày của mình.","Tôi yêu gia đình mình rất nhiều."],
+2:["Bạn có một người bạn thân không?","Có chứ.","Bạn thân của tôi là John.","Chúng tôi có nhiều điểm chung về trò chơi, đồ ăn và động vật.","Tôi rất vui vì có một người bạn như anh ấy."],
+3:["Xin chào, tôi là Vy và tôi là học sinh của một ngôi trường mới.","Mỗi sáng, tôi đi bộ đến trường cùng bạn thân.","Trường tôi ở gần một nơi vui chơi, nên chúng tôi thường chơi ở đó cùng nhau sau giờ học.","Có nhiều cây xanh dọc đường tôi đến trường.","Bạn có biết trường tôi ở đâu không?"],
+4:["Tom làm việc ở một quán cà phê nhỏ.","Anh ấy thích pha đồ uống cho khách.","Ngoài ra, anh ấy thích trò chuyện với khách và nhiều người rất yêu cà phê của anh.","Khi khách ghé quán cà phê, họ luôn thấy vui vì có thể thưởng thức cà phê ngon.","Đó là lý do Tom yêu công việc của mình."],
+5:["Tôi thường dậy sớm vào các sáng thứ Bảy.","Tôi ăn sáng cùng gia đình trong bếp.","Sau đó, tôi giặt quần áo.","Buổi chiều, tôi đi mua sắm ở siêu thị gần nhà.","Tôi thích ngày cuối tuần của mình."],
+6:["Tên tôi là Anna và tôi có nhiều sở thích.","Lúc rảnh rỗi, tôi thích nghe nhạc và đọc sách.","Vào cuối tuần, tôi thường chơi bóng đá với bạn bè ở công viên.","Tôi cũng thích nấu những món ngon cho gia đình.","Tất cả những điều này khiến tôi vui vẻ và thư giãn sau một ngày bận rộn."],
+7:["Tôi đi học từ thứ Hai đến thứ Sáu.","Tôi dậy sớm vào buổi sáng và ăn một bữa sáng thịnh soạn.","Sau đó, tôi đi bộ đến trường cùng bạn.","Trường tôi ở gần nhà tôi.","Tôi thích các lớp học và các thầy cô của mình.","Mỗi ngày đến trường đều vui."],
+8:["Nhiều người không biết rằng một buổi sáng tốt lành có thể mang lại năng lượng cho cả buổi chiều và buổi tối.","Chúng tôi khuyên mọi người dậy sớm vào buổi sáng và ngắm mặt trời mọc.","Họ có thể tập thể dục sau khi thức dậy.","Họ cũng có thể uống chút nước và ăn một bữa sáng lành mạnh.","Họ bắt đầu ngày mới với thật nhiều năng lượng."],
+9:["Công nghệ là một phần quan trọng trong cuộc sống hằng ngày của chúng ta.","Chúng ta dùng điện thoại để liên lạc với bạn bè và gia đình mỗi ngày.","Chúng ta cũng dùng máy tính để học, làm việc và tìm kiếm thông tin.","Nhiều người xem video hoặc nghe nhạc trên điện thoại.","Công nghệ giúp chúng ta làm nhiều việc dễ dàng hơn."]
+};
+const viArr=pi=>passages[pi].vi||VI[passages[pi].id]||null;
+const viSlide=(pi,s)=>{ const a=viArr(pi); if(!a) return ""; const t=s.lines.map(l=>a[l.k]); return t.every(Boolean)?t.join(" "):""; };
+const viRecap=pi=>{ const a=viArr(pi), n=passages[pi].tpl.split(/(?<=[.!?])\s+/).length; return a&&a.length>=n&&a.slice(0,n).every(Boolean)?`<p class="line rl rv">${a.slice(0,n).join(" ")}</p>`:""; };
 function build(){
   $("#main").innerHTML = passages.map((p,pi)=>{
     const sents = P[pi].sents.map((s,si)=> s.recap
-      ? `<div class="sent recap" data-s="${si}"><div class="rcw" id="rc${pi}" data-m="up"><p class="line rl base">${recapHTML(pi,"base")}</p><p class="line rl up">${recapHTML(pi,"up")}</p></div></div>`
-      : `<div class="sent" data-s="${si}">${lineGroups(s.lines).map(g=>`<p class="line">${tokHTML(pi,g.tpl)}</p>`).join("")}<div class="cap"></div></div>`).join("");
+      ? `<div class="sent recap" data-s="${si}"><div class="rcw${viRecap(pi)?" hv":""}" id="rc${pi}" data-m="up"><p class="line rl base">${recapHTML(pi,"base")}</p><p class="line rl up">${recapHTML(pi,"up")}</p>${viRecap(pi)}</div></div>`
+      : `<div class="sent${viSlide(pi,s)?"":" novi"}" data-s="${si}">${lineGroups(s.lines).map(g=>`<p class="line">${tokHTML(pi,g.tpl)}</p>`).join("")}${viSlide(pi,s)?`<p class="vt">${viSlide(pi,s)}</p>`:""}<div class="cap"></div></div>`).join("");
     return `<section class="passage" data-p="${pi}"><div class="stage">
       <div class="left"><div class="label"><span class="n">${String(pi+1).padStart(2,"0")}</span><i class="d"></i><span class="t">${p.topic}</span></div>
         <div class="sents">${sents}</div>
@@ -909,6 +939,7 @@ function stabilize(){
 }
 /* Co chữ từng slide cho vừa khung hiển thị (màn hình thấp / slide dài), thay vì để bị cắt mất dòng đầu */
 function fitSlides(){
+  const wasVi=document.body.classList.contains("lang-vi"); document.body.classList.remove("lang-vi");
   P.forEach(pp=>{
     const box=pp.el&&pp.el.querySelector(".sents"); if(!box) return;
     pp.sents.forEach(s=>{
@@ -920,6 +951,18 @@ function fitSlides(){
       for(let k=0;k<14&&(nat()>box.clientHeight||wide())&&f>.4;k++){ f=Math.max(.4,f*.93); el.style.setProperty("--fit",f.toFixed(3)); }
     });
   });
+  /* Bản dịch tiếng Việt: co chữ riêng cho từng slide (đo khi bật chế độ VI tạm thời) */
+  const was=wasVi; document.body.classList.add("lang-vi");
+  P.forEach(pp=>{
+    const box=pp.el&&pp.el.querySelector(".sents"); if(!box) return;
+    pp.sents.forEach(s=>{
+      const el=s.el, v=el&&el.querySelector(".vt"); if(!v||s.recap) return;
+      const nat=()=>{ el.style.alignSelf="start"; const h=el.offsetHeight; el.style.alignSelf=""; return h; };
+      let f=1; el.style.setProperty("--fitv",1);
+      for(let k=0;k<14&&nat()>box.clientHeight&&f>.4;k++){ f=Math.max(.4,f*.93); el.style.setProperty("--fitv",f.toFixed(3)); }
+    });
+  });
+  if(!was) document.body.classList.remove("lang-vi");
   if(typeof measure==="function") measure();   /* chiều rộng từng cụm (ph._w) phụ thuộc cỡ chữ → đo lại */
 }
 let heroEnd=1e9;   /* trước khi tính xong: ẩn thanh player */
@@ -1122,6 +1165,14 @@ addEventListener("resize",()=>{ if(player.classList.contains("picker-open")) mov
 
 /* Bấm chevron hoặc vuốt dọc trên player đổi giữa 2 trang (Lesson / Cài đặt) */
 $("#openSettings").addEventListener("click",()=>player.classList.add("settings"));
+/* Nút dịch EN / VI: chỉ đổi chữ hiển thị, âm thanh luôn là tiếng Anh */
+const langBtn=$("#langBtn");
+function setLang(v,save){
+  document.body.classList.toggle("lang-vi",v==="vi"); langBtn.textContent=v==="vi"?"VI":"EN"; langBtn.setAttribute("aria-pressed",v==="vi");
+  if(save){ try{localStorage.setItem("reed_lang",v)}catch(e){} }
+  if(typeof movePills==="function"&&P.length) movePills();
+}
+langBtn.addEventListener("click",()=>setLang(document.body.classList.contains("lang-vi")?"en":"vi",true));
 $("#closeSettings").addEventListener("click",()=>player.classList.remove("settings"));
 let swipeY=0, swiping=false;
 player.addEventListener("touchstart",e=>{
@@ -1457,7 +1508,7 @@ function movePill(tg){
 }
 function sizeRecap(pi){
   const w=$("#rc"+pi); if(!w) return;
-  const l=w.querySelector(w.dataset.m==="up"?".up":".base");
+  const l=(document.body.classList.contains("lang-vi")&&w.querySelector(".rv"))||w.querySelector(w.dataset.m==="up"?".up":".base");
   /* Đoạn tổng kết gộp cả bài nên có thể dài hơn hẳn từng câu riêng — nếu vượt quá khoảng trống
      dành cho .sents (bị overflow:hidden cắt mất), tự thu nhỏ chữ lại vừa đủ để không bị cắt. */
   w.style.setProperty("--rs",1);
@@ -2020,6 +2071,7 @@ function setTopic(k,jump){
   P=makeP(); F=passages.map(()=>({})); recapMode=passages.map(()=>"up");
   unlockedCount=loadUnlocked(); active={pi:0,si:0}; live=[];
   build(); buildPlayer(); layout(); measure(); movePills(); update(); fitSlides();   /* fit sau update() vì chú thích (.cap) chỉ có chữ sau khi update chạy */
+  { let sv=null; try{sv=localStorage.getItem("reed_lang")}catch(e){} if(sv==="vi") setLang("vi"); }
   document.querySelectorAll("#topics button").forEach(b=>{ b.setAttribute("aria-pressed",b.dataset.k===k); });
   { const bar=$("#topics"), cur=bar.querySelector(`button[data-k="${k}"]`); if(cur&&bar.scrollWidth>bar.clientWidth) bar.scrollTo({left:cur.offsetLeft-(bar.clientWidth-cur.offsetWidth)/2,behavior:"smooth"}); }
   if(jump) scrollTo(0, firstLessonY());
