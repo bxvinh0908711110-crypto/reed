@@ -178,6 +178,8 @@ body.lang-vi .sent .vt{display:block}
 body.lang-vi .sent:not(.novi) .cap{display:none}   /* chế độ VI: ẩn chú thích cụm */
 body.lang-vi .sent:not(.novi):not(.recap) .line{height:0;margin:0!important;overflow:hidden;visibility:hidden;pointer-events:none}
 .rl.rv{opacity:0;pointer-events:none}
+.sent .vt mark{font-weight:700;letter-spacing:-.035em;padding:0 .14em;border-radius:.1em;background:var(--leaf);color:var(--a1);-webkit-box-decoration-break:clone;box-decoration-break:clone;transition:color .25s ease}
+.sent .vt mark.m1{color:var(--a2)}
 /* Chuyển EN↔VI: chữ mờ nhẹ + hơi trượt xuống, đổi nội dung ở điểm mờ nhất rồi hiện lại */
 .sents{transition:opacity .2s ease,filter .2s ease,transform .26s cubic-bezier(.3,.9,.3,1)}
 body.lang-sw .sents{opacity:0;filter:blur(5px);transform:translateY(8px)}
@@ -882,20 +884,22 @@ document.addEventListener("error",e=>{ const t=e.target; if(t&&t.tagName==="IMG"
   const art=t.closest(".art"); if(art) art.innerHTML=(scenes[t.dataset.sc]||scenes.hobbies).replace("<svg ",'<svg preserveAspectRatio="xMidYMid slice" '); } },true);
 /* Bản dịch tiếng Việt từng câu (chỉ hiển thị chữ, không có âm thanh). Khoá = id bài (vị trí); mảng theo thứ tự câu của tpl. */
 const VI={
-0:["Chào mừng đến với Reed!","Hôm nay, bạn sẽ thấy cách nó hoạt động.","Đọc một chút mỗi ngày giúp tiếng Anh trở nên dễ dàng."],
-1:["Tên tôi là Anna.","Tôi sống cùng bố mẹ trong một ngôi nhà đẹp.","Anh chị em của tôi cũng sống cùng chúng tôi.","Mỗi buổi tối, chúng tôi ăn tối cùng nhau và trò chuyện về một ngày của mình.","Tôi yêu gia đình mình rất nhiều."],
-2:["Bạn có một người bạn thân không?","Có chứ.","Bạn thân của tôi là John.","Chúng tôi có nhiều điểm chung về trò chơi, đồ ăn và động vật.","Tôi rất vui vì có một người bạn như anh ấy."],
-3:["Xin chào, tôi là Vy và tôi là học sinh của một ngôi trường mới.","Mỗi sáng, tôi đi bộ đến trường cùng bạn thân.","Trường tôi ở gần một nơi vui chơi, nên chúng tôi thường chơi ở đó cùng nhau sau giờ học.","Có nhiều cây xanh dọc đường tôi đến trường.","Bạn có biết trường tôi ở đâu không?"],
-4:["Tom làm việc ở một quán cà phê nhỏ.","Anh ấy thích pha đồ uống cho khách.","Ngoài ra, anh ấy thích trò chuyện với khách và nhiều người rất yêu cà phê của anh.","Khi khách ghé quán cà phê, họ luôn thấy vui vì có thể thưởng thức cà phê ngon.","Đó là lý do Tom yêu công việc của mình."],
-5:["Tôi thường dậy sớm vào các sáng thứ Bảy.","Tôi ăn sáng cùng gia đình trong bếp.","Sau đó, tôi giặt quần áo.","Buổi chiều, tôi đi mua sắm ở siêu thị gần nhà.","Tôi thích ngày cuối tuần của mình."],
-6:["Tên tôi là Anna và tôi có nhiều sở thích.","Lúc rảnh rỗi, tôi thích nghe nhạc và đọc sách.","Vào cuối tuần, tôi thường chơi bóng đá với bạn bè ở công viên.","Tôi cũng thích nấu những món ngon cho gia đình.","Tất cả những điều này khiến tôi vui vẻ và thư giãn sau một ngày bận rộn."],
-7:["Tôi đi học từ thứ Hai đến thứ Sáu.","Tôi dậy sớm vào buổi sáng và ăn một bữa sáng thịnh soạn.","Sau đó, tôi đi bộ đến trường cùng bạn.","Trường tôi ở gần nhà tôi.","Tôi thích các lớp học và các thầy cô của mình.","Mỗi ngày đến trường đều vui."],
-8:["Nhiều người không biết rằng một buổi sáng tốt lành có thể mang lại năng lượng cho cả buổi chiều và buổi tối.","Chúng tôi khuyên mọi người dậy sớm vào buổi sáng và ngắm mặt trời mọc.","Họ có thể tập thể dục sau khi thức dậy.","Họ cũng có thể uống chút nước và ăn một bữa sáng lành mạnh.","Họ bắt đầu ngày mới với thật nhiều năng lượng."],
-9:["Công nghệ là một phần quan trọng trong cuộc sống hằng ngày của chúng ta.","Chúng ta dùng điện thoại để liên lạc với bạn bè và gia đình mỗi ngày.","Chúng ta cũng dùng máy tính để học, làm việc và tìm kiếm thông tin.","Nhiều người xem video hoặc nghe nhạc trên điện thoại.","Công nghệ giúp chúng ta làm nhiều việc dễ dàng hơn."]
+0:["Chào mừng đến với Reed!","Hôm nay, bạn sẽ {0:thấy} cách nó hoạt động.","Đọc một chút mỗi ngày giúp tiếng Anh trở nên {1:dễ dàng}."],
+1:["Tên tôi là Anna.","Tôi sống cùng {0:bố mẹ} trong một ngôi nhà đẹp.","{1:Anh chị em} của tôi cũng sống cùng chúng tôi.","Mỗi buổi tối, chúng tôi ăn tối cùng nhau và {2:trò chuyện} về một ngày của mình.","Tôi yêu gia đình mình {3:rất nhiều}."],
+2:["Bạn có một người bạn thân không?","Có chứ.","Bạn thân của tôi là John.","Chúng tôi {0:có nhiều điểm chung} về trò chơi, đồ ăn và động vật.","Tôi {1:rất vui} vì {2:có một người bạn như anh ấy}."],
+3:["Xin chào, tôi là Vy và tôi là học sinh của một ngôi trường mới.","Mỗi sáng, tôi {0:đi bộ đến trường} cùng bạn thân.","Trường tôi ở gần {1:một nơi vui chơi}, nên chúng tôi {2:thường chơi ở đó} cùng nhau {3:sau giờ học}.","Có nhiều {4:cây xanh} {5:dọc đường tôi đến trường}.","{6:Bạn có biết} trường tôi ở đâu không?"],
+4:["Tom {0:làm việc} ở một quán cà phê nhỏ.","Anh ấy {1:thích} pha đồ uống cho khách.","{2:Ngoài ra}, anh ấy thích trò chuyện với khách và {3:nhiều người} rất yêu cà phê của anh.","Khi khách {4:ghé} quán cà phê, họ luôn thấy vui vì có thể {5:thưởng thức cà phê ngon}.","Đó là lý do Tom yêu công việc của mình."],
+5:["Tôi thường {0:dậy sớm} vào các sáng thứ Bảy.","Tôi {1:ăn sáng} cùng gia đình trong bếp.","Sau đó, tôi {2:giặt quần áo}.","Buổi chiều, tôi {3:đi mua sắm} ở siêu thị gần nhà.","Tôi {4:thích} ngày cuối tuần của mình."],
+6:["Tên tôi là Anna và tôi có {0:nhiều} sở thích.","Lúc {1:rảnh rỗi}, tôi {2:thích} nghe nhạc và đọc sách.","Vào cuối tuần, tôi thường chơi bóng đá với bạn bè ở công viên.","Tôi cũng thích {3:nấu những món ngon} cho gia đình.","{4:Tất cả những điều này} khiến tôi vui vẻ và thư giãn sau một ngày bận rộn."],
+7:["Tôi đi học {0:từ thứ Hai đến thứ Sáu}.","Tôi dậy sớm vào buổi sáng và {1:ăn} một bữa sáng thịnh soạn.","{2:Sau đó}, tôi đi bộ đến trường cùng bạn.","Trường tôi ở {3:gần} nhà tôi.","Tôi thích các lớp học và các thầy cô của mình.","Mỗi ngày đến trường đều {4:vui}."],
+8:["Nhiều người không {0:biết} rằng một buổi sáng tốt lành có thể mang lại năng lượng cho {1:cả buổi chiều và buổi tối}.","Chúng tôi {2:khuyên} mọi người dậy sớm vào buổi sáng và ngắm {3:mặt trời mọc}.","Họ có thể {4:tập thể dục} sau khi thức dậy.","Họ cũng có thể uống chút nước và ăn một bữa sáng lành mạnh.","Họ {5:bắt đầu} ngày mới {6:với thật nhiều} năng lượng."],
+9:["Công nghệ là một phần quan trọng trong cuộc sống {0:hằng ngày} của chúng ta.","Chúng ta dùng điện thoại để {1:liên lạc} với bạn bè và gia đình mỗi ngày.","Chúng ta cũng dùng máy tính để học, làm việc và {2:tìm kiếm} thông tin.","Nhiều người {3:xem video} hoặc {4:nghe nhạc} trên điện thoại.","Công nghệ giúp chúng ta làm nhiều việc dễ dàng hơn."]
 };
 const viArr=pi=>passages[pi].vi||VI[passages[pi].id]||null;
-const viSlide=(pi,s)=>{ const a=viArr(pi); if(!a) return ""; const t=s.lines.map(l=>a[l.k]); return t.every(Boolean)?t.join(" "):""; };
-const viRecap=pi=>{ const a=viArr(pi), n=passages[pi].tpl.split(/(?<=[.!?])\s+/).length; return a&&a.length>=n&&a.slice(0,n).every(Boolean)?`<p class="line rl rv">${a.slice(0,n).join(" ")}</p>`:""; };
+const viMark=(pi,t)=>t.replace(/\{(\d+):([^}]+)\}/g,(_,n,w)=>`<mark class="m0" data-vp="${pi}" data-vi="${n}">${w}</mark>`);   /* {n:chữ} = cụm tiếng Việt ứng với cụm n, được tô như bản tiếng Anh */
+const viPlain=t=>t.replace(/\{\d+:([^}]+)\}/g,"$1");
+const viSlide=(pi,s)=>{ const a=viArr(pi); if(!a) return ""; const t=s.lines.map(l=>a[l.k]); return t.every(Boolean)?viMark(pi,t.join(" ")):""; };
+const viRecap=pi=>{ const a=viArr(pi), n=passages[pi].tpl.split(/(?<=[.!?])\s+/).length; return a&&a.length>=n&&a.slice(0,n).every(Boolean)?`<p class="line rl rv">${viPlain(a.slice(0,n).join(" "))}</p>`:""; };
 function build(){
   $("#main").innerHTML = passages.map((p,pi)=>{
     const sents = P[pi].sents.map((s,si)=> s.recap
@@ -1180,6 +1184,7 @@ let langT=0;
 function setLang(v,save){
   const apply=()=>{
     document.body.classList.toggle("lang-vi",v==="vi"); langBtn.textContent=v==="vi"?"VI":"EN"; langBtn.setAttribute("aria-pressed",v==="vi");
+    if(v==="vi") document.querySelectorAll(".vt mark[data-vi]").forEach(m=>{ const f=(F[+m.dataset.vp]||[])[+m.dataset.vi]||0; m.classList.toggle("m1",f>=.5); });
     if(typeof movePills==="function"&&P.length) movePills();
   };
   clearTimeout(langT);
