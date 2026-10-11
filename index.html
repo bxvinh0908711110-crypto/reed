@@ -178,6 +178,8 @@ body.lang-vi .sent .vt{display:block}
 body.lang-vi .sent:not(.novi) .cap{display:none}   /* chế độ VI: ẩn chú thích cụm */
 body.lang-vi .sent:not(.novi):not(.recap) .line{height:0;margin:0!important;overflow:hidden;visibility:hidden;pointer-events:none}
 .rl.rv{opacity:0;pointer-events:none}
+.sent .rcw .rl.rl{margin-top:0}   /* dòng recap xếp chồng nhau: bỏ lề 16px của ".line+.line" (làm dòng sau lệch xuống và bị cắt đáy) */
+.recap .rv mark{cursor:default}
 .sent .vt mark{font-weight:700;letter-spacing:-.035em;padding:0 .14em;border-radius:.1em;background:var(--leaf);color:var(--a1);-webkit-box-decoration-break:clone;box-decoration-break:clone;transition:color .25s ease}
 .sent .vt mark.m1{color:var(--a2)}
 /* Chuyển EN↔VI: chữ mờ nhẹ + hơi trượt xuống, đổi nội dung ở điểm mờ nhất rồi hiện lại */
@@ -901,7 +903,7 @@ const viArr=pi=>passages[pi].vi||VI[passages[pi].id]||null;
 const viMark=(pi,t)=>t.replace(/\{(\d+):([^}]+)\}/g,(_,n,w)=>`<mark class="m0" data-vp="${pi}" data-vi="${n}">${w}</mark>`);   /* {n:chữ} = cụm tiếng Việt ứng với cụm n, được tô như bản tiếng Anh */
 const viPlain=t=>t.replace(/\{\d+:([^}]+)\}/g,"$1");
 const viSlide=(pi,s)=>{ const a=viArr(pi); if(!a) return ""; const t=s.lines.map(l=>a[l.k]); return t.every(Boolean)?viMark(pi,t.join(" ")):""; };
-const viRecap=pi=>{ const a=viArr(pi), n=passages[pi].tpl.split(/(?<=[.!?])\s+/).length; return a&&a.length>=n&&a.slice(0,n).every(Boolean)?`<p class="line rl rv">${viPlain(a.slice(0,n).join(" "))}</p>`:""; };
+const viRecap=pi=>{ const a=viArr(pi), n=passages[pi].tpl.split(/(?<=[.!?])\s+/).length; return a&&a.length>=n&&a.slice(0,n).every(Boolean)?`<p class="line rl rv">${viMark(pi,a.slice(0,n).join(" "))}</p>`:""; };
 function build(){
   $("#main").innerHTML = passages.map((p,pi)=>{
     const sents = P[pi].sents.map((s,si)=> s.recap
@@ -1187,7 +1189,7 @@ function setLang(v,save){
   const apply=()=>{
     document.body.classList.add("lang-nt");
     document.body.classList.toggle("lang-vi",v==="vi"); langBtn.textContent=v==="vi"?"VI":"EN"; langBtn.setAttribute("aria-pressed",v==="vi");
-    if(v==="vi") document.querySelectorAll(".vt mark[data-vi]").forEach(m=>{ const f=(F[+m.dataset.vp]||[])[+m.dataset.vi]||0; m.classList.toggle("m1",f>=.5); });
+    if(v==="vi") document.querySelectorAll("mark[data-vi]").forEach(m=>{ const pi=+m.dataset.vp, f=m.closest(".rv")?(recapMode[pi]==="up"?1:0):((F[pi]||[])[+m.dataset.vi]||0); m.classList.toggle("m1",f>=.5); });
     if(typeof movePills==="function"&&P.length) movePills();
     void document.body.offsetWidth;   /* chốt giá trị mới trước khi bật lại chuyển động */
     requestAnimationFrame(()=>requestAnimationFrame(()=>document.body.classList.remove("lang-nt")));
