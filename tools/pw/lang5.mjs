@@ -1,0 +1,13 @@
+import { chromium, devices } from 'playwright'; import http from 'http'; import fs from 'fs';
+const srv=http.createServer((q,r)=>{const u=decodeURIComponent(q.url.split('?')[0]).replace(/^\//,'');try{r.end(fs.readFileSync('E:/Your English/'+u))}catch{r.statusCode=404;r.end()}}).listen(8792);
+const b=await chromium.launch(); const ctx=await b.newContext({...devices['iPhone 13']});
+await ctx.addInitScript(()=>{localStorage.setItem('reed_tour_done','1');localStorage.setItem('reed_tips',JSON.stringify({swipe_done:1,tap_done:1,listen_done:1,hold_done:1,recap_done:1,save_done:1}))}); await ctx.route('**/*supabase.co/**',r=>r.abort());
+const p=await ctx.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message)); await p.goto('http://localhost:8792/index.html'); await p.waitForTimeout(5500);
+await p.click('#topics button[data-k="family"]'); await p.waitForTimeout(700);
+const st=()=>p.evaluate(()=>[document.body.classList.contains('lang-vi'),langBtn.textContent,active.si]);
+await p.evaluate(()=>langBtn.click()); await p.waitForTimeout(500); console.log('bật VI',await st());
+await p.evaluate(()=>goStep(1)); await p.waitForTimeout(600); console.log('sau 1 bước',await st());
+await p.evaluate(()=>langBtn.click()); await p.waitForTimeout(500); console.log('bật VI lại',await st());
+await p.evaluate(()=>goStep(1)); await p.waitForTimeout(600); console.log('bước tiếp (cùng câu có nhiều bước?)',await st());
+await p.evaluate(()=>langBtn.click()); await p.waitForTimeout(400); await p.click('#topics button[data-k="friends"]'); await p.waitForTimeout(900); console.log('đổi chủ đề',await st());
+await p.reload(); await p.waitForTimeout(4500); console.log('tải lại',await st(), 'err',errs); await b.close(); srv.close();

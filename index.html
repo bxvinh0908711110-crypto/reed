@@ -1171,7 +1171,7 @@ addEventListener("resize",()=>{ if(player.classList.contains("picker-open")) mov
 
 /* Bấm chevron hoặc vuốt dọc trên player đổi giữa 2 trang (Lesson / Cài đặt) */
 $("#openSettings").addEventListener("click",()=>player.classList.add("settings"));
-/* Nút dịch EN / VI: chỉ đổi chữ hiển thị, âm thanh luôn là tiếng Anh */
+/* Nút dịch EN / VI: xem nhanh bản dịch của câu đang đọc (chỉ chữ, không có âm thanh); sang câu khác thì tự về EN. Tham số save = có hiệu ứng chuyển. */
 const langBtn=$("#langBtn");
 let langT=0;
 function setLang(v,save){
@@ -1179,7 +1179,6 @@ function setLang(v,save){
     document.body.classList.toggle("lang-vi",v==="vi"); langBtn.textContent=v==="vi"?"VI":"EN"; langBtn.setAttribute("aria-pressed",v==="vi");
     if(typeof movePills==="function"&&P.length) movePills();
   };
-  if(save){ try{localStorage.setItem("reed_lang",v)}catch(e){} }
   clearTimeout(langT);
   if(!save||matchMedia("(prefers-reduced-motion:reduce)").matches){ document.body.classList.remove("lang-sw"); apply(); return; }
   document.body.classList.add("lang-sw");
@@ -1232,6 +1231,7 @@ function goStep(dir){
   const ys=snapYs(), y=scrollY;
   const t = dir>0 ? ys.find(v=>v>y+2) : [...ys].reverse().find(v=>v<y-2);
   if(t===undefined || (dir>0 && t>lockBoundY+1)) return;
+  if(document.body.classList.contains("lang-vi")) setLang("en");   /* sang bước khác: trả về tiếng Anh */
   stepping=true; setTimeout(()=>{ stepping=false; },900);   /* an toàn: không bao giờ kẹt khoá nếu rAF bị trình duyệt tạm dừng */
   const from=y, d=t-from, T=380, t0=performance.now(), root=document.documentElement;
   (function f(now){
@@ -1333,7 +1333,7 @@ function update(){
     pp.el.classList.toggle("on",on);
     if(on) act={pi,si:cur};
   });
-  if(act){ active=act; }
+  if(act){ if((act.pi!==active.pi||act.si!==active.si)&&document.body.classList.contains("lang-vi")) setLang("en"); active=act; }   /* qua câu/bài khác: bản dịch tự trả về tiếng Anh */
   updatePlayerUI();
   playBtns.forEach(b=>b.setAttribute("aria-label", P[active.pi].sents[active.si].recap ? "Play whole passage" : "Play sentence"));
   if(!raf){ lastT=0; raf=requestAnimationFrame(tick); }
@@ -2085,7 +2085,6 @@ function setTopic(k,jump){
   P=makeP(); F=passages.map(()=>({})); recapMode=passages.map(()=>"up");
   unlockedCount=loadUnlocked(); active={pi:0,si:0}; live=[];
   build(); buildPlayer(); layout(); measure(); movePills(); update(); fitSlides();   /* fit sau update() vì chú thích (.cap) chỉ có chữ sau khi update chạy */
-  { let sv=null; try{sv=localStorage.getItem("reed_lang")}catch(e){} if(sv==="vi") setLang("vi"); }
   document.querySelectorAll("#topics button").forEach(b=>{ b.setAttribute("aria-pressed",b.dataset.k===k); });
   { const bar=$("#topics"), cur=bar.querySelector(`button[data-k="${k}"]`); if(cur&&bar.scrollWidth>bar.clientWidth) bar.scrollTo({left:cur.offsetLeft-(bar.clientWidth-cur.offsetWidth)/2,behavior:"smooth"}); }
   if(jump) scrollTo(0, firstLessonY());
