@@ -175,6 +175,7 @@ body{margin:0;background:var(--bg);color:var(--ink);
 /* Chế độ dịch (VI): chữ Việt thay chữ Anh; dòng Anh vẫn giữ nguyên bố cục (ẩn bằng visibility) để đo/cuộn không đổi */
 .sent .vt{display:none;margin:0;font-size:calc(var(--fitv,1) * .92 * clamp(30px,4.5vw,66px));line-height:1.25;letter-spacing:-.03em;font-weight:500;color:#3b3b3b}
 body.lang-vi .sent .vt{display:block}
+body.lang-vi .sent:not(.novi) .cap{display:none}   /* chế độ VI: ẩn chú thích cụm */
 body.lang-vi .sent:not(.novi):not(.recap) .line{height:0;margin:0!important;overflow:hidden;visibility:hidden;pointer-events:none}
 .rl.rv{opacity:0;pointer-events:none}
 /* Chuyển EN↔VI: chữ mờ nhẹ + hơi trượt xuống, đổi nội dung ở điểm mờ nhất rồi hiện lại */
