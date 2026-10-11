@@ -1,0 +1,11 @@
+import { chromium, devices } from 'playwright'; import http from 'http'; import fs from 'fs';
+const srv=http.createServer((q,r)=>{const u=decodeURIComponent(q.url.split('?')[0]).replace(/^\//,'');try{r.end(fs.readFileSync('E:/Your English/'+u))}catch{r.statusCode=404;r.end()}}).listen(8791);
+const b=await chromium.launch(); const ctx=await b.newContext({...devices['iPhone 13']});
+await ctx.addInitScript(()=>{localStorage.setItem('reed_tour_done','1');localStorage.setItem('reed_tips',JSON.stringify({swipe_done:1,tap_done:1,listen_done:1,hold_done:1,recap_done:1,save_done:1}))}); await ctx.route('**/*supabase.co/**',r=>r.abort());
+const p=await ctx.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message)); await p.goto('http://localhost:8791/index.html'); await p.waitForTimeout(5500);
+await p.click('#topics button[data-k="family"]'); await p.waitForTimeout(700);
+const st=()=>p.evaluate(()=>({vi:document.body.classList.contains('lang-vi'),sw:document.body.classList.contains('lang-sw'),op:+(+getComputedStyle(document.querySelector(".passage[data-p=\"0\"] .sents")).opacity).toFixed(2),btn:langBtn.textContent}));
+console.log(await p.evaluate(()=>new Promise(res=>{const el=document.querySelector('.passage[data-p="0"] .sents'),out=[];langBtn.click();const t0=performance.now();(function f(){out.push([Math.round(performance.now()-t0),(+getComputedStyle(el).opacity).toFixed(2),getComputedStyle(el).filter]);if(performance.now()-t0<500)requestAnimationFrame(f);else res(out.filter((_,i)=>i%4==0))})()})));
+await p.waitForTimeout(700); console.log('t760',await st());
+await p.evaluate(()=>{langBtn.click();langBtn.click();langBtn.click();}); await p.waitForTimeout(800); console.log('triple',await st());
+console.log('err',errs); await b.close(); srv.close();

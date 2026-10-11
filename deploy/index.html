@@ -175,6 +175,12 @@ body{margin:0;background:var(--bg);color:var(--ink);
 body.lang-vi .sent .vt{display:block}
 body.lang-vi .sent:not(.novi):not(.recap) .line{height:0;margin:0!important;overflow:hidden;visibility:hidden;pointer-events:none}
 .rl.rv{opacity:0;pointer-events:none}
+/* Chuyển EN↔VI: chữ mờ nhẹ + hơi trượt xuống, đổi nội dung ở điểm mờ nhất rồi hiện lại */
+.sents{transition:opacity .2s ease,filter .2s ease,transform .26s cubic-bezier(.3,.9,.3,1)}
+body.lang-sw .sents{opacity:0;filter:blur(5px);transform:translateY(8px)}
+.player .lang.pop{animation:langPop .32s cubic-bezier(.3,1.4,.5,1)}
+@keyframes langPop{0%{transform:scale(.86)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.sents{transition:none}.player .lang.pop{animation:none}}
 body.lang-vi .rcw.hv .rl:not(.rv){opacity:0!important;pointer-events:none}
 body.lang-vi .rcw.hv .rl.rv{opacity:1;filter:none;transform:none;pointer-events:auto}
 
@@ -1167,10 +1173,18 @@ addEventListener("resize",()=>{ if(player.classList.contains("picker-open")) mov
 $("#openSettings").addEventListener("click",()=>player.classList.add("settings"));
 /* Nút dịch EN / VI: chỉ đổi chữ hiển thị, âm thanh luôn là tiếng Anh */
 const langBtn=$("#langBtn");
+let langT=0;
 function setLang(v,save){
-  document.body.classList.toggle("lang-vi",v==="vi"); langBtn.textContent=v==="vi"?"VI":"EN"; langBtn.setAttribute("aria-pressed",v==="vi");
+  const apply=()=>{
+    document.body.classList.toggle("lang-vi",v==="vi"); langBtn.textContent=v==="vi"?"VI":"EN"; langBtn.setAttribute("aria-pressed",v==="vi");
+    if(typeof movePills==="function"&&P.length) movePills();
+  };
   if(save){ try{localStorage.setItem("reed_lang",v)}catch(e){} }
-  if(typeof movePills==="function"&&P.length) movePills();
+  clearTimeout(langT);
+  if(!save||matchMedia("(prefers-reduced-motion:reduce)").matches){ document.body.classList.remove("lang-sw"); apply(); return; }
+  document.body.classList.add("lang-sw");
+  langBtn.classList.remove("pop"); void langBtn.offsetWidth; langBtn.classList.add("pop");
+  langT=setTimeout(()=>{ apply(); requestAnimationFrame(()=>requestAnimationFrame(()=>document.body.classList.remove("lang-sw"))); },170);
 }
 langBtn.addEventListener("click",()=>setLang(document.body.classList.contains("lang-vi")?"en":"vi",true));
 $("#closeSettings").addEventListener("click",()=>player.classList.remove("settings"));
