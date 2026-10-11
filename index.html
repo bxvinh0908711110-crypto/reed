@@ -948,6 +948,22 @@ function measure(){
 }
 /* Giữ số dòng ổn định: đo cách xuống dòng khi mọi cụm ở dạng DÀI NHẤT, rồi chốt các điểm xuống dòng đó bằng <br>.
    Nhờ vậy mỗi dòng luôn gồm đúng những từ ấy ở mọi trạng thái; nền vẫn ôm sát chữ, không chừa khoảng trống. */
+/* Bản VI xuống dòng giống bản EN: cụm nào đứng đầu/cuối một dòng ở EN thì cụm tiếng Việt tương ứng cũng ngắt dòng ở đó */
+function viBreaks(s){
+  const v=s.el&&s.el.querySelector(".vt"); if(!v) return;
+  v.querySelectorAll("br.vb").forEach(b=>b.remove());
+  const mk=()=>{ const b=document.createElement("br"); b.className="vb"; return b; };
+  s.ph.forEach(ph=>{
+    const m=v.querySelector('mark[data-vi="'+ph.dataset.i+'"]'), tk=ph.closest(".tk"); if(!m||!tk) return;
+    const prev=tk.previousElementSibling, next=tk.nextElementSibling;
+    if(prev&&prev.classList.contains("fb")&&m.previousSibling) m.before(mk());
+    if(next&&next.classList.contains("fb")){
+      let after=m; const nx=m.nextSibling;
+      if(nx&&nx.nodeType===3){ const mt=nx.data.match(/^[,.;:!?…]+/); if(mt){ if(mt[0].length<nx.data.length) nx.splitText(mt[0].length); after=nx; } }
+      if(after.nextSibling) after.after(mk());
+    }
+  });
+}
 function stabilize(){
   P.forEach(pp=>pp.sents.forEach(s=>{
     if(s.recap||!s.ph.length) return;
@@ -960,6 +976,7 @@ function stabilize(){
       const row=Math.round((t.getClientRects()[0].top-top0)/lh);
       if(row>prev){ const br=document.createElement("br"); br.className="fb"; t.before(br); prev=row; }
     });
+    viBreaks(s);
     s.ph.forEach(ph=>{ ph._floor=0; setPhrase(ph, ph._f ?? 0); });
   }));
 }
@@ -977,6 +994,7 @@ function fitSlides(){
       for(let k=0;k<14&&(nat()>box.clientHeight||wide())&&f>.4;k++){ f=Math.max(.4,f*.93); el.style.setProperty("--fit",f.toFixed(3)); }
     });
   });
+  if(typeof measure==="function") measure();   /* chiều rộng từng cụm (ph._w) phụ thuộc cỡ chữ → đo lại */
   /* Bản dịch tiếng Việt: co chữ riêng cho từng slide (đo khi bật chế độ VI tạm thời) */
   const was=wasVi; document.body.classList.add("lang-vi");
   P.forEach(pp=>{
@@ -990,7 +1008,6 @@ function fitSlides(){
     });
   });
   if(!was) document.body.classList.remove("lang-vi");
-  if(typeof measure==="function") measure();   /* chiều rộng từng cụm (ph._w) phụ thuộc cỡ chữ → đo lại */
 }
 let heroEnd=1e9;   /* trước khi tính xong: ẩn thanh player */
 function layout(){
