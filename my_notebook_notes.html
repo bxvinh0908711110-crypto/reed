@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Notebook — Vocabulary Notes</title>
+<style>
+  :root{
+    --blue:#1764f5; --blue-soft:#eaf2ff; --ink:#101828; --muted:#78849b;
+    --line:#e8edf5; --surface:#f4f7fc; --green:#17a86b; --green-soft:#eaf9f0;
+    --purple:#7c3aed; --purple-soft:#f3edff; --orange:#f28a12; --orange-soft:#fff3e3;
+    --lime:#d9ff72;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#f7f9fd;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  button,input,select{font:inherit}
+  button{cursor:pointer}
+  .app{width:min(100%,900px);margin:0 auto;min-height:100vh;background:#fff;padding:26px 22px 42px}
+  .header{display:flex;align-items:center;gap:14px;margin-bottom:24px}
+  .brand-icon{width:48px;height:48px;display:grid;place-items:center;background:var(--blue-soft);border-radius:15px;color:var(--blue);flex:none}
+  .brand-icon svg{width:29px;height:29px}
+  h1{font-size:clamp(23px,4vw,30px);line-height:1.1;margin:0;font-weight:800;letter-spacing:-.04em}
+  .subtitle{color:var(--muted);font-size:14px;margin-top:5px}
+  .close{margin-left:auto;border:0;background:#f0f2f6;border-radius:50%;width:42px;height:42px;font-size:24px;color:#344054}
+  .search-row{display:flex;gap:10px;margin-bottom:18px}
+  .searchbox{display:flex;align-items:center;gap:10px;flex:1;min-width:0;background:#f3f6fb;border:1px solid transparent;border-radius:17px;padding:0 15px;height:52px;color:#8a96ad}
+  .searchbox svg{width:21px;height:21px;flex:none}
+  .searchbox input{border:0;outline:0;background:transparent;width:100%;min-width:0;color:var(--ink);font-size:15px}
+  .filter-btn{width:52px;height:52px;border:0;border-radius:16px;background:#f3f6fb;color:var(--blue);display:grid;place-items:center}
+  .filter-btn svg{width:24px;height:24px}
+  .tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:3px;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{border:0;border-radius:13px;background:#f2f5fa;color:#34415d;padding:11px 16px;white-space:nowrap;font-weight:650;font-size:14px}
+  .tab.active{background:var(--blue);color:white;box-shadow:0 5px 12px #1764f52b}
+  .list-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:19px 0 15px;color:var(--muted);font-size:14px}
+  .sort{border:0;background:#f3f6fb;color:#34415d;border-radius:13px;padding:10px 12px;display:flex;align-items:center;gap:8px;white-space:nowrap;font-size:13px}
+  .notes{display:grid;gap:13px}
+  .note{position:relative;border:1px solid #dfebff;background:linear-gradient(130deg,#f1f7ff,#f8fbff);border-radius:22px;padding:17px 18px 16px;box-shadow:0 7px 22px #193d7710}
+  .note.phrasal{background:linear-gradient(130deg,#f0fbf4,#fbfffc);border-color:#e0f5e7}
+  .note.collocation{background:linear-gradient(130deg,#f5f0ff,#fcfaff);border-color:#eee4ff}
+  .note.idiom{background:linear-gradient(130deg,#fff6e9,#fffdf8);border-color:#ffefd8}
+  .note-top{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+  .kind{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:800;letter-spacing:.035em;background:#dfebff;color:var(--blue)}
+  .kind svg{width:15px;height:15px}
+  .phrasal .kind{background:#dff7e8;color:var(--green)}
+  .collocation .kind{background:#ece2ff;color:var(--purple)}
+  .idiom .kind{background:#ffead0;color:var(--orange)}
+  .icon-action{margin-left:auto;display:flex;gap:6px}
+  .icon-btn{width:31px;height:31px;border:0;background:transparent;color:#34415d;display:grid;place-items:center;border-radius:9px}
+  .icon-btn:hover{background:#ffffffaa}
+  .icon-btn svg{width:19px;height:19px}
+  .icon-btn.saved{color:var(--blue)}
+  .phrase-line{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:8px}
+  .original{font-size:clamp(17px,3.4vw,21px);font-weight:800;letter-spacing:-.035em}
+  .arrow{color:#8c9ab2;font-size:19px}
+  .replacement{font-size:clamp(17px,3.4vw,21px);font-weight:800;color:var(--blue);letter-spacing:-.035em}
+  .level{background:var(--lime);color:#2453d4;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:850;margin-left:2px}
+  .definition{font-size:14px;line-height:1.45;color:#66738c;margin:0 0 5px}
+  .example{font-size:14px;line-height:1.45;color:#64718a;font-style:italic;margin:0}
+  .source{display:flex;align-items:center;gap:7px;color:#8792a7;font-size:12px;margin-top:13px}
+  .source svg{width:17px;height:17px}
+  .expanded{display:none;border-top:1px solid #dce5f3;margin-top:14px;padding-top:13px}
+  .note.open .expanded{display:block}
+  .expanded p{margin:0 0 9px;font-size:13px;color:#59677f;line-height:1.5}
+  .expanded strong{color:#26334d}
+  .practice{border:0;background:var(--blue);color:white;padding:9px 13px;border-radius:11px;font-size:13px;font-weight:700}
+  .empty{padding:35px 15px;text-align:center;color:var(--muted);display:none}
+  .empty strong{display:block;color:#34415d;margin-bottom:5px}
+  .overlay{position:fixed;inset:0;background:#10182866;z-index:10;display:none;align-items:flex-end;justify-content:center}
+  .overlay.show{display:flex}
+  .sheet{background:white;border-radius:24px 24px 0 0;width:min(100%,600px);padding:12px 22px 24px;max-height:88vh;overflow:auto;box-shadow:0 -12px 40px #10182820}
+  .handle{width:42px;height:4px;background:#d7dce5;border-radius:99px;margin:0 auto 18px}
+  .sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+  .sheet h2{font-size:23px;margin:0;letter-spacing:-.03em}
+  .reset{border:0;background:transparent;color:var(--blue);font-weight:700}
+  .filter-section{margin:18px 0}
+  .filter-section h3{font-size:14px;color:#34415d;margin:0 0 10px}
+  .choice-list{display:flex;flex-wrap:wrap;gap:8px}
+  .choice{border:0;border-radius:12px;background:#f2f5fa;padding:10px 13px;color:#34415d;font-size:13px}
+  .choice.active{background:var(--blue);color:white}
+  .source-select,.sort-select{width:100%;border:0;background:#f3f6fb;border-radius:12px;padding:13px;color:#34415d}
+  .sheet-actions{display:flex;gap:10px;margin-top:23px}
+  .sheet-actions button{flex:1;border:0;border-radius:13px;padding:14px;font-weight:750}
+  .secondary{background:#f1f4f9;color:var(--blue)}
+  .primary{background:var(--blue);color:white}
+  .toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:#17233c;color:white;padding:11px 15px;border-radius:12px;font-size:13px;transition:.2s;z-index:20;white-space:nowrap}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+  @media(min-width:680px){.app{padding:34px 32px 48px}.notes{grid-template-columns:1fr}.note{padding:19px 22px}.subtitle{font-size:15px}}
+  @media(max-width:390px){.app{padding:20px 14px 30px}.tab{padding:10px 13px}.note{padding:15px 14px}.list-meta{font-size:13px}.sort{padding:9px}.original,.replacement{font-size:17px}}
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="header">
+    <div class="brand-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5A2.5 2.5 0 0 1 7.5 2H20v17H7.5A2.5 2.5 0 0 0 5 21.5z"/><path d="M5 4.5v17M8 6h8"/></svg>
+    </div>
+    <div><h1>My Notebook</h1><div class="subtitle">Save your favorite words and notes</div></div>
+    <button class="close" aria-label="Close" title="Close" onclick="showToast('Notebook view')">×</button>
+  </header>
+
+  <div class="search-row">
+    <label class="searchbox">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10.8" cy="10.8" r="7"/><path d="m16 16 5 5"/></svg>
+      <input id="search" type="search" placeholder="Search notes..." aria-label="Search notes">
+    </label>
+    <button class="filter-btn" id="openFilter" aria-label="Filter notes" title="Filter notes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2" fill="white"/><circle cx="15" cy="12" r="2" fill="white"/><circle cx="8" cy="18" r="2" fill="white"/></svg>
+    </button>
+  </div>
+
+  <nav class="tabs" aria-label="Note categories" id="tabs">
+    <button class="tab active" data-type="all">All</button>
+    <button class="tab" data-type="word">Words</button>
+    <button class="tab" data-type="phrasal">Phrasal Verbs</button>
+    <button class="tab" data-type="collocation">Collocations</button>
+    <button class="tab" data-type="idiom">Idioms</button>
+  </nav>
+
+  <div class="list-meta">
+    <span id="count">6 notes</span>
+    <select id="sort" class="sort-select sort" aria-label="Sort notes">
+      <option value="new">↕ Recently added</option>
+      <option value="az">A–Z</option>
+      <option value="level">Level</option>
+    </select>
+  </div>
+
+  <section class="notes" id="notes">
+    <article class="note collocation" data-type="collocation" data-level="A2" data-source="My Hobbies" data-date="2026-10-11" data-search="cooking good making delicious food cookies hobbies">
+      <div class="note-top">
+        <span class="kind"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="5" r="3"/><circle cx="12" cy="5" r="3"/><circle cx="19" cy="5" r="3"/><circle cx="5" cy="12" r="3"/><circle cx="12" cy="12" r="3"/><circle cx="19" cy="12" r="3"/></svg> COLLOCATION</span>
+        <div class="icon-action">
+          <button class="icon-btn bookmark" aria-label="Save note" title="Save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M6 4.5A2.5 2.5 0 0 1 8.5 2H18v20l-6-4-6 4z" transform="translate(0 0)"/></svg></button>
+          <button class="icon-btn menu" aria-label="More actions" title="More">⋮</button>
+        </div>
+      </div>
+      <div class="phrase-line"><span class="original">good food</span><span class="arrow">→</span><span class="replacement">delicious food</span><span class="level">A2</span></div>
+      <p class="definition">A tastier way to describe food.</p>
+      <p class="example">“She is making delicious cookies.”</p>
+      <div class="source"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 5.5A6.5 6.5 0 0 1 12 7v14a6.5 6.5 0 0 0-9-1z"/><path d="M21 5.5A6.5 6.5 0 0 0 12 7v14a6.5 6.5 0 0 1 9-1z"/></svg> from “My Hobbies”</div>
+      <div class="expanded"><p><strong>Tip:</strong> “Delicious” is a natural adjective for food that tastes very good.</p><p><strong>More examples:</strong> This soup is delicious. · We had a delicious dinner.</p><button class="practice" onclick="showToast('Practice mode coming soon')">Practice this note</button></div>
+    </article>
+
+    <article class="note phrasal" data-type="phrasal" data-level="A2" data-source="My Family" data-date="2026-10-10" data-search="look after take care family brother">
+      <div class="note-top"><span class="kind"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m8 12 3 3 6-7"/><path d="M7 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg> PHRASAL VERB</span><div class="icon-action"><button class="icon-btn bookmark" aria-label="Save note" title="Save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h12v19l-6-4-6 4z"/></svg></button><button class="icon-btn menu" aria-label="More actions" title="More">⋮</button></div></div>
+      <div class="phrase-line"><span class="original">look after</span><span class="arrow">→</span><span class="replacement">take care of</span><span class="level">A2</span></div>
+      <p class="definition">To care for someone or something.</p><p class="example">“I look after my little brother.”</p>
+      <div class="source"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 5.5A6.5 6.5 0 0 1 12 7v14a6.5 6.5 0 0 0-9-1z"/><path d="M21 5.5A6.5 6.5 0 0 0 12 7v14a6.5 6.5 0 0 1 9-1z"/></svg> from “My Family”</div>
+      <div class="expanded"><p><strong>Meaning:</strong> chăm sóc, trông nom.</p><p><strong>More examples:</strong> Can you look after my cat?</p><button class="practice" onclick="showToast('Practice mode coming soon')">Practice this note</button></div>
+    </article>
+
+    <article class="note word" data-type="word" data-level="A1" data-source="Daily Life" data-date="2026-10-09" data-search="delighted happy excited word">
+      <div class="note-top"><span class="kind"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A5.5 5.5 0 0 1 12 7v14a5.5 5.5 0 0 0-8-1z"/><path d="M20 5.5A5.5 5.5 0 0 0 12 7v14a5.5 5.5 0 0 1 8-1z"/></svg> WORD</span><div class="icon-action"><button class="icon-btn bookmark" aria-label="Save note" title="Save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h12v19l-6-4-6 4z"/></svg></button><button class="icon-btn menu" aria-label="More actions" title="More">⋮</button></div></div>
+      <div class="phrase-line"><span class="original">delighted</span><span class="arrow">→</span><span class="replacement">very happy</span><span class="level">A1</span></div>
+      <p class="definition">Feeling or showing great pleasure.</p><p class="example">“I’m delighted to meet you.”</p>
+      <div class="source"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 5.5A6.5 6.5 0 0 1 12 7v14a6.5 6.5 0 0 0-9-1z"/><path d="M21 5.5A6.5 6.5 0 0 0 12 7v14a6.5 6.5 0 0 1 9-1z"/></svg> from “Daily Life”</div>
+      <div class="expanded"><p><strong>Vietnamese:</strong> vui mừng, hài lòng.</p><p><strong>Synonyms:</strong> pleased, thrilled.</p><button class="practice" onclick="showToast('Practice mode coming soon')">Practice this note</button></div>
+    </article>
+
+    <article class="note idiom" data-type="idiom" data-level="B1" data-source="Everyday English" data-date="2026-10-08" data-search="piece of cake easy idiom">
+      <div class="note-top"><span class="kind"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18h6M10 22h4M8 14a7 7 0 1 1 8 0c-1 .8-1 2-1 2h-6s0-1.2-1-2z"/></svg> IDIOM</span><div class="icon-action"><button class="icon-btn bookmark" aria-label="Save note" title="Save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h12v19l-6-4-6 4z"/></svg></button><button class="icon-btn menu" aria-label="More actions" title="More">⋮</button></div></div>
+      <div class="phrase-line"><span class="original">a piece of cake</span><span class="arrow">→</span><span class="replacement">very easy</span><span class="level">B1</span></div>
+      <p class="definition">Something that is very easy to do.</p><p class="example">“The test was a piece of cake.”</p>
+      <div class="source"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 5.5A6.5 6.5 0 0 1 12 7v14a6.5 6.5 0 0 0-9-1z"/><path d="M21 5.5A6.5 6.5 0 0 0 12 7v14a6.5 6.5 0 0 1 9-1z"/></svg> from “Everyday English”</div>
+      <div class="expanded"><p><strong>Vietnamese:</strong> dễ như ăn bánh.</p><p><strong>Usage:</strong> Use it informally when a task is easy.</p><button class="practice" onclick="showToast('Practice mode coming soon')">Practice this note</button></div>
+    </article>
+
+    <article class="note collocation" data-type="collocation" data-level="B1" data-source="Work & Study" data-date="2026-10-07" data-search="make a decision decide collocation">
+      <div class="note-top"><span class="kind"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="5" r="3"/><circle cx="12" cy="5" r="3"/><circle cx="19" cy="5" r="3"/><circle cx="5" cy="12" r="3"/><circle cx="12" cy="12" r="3"/><circle cx="19" cy="12" r="3"/></svg> COLLOCATION</span><div class="icon-action"><button class="icon-btn bookmark" aria-label="Save note" title="Save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h12v19l-6-4-6 4z"/></svg></button><button class="icon-btn menu" aria-label="More actions" title="More">⋮</button></div></div>
+      <div class="phrase-line"><span class="original">make a decision</span><span class="arrow">→</span><span class="replacement">decide</span><span class="level">B1</span></div>
+      <p class="definition">To choose after thinking about the options.</p><p class="example">“We need to make a decision today.”</p>
+      <div class="source"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 5.5A6.5 6.5 0 0 1 12 7v14a6.5 6.5 0 0 0-9-1z"/><path d="M21 5.5A6.5 6.5 0 0 0 12 7v14a6.5 6.5 0 0 1 9-1z"/></svg> from “Work & Study”</div>
+      <div class="expanded"><p><strong>Tip:</strong> “Make a decision” is a common word combination.</p><p><strong>More examples:</strong> Have you made a decision yet?</p><button class="practice" onclick="showToast('Practice mode coming soon')">Practice this note</button></div>
+    </article>
+
+    <article class="note phrasal" data-type="phrasal" data-level="B1" data-source="Daily Life" data-date="2026-10-06" data-search="find out discover learn phrasal verb">
+      <div class="note-top"><span class="kind"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m8 12 3 3 6-7"/><path d="M7 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg> PHRASAL VERB</span><div class="icon-action"><button class="icon-btn bookmark" aria-label="Save note" title="Save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h12v19l-6-4-6 4z"/></svg></button><button class="icon-btn menu" aria-label="More actions" title="More">⋮</button></div></div>
+      <div class="phrase-line"><span class="original">find out</span><span class="arrow">→</span><span class="replacement">discover</span><span class="level">B1</span></div>
+      <p class="definition">To get information or learn a fact.</p><p class="example">“I need to find out the truth.”</p>
+      <div class="source"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 5.5A6.5 6.5 0 0 1 12 7v14a6.5 6.5 0 0 0-9-1z"/><path d="M21 5.5A6.5 6.5 0 0 0 12 7v14a6.5 6.5 0 0 1 9-1z"/></svg> from “Daily Life”</div>
+      <div class="expanded"><p><strong>Vietnamese:</strong> tìm ra, phát hiện.</p><p><strong>More examples:</strong> We found out about the event yesterday.</p><button class="practice" onclick="showToast('Practice mode coming soon')">Practice this note</button></div>
+    </article>
+  </section>
+  <div class="empty" id="empty"><strong>No notes found</strong>Try another keyword or adjust your filters.</div>
+</main>
+
+<div class="overlay" id="filterOverlay" role="dialog" aria-modal="true" aria-labelledby="filterTitle">
+  <section class="sheet">
+    <div class="handle"></div>
+    <div class="sheet-head"><h2 id="filterTitle">Filter notes</h2><button class="reset" id="resetFilters">Reset</button></div>
+    <div class="filter-section"><h3>Note type</h3><div class="choice-list" data-filter="type">
+      <button class="choice active" data-value="all">All</button><button class="choice" data-value="word">Words</button><button class="choice" data-value="phrasal">Phrasal Verbs</button><button class="choice" data-value="collocation">Collocations</button><button class="choice" data-value="idiom">Idioms</button>
+    </div></div>
+    <div class="filter-section"><h3>Level</h3><div class="choice-list" data-filter="level">
+      <button class="choice active" data-value="all">All</button><button class="choice" data-value="A1">A1</button><button class="choice" data-value="A2">A2</button><button class="choice" data-value="B1">B1</button><button class="choice" data-value="B2">B2</button>
+    </div></div>
+    <div class="filter-section"><h3>Source</h3><select id="sourceFilter" class="source-select"><option value="all">All notebooks</option><option>My Hobbies</option><option>My Family</option><option>Daily Life</option><option>Everyday English</option><option>Work & Study</option></select></div>
+    <div class="filter-section"><h3>Date added</h3><div class="choice-list" data-filter="date">
+      <button class="choice active" data-value="all">Any time</button><button class="choice" data-value="today">Today</button><button class="choice" data-value="week">This week</button><button class="choice" data-value="month">This month</button>
+    </div></div>
+    <div class="sheet-actions"><button class="secondary" id="cancelFilters">Cancel</button><button class="primary" id="applyFilters">Show notes</button></div>
+  </section>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+  const $ = (s, root=document) => root.querySelector(s);
+  const $$ = (s, root=document) => [...root.querySelectorAll(s)];
+  let activeType='all', activeLevel='all', activeDate='all', activeSource='all';
+  const notes = $$('.note');
+  function showToast(message){const el=$('#toast');el.textContent=message;el.classList.add('show');clearTimeout(window.__toastTimer);window.__toastTimer=setTimeout(()=>el.classList.remove('show'),2200)}
+  function apply(){
+    const query=$('#search').value.trim().toLowerCase();
+    let shown=0;
+    notes.forEach(note=>{
+      const typeOk=activeType==='all'||note.dataset.type===activeType;
+      const levelOk=activeLevel==='all'||note.dataset.level===activeLevel;
+      const sourceOk=activeSource==='all'||note.dataset.source===activeSource;
+      const hay=(note.dataset.search+' '+note.innerText).toLowerCase();
+      const queryOk=!query||hay.includes(query);
+      const date=new Date(note.dataset.date+'T12:00:00');
+      const now=new Date('2026-10-11T12:00:00');
+      const days=(now-date)/(1000*60*60*24);
+      const dateOk=activeDate==='all'||(activeDate==='today'&&days<1)||(activeDate==='week'&&days<7)||(activeDate==='month'&&days<31);
+      const visible=typeOk&&levelOk&&sourceOk&&queryOk&&dateOk;
+      note.style.display=visible?'':'none'; if(visible)shown++;
+    });
+    $('#count').textContent=`${shown} ${shown===1?'note':'notes'}`;
+    $('#empty').style.display=shown?'none':'block';
+  }
+  $('#search').addEventListener('input',apply);
+  $('#tabs').addEventListener('click',e=>{
+    const btn=e.target.closest('[data-type]');if(!btn)return;
+    activeType=btn.dataset.type;
+    $$('.tab').forEach(b=>b.classList.toggle('active',b===btn));
+    $$('.choice-list[data-filter="type"] .choice').forEach(b=>b.classList.toggle('active',b.dataset.value===activeType));
+    apply();
+  });
+  $('#sort').addEventListener('change',()=>{
+    const mode=$('#sort').value, container=$('#notes');
+    const sorted=[...notes].sort((a,b)=>mode==='az'?a.querySelector('.original').textContent.localeCompare(b.querySelector('.original').textContent):mode==='level'?a.dataset.level.localeCompare(b.dataset.level):b.dataset.date.localeCompare(a.dataset.date));
+    sorted.forEach(n=>container.appendChild(n));
+  });
+  $('#notes').addEventListener('click',e=>{
+    const bookmark=e.target.closest('.bookmark');
+    if(bookmark){bookmark.classList.toggle('saved');bookmark.setAttribute('aria-label',bookmark.classList.contains('saved')?'Remove bookmark':'Save note');bookmark.innerHTML=bookmark.classList.contains('saved')?'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 3h12v19l-6-4-6 4z"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h12v19l-6-4-6 4z"/></svg>';showToast(bookmark.classList.contains('saved')?'Saved to bookmarks':'Bookmark removed');return}
+    const menu=e.target.closest('.menu');
+    if(menu){const note=menu.closest('.note');const action=prompt('Action: edit, copy, or delete');if(!action)return;if(action==='copy'){navigator.clipboard?.writeText(note.querySelector('.original').textContent+' → '+note.querySelector('.replacement').textContent);showToast('Copied phrase')}else if(action==='delete'){if(confirm('Delete this note?')){note.remove();apply()}}else if(action==='edit'){showToast('Connect this action to your edit form')}return}
+    const card=e.target.closest('.note');if(card&&!e.target.closest('button'))card.classList.toggle('open');
+  });
+  $('#openFilter').addEventListener('click',()=>$('#filterOverlay').classList.add('show'));
+  $('#filterOverlay').addEventListener('click',e=>{if(e.target===$('#filterOverlay'))$('#filterOverlay').classList.remove('show')});
+  $('#cancelFilters').addEventListener('click',()=>$('#filterOverlay').classList.remove('show'));
+  $$('.choice-list').forEach(group=>group.addEventListener('click',e=>{
+    const btn=e.target.closest('.choice');if(!btn)return;
+    $$('.choice',group).forEach(b=>b.classList.toggle('active',b===btn));
+  }));
+  $('#resetFilters').addEventListener('click',()=>{
+    $$('.choice-list').forEach(group=>$$('.choice',group).forEach((b,i)=>b.classList.toggle('active',i===0)));
+    $('#sourceFilter').value='all';
+  });
+  $('#applyFilters').addEventListener('click',()=>{
+    const getActive=(name)=>$(`.choice-list[data-filter="${name}"] .choice.active`)?.dataset.value||'all';
+    activeType=getActive('type');activeLevel=getActive('level');activeDate=getActive('date');activeSource=$('#sourceFilter').value;
+    $$('.tab').forEach(b=>b.classList.toggle('active',b.dataset.type===activeType));
+    apply();$('#filterOverlay').classList.remove('show');
+  });
+  apply();
+</script>
+</body>
+</html>
