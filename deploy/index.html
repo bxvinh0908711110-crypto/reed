@@ -44,7 +44,6 @@ body{margin:0;background:var(--bg);color:var(--ink);
   background:linear-gradient(180deg,color-mix(in srgb,var(--leaf) 62%,#fff) 0%,#fff 100%)}
 .nbHead h2{margin:0;font-size:24px;font-weight:800;letter-spacing:-.035em}
 .nbHead button{border:0;background:rgba(255,255,255,.75);width:34px;height:34px;border-radius:999px;cursor:pointer;color:var(--ink);display:inline-flex;align-items:center;justify-content:center;flex:none}
-.nbSub{font-size:13.5px;color:#5b574f;margin-top:5px;font-weight:600}
 .nbProg{display:flex;align-items:center;gap:10px;margin-top:12px}
 .nbProgTrack{flex:1;height:9px;border-radius:99px;background:color-mix(in srgb,var(--leaf) 75%,#fff);overflow:hidden}
 .nbProgTrack i{display:block;height:100%;width:0;border-radius:99px;background:var(--accent);transition:width .5s cubic-bezier(.2,.8,.2,1)}
@@ -57,9 +56,11 @@ body{margin:0;background:var(--bg);color:var(--ink);
 .nbTabs::-webkit-scrollbar{display:none}
 .nbTab{flex:none;border:0;border-radius:999px;background:#f4f4ef;color:#57534e;font:inherit;font-size:13px;font-weight:700;padding:8px 14px;cursor:pointer;display:inline-flex;gap:6px;align-items:center;white-space:nowrap;transition:background .2s,color .2s}
 .nbTab b{font-size:11px;opacity:.55;font-weight:800}
+.nbTab.zero{opacity:.45}
 .nbTab[aria-pressed=true]{background:var(--accent);color:#fff}
+.nbTab[aria-pressed=true].zero{opacity:1}
 .nbTab[aria-pressed=true] b{opacity:.85}
-.nbMeta{display:flex;align-items:center;justify-content:space-between;padding:6px 2px 10px;font-size:12.5px;color:var(--muted);font-weight:600}
+.nbMeta{display:flex;align-items:center;justify-content:flex-end;padding:2px 2px 8px;font-size:12.5px;color:var(--muted);font-weight:600}
 .nbMeta select{border:0;background:none;font:inherit;font-weight:700;color:var(--ink);cursor:pointer;outline:0}
 .nbBody{flex:1;overflow-y:auto;padding:6px 18px 34px;background:#fbfbf7}
 .nbEmpty{color:var(--muted);font-size:14.5px;padding:56px 14px;text-align:center;line-height:1.6}
@@ -78,12 +79,10 @@ body{margin:0;background:var(--bg);color:var(--ink);
 .nbBadge{position:absolute;top:-6px;right:-7px;min-width:21px;height:21px;padding:0 6px;border-radius:999px;background:var(--leaf);color:var(--ink);font-size:11.5px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2.5px #fff}
 .nbGMid{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .nbGTitle{font-size:16px;font-weight:800;letter-spacing:-.025em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.nbGSub{font-size:12.5px;color:var(--muted);font-weight:600}
-.nbGBar{display:block;height:4px;border-radius:99px;background:color-mix(in srgb,var(--leaf) 70%,#fff);overflow:hidden;margin-top:5px;max-width:150px}
+.nbGBar{display:block;height:4px;border-radius:99px;background:color-mix(in srgb,var(--leaf) 70%,#fff);overflow:hidden;margin-top:7px;max-width:170px}
 .nbGBar u{display:block;height:100%;width:0;background:var(--accent);border-radius:99px;transition:width .4s ease;text-decoration:none}
-.nbGTime{flex:none;font-size:12px;color:var(--muted);font-weight:600;align-self:flex-start;margin-top:3px}
 .nbChev{flex:none;color:#aaa59b;transition:transform .3s cubic-bezier(.2,.8,.2,1)}
-.nbGroup.open .nbChev{transform:rotate(180deg)}
+.nbGroup.open>.nbGHead .nbChev{transform:rotate(180deg)}
 .nbGList{display:grid;grid-template-rows:0fr;transition:grid-template-rows .35s cubic-bezier(.2,.8,.2,1);position:relative;z-index:1}
 .nbGroup.open .nbGList{grid-template-rows:1fr}
 .nbGInner{min-height:0;overflow:hidden}
@@ -132,15 +131,15 @@ body{margin:0;background:var(--bg);color:var(--ink);
 .nbSrcRow{margin-top:10px}
 .nbSrc{border:0;background:none;padding:0;font:inherit;font-size:12.5px;color:var(--accent);font-weight:700;cursor:pointer;text-align:left}
 .nbSrc:hover{text-decoration:underline}
-.nbFoot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;font-size:12px;color:var(--muted);font-weight:600}
-.nbMoreBtn{border:0;background:none;padding:2px 0;font:inherit;font-size:12.5px;font-weight:700;color:#8b867c;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.nbFoot{display:flex;align-items:center;justify-content:center;margin-top:4px}
+.nbMoreBtn{border:0;background:none;padding:4px 40px;color:#aaa59b;cursor:pointer;display:inline-flex;align-items:center}
 .nbMoreBtn svg{transition:transform .3s cubic-bezier(.2,.8,.2,1)}
 .nbItem.more .nbMoreBtn svg{transform:rotate(180deg)}
 .nbUndo{position:absolute;left:18px;right:18px;bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 18px;border-radius:999px;background:var(--bar);color:#fff;font-size:13.5px;font-weight:600;transform:translateY(20px);opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;z-index:3}
 .nbUndo.show{transform:none;opacity:1;pointer-events:auto}
 .nbUndo button{border:0;background:none;color:var(--leaf);font:inherit;font-weight:800;cursor:pointer;padding:2px 4px}
 @media (prefers-reduced-motion:reduce){.nbGList,.nbChev,.nbItem,.nbMore{transition:none}.nbItem{animation:none}}
-@media (max-width:390px){.nbGTime{display:none}.nbGSub{white-space:nowrap}.nbGHead{gap:11px}}
+@media (max-width:390px){.nbGHead{gap:11px}}
 .foot .sv{border:1.5px solid var(--grey);background:#fff;color:var(--muted);
   width:28px;height:28px;padding:0;border-radius:999px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex:none;
   transition:opacity .2s ease,visibility .2s ease}
@@ -636,11 +635,11 @@ body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webki
 
 <div id="nbBackdrop" class="nbBackdrop" hidden></div>
 <aside id="notebook" class="nb" hidden>
-  <div class="nbHead"><div style="flex:1;min-width:0"><h2>My Vocabulary</h2><div class="nbSub" id="nbSub"></div><div class="nbProg"><div class="nbProgTrack"><i id="nbProgFill"></i></div><span class="nbPct" id="nbPct">0%</span></div></div><button id="nbClose" aria-label="Close"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
+  <div class="nbHead"><div style="flex:1;min-width:0"><h2>My Vocabulary</h2><div class="nbProg"><div class="nbProgTrack"><i id="nbProgFill"></i></div><span class="nbPct" id="nbPct"></span></div></div><button id="nbClose" aria-label="Close"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
   <div class="nbTools">
-    <label class="nbSearch"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10.8" cy="10.8" r="7"/><path d="m16 16 5 5"/></svg><input id="nbSearch" type="search" placeholder="Tìm trong sổ tay…" aria-label="Tìm trong sổ tay" autocomplete="off"></label>
+    <label class="nbSearch"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10.8" cy="10.8" r="7"/><path d="m16 16 5 5"/></svg><input id="nbSearch" type="search" placeholder="Tìm…" aria-label="Tìm trong sổ tay" autocomplete="off"></label>
     <nav class="nbTabs" id="nbTabs" aria-label="Phân loại"></nav>
-    <div class="nbMeta"><span id="nbCountTxt"></span><select id="nbSort" aria-label="Sắp xếp"><option value="new">Mới lưu</option><option value="az">A–Z</option><option value="level">Cấp độ</option></select></div>
+    <div class="nbMeta"><select id="nbSort" aria-label="Sắp xếp"><option value="new">Mới lưu</option><option value="az">A–Z</option><option value="level">Cấp độ</option></select></div>
   </div>
   <div class="nbBody" id="nbBody"></div>
   <div class="nbUndo" id="nbUndo" role="status"><span></span><button id="nbUndoBtn" type="button">Hoàn tác</button></div>
@@ -1584,8 +1583,7 @@ const NBUI={q:"",tab:"all",sort:"new"};
 const nbFold=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/đ/g,"d");
 function nbUpdateStats(all){
   const saved=all.length, learned=all.filter(x=>x.learned).length, pct=saved?Math.round(learned/saved*100):0;
-  $("#nbSub").textContent=!saved?"Lưu cụm yêu thích khi đọc, chúng sẽ nằm ở đây":learned===saved?"Thuộc hết rồi, giỏi quá!":`Bạn đã thuộc ${learned}/${saved} cụm, tiếp tục nhé`;
-  $("#nbProgFill").style.width=pct+"%"; $("#nbPct").textContent=pct+"%";
+  $("#nbProgFill").style.width=pct+"%"; $("#nbPct").textContent=saved?`${learned}/${saved}`:"";
 }
 const NBOPEN=new Set(); let nbOpenInit=false;   /* các nhóm (bài) đang mở; lần đầu mở nhóm mới lưu nhất */
 const nbDayDiff=ts=>{ const a=new Date(ts), b=new Date(); a.setHours(0,0,0,0); b.setHours(0,0,0,0); return Math.round((b-a)/864e5); };
@@ -1603,7 +1601,8 @@ function nbRenderList(anim){
   const all=nbLoad().map(nbFill), body=$("#nbBody");
   nbUpdateStats(all);
   const counts={all:all.length}; all.forEach(x=>{ counts[x.kind]=(counts[x.kind]||0)+1; });
-  $("#nbTabs").innerHTML=NB_KINDS.map(([k,l])=>`<button class="nbTab" type="button" data-tab="${k}" aria-pressed="${NBUI.tab===k}">${l}<b>${counts[k]||0}</b></button>`).join("");
+  const tabs=NB_KINDS.map(([k,l])=>({k,l,c:counts[k]||0})), tabOrder=[tabs[0],...tabs.slice(1).filter(t=>t.c>0),...tabs.slice(1).filter(t=>!t.c)];
+  $("#nbTabs").innerHTML=tabOrder.map(t=>`<button class="nbTab${t.c?"":" zero"}" type="button" data-tab="${t.k}" aria-pressed="${NBUI.tab===t.k}">${t.l}<b>${t.c}</b></button>`).join("");
   const q=nbFold(NBUI.q.trim());
   const items=all.filter(x=>(NBUI.tab==="all"||x.kind===NBUI.tab)&&(!q||nbFold([x.base,x.upgraded,x.meaning,x.vi,x.example,x.topic].join(" ")).includes(q)));
   const LV={A1:1,A2:2,B1:3,B2:4};
@@ -1611,9 +1610,8 @@ function nbRenderList(anim){
   else if(NBUI.sort==="level") items.sort((a,b)=>(LV[a.level]||9)-(LV[b.level]||9)||a.upgraded.localeCompare(b.upgraded));
   else items.sort((a,b)=>(b.savedAt||0)-(a.savedAt||0));
   const grouped=NBUI.tab==="all"&&!q;   /* tìm kiếm / lọc theo loại: hiện thẳng danh sách phẳng cho dễ thấy kết quả */
-  $("#nbCountTxt").textContent=grouped?`${items.length} ghi chú · ${new Set(items.map(x=>x._pid)).size} bài`:`${items.length} ghi chú`;
-  if(!all.length){ body.innerHTML=`<div class="nbEmpty"><span class="nbEmptyIc">${BOOKMARK(false)}</span><br>Chưa có cụm nào được lưu.<br>Chạm dấu trang dưới cụm từ khi đọc để lưu vào đây nhé.</div>`; return; }
-  if(!items.length){ body.innerHTML=`<div class="nbEmpty">Không tìm thấy ghi chú phù hợp.</div>`; return; }
+  if(!all.length){ body.innerHTML=`<div class="nbEmpty"><span class="nbEmptyIc">${BOOKMARK(false)}</span><br>Chạm dấu trang khi đọc để lưu cụm.</div>`; return; }
+  if(!items.length){ body.innerHTML=`<div class="nbEmpty">Không có kết quả.</div>`; return; }
   if(!grouped){ body.innerHTML=items.map((it,i)=>nbCardHTML(it,anim,i,false)).join(""); nbAfterRender(); return; }
   const by=new Map(); items.forEach(it=>{ if(!by.has(it._pid)) by.set(it._pid,[]); by.get(it._pid).push(it); });
   const groups=[...by.entries()].map(([pid,list])=>({pid,list,title:list[0].topic,latest:Math.max(...list.map(x=>x.savedAt||0)),lv:Math.min(...list.map(x=>LV[x.level]||9))}));
@@ -1627,8 +1625,8 @@ function nbRenderList(anim){
     return `<section class="nbGroup${open?" open":""}${c>2?" s2":c>1?" s1":""}" data-pid="${g.pid}">
       <button class="nbGHead" type="button" aria-expanded="${open}">
         <span class="nbThumb">${nbThumb(g.pid)}<b class="nbBadge">${c}</b></span>
-        <span class="nbGMid"><span class="nbGTitle">${g.title}</span><span class="nbGSub">${c} cụm · ${learned} đã thuộc</span><i class="nbGBar"><u style="width:${c?learned/c*100:0}%"></u></i></span>
-        <span class="nbGTime">${nbAgo(g.latest)}</span>${CHEVRON}
+        <span class="nbGMid"><span class="nbGTitle">${g.title}</span><i class="nbGBar"><u style="width:${c?learned/c*100:0}%"></u></i></span>
+        ${CHEVRON}
       </button>
       <div class="nbGList"><div class="nbGInner">${g.list.map(it=>nbCardHTML(it,anim,n++,true)).join("")}</div></div>
     </section>`;
@@ -1700,7 +1698,7 @@ const nbHL=it=>{   /* tô cụm nâng cấp trong câu ví dụ */
 function nbCardHTML(it,anim,n,grouped){
   const CHECK=`<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 5 5L20 7"/></svg>`;
   const esc=s=>String(s).replace(/"/g,"&quot;");
-  const src=it._pid>=0?`<div class="nbSrcRow"><button class="nbSrc" type="button" data-src="${esc(it.key)}">${grouped?"":"Từ bài “"+it.topic+"” · "}Đến câu này ›</button></div>`:`<div class="nbSrcRow nbSrc">Từ bài “${it.topic}”</div>`;
+  const src=it._pid>=0?`<div class="nbSrcRow"><button class="nbSrc" type="button" data-src="${esc(it.key)}">${grouped?"Đến câu này":it.topic} ›</button></div>`:`<div class="nbSrcRow nbSrc">${it.topic}</div>`;
   return `<div class="nbSw"><div class="nbSwBg"><span class="l">${CHECK}Đã thuộc</span><span class="r">Xoá</span></div>
     <article class="nbItem${it.learned?" learned":""}${anim?"":" noanim"}" style="animation-delay:${n*40}ms">
       <div class="nbTop"><span class="nbKind">${NB_KIND_ONE[it.kind]}</span>
@@ -1713,7 +1711,7 @@ function nbCardHTML(it,anim,n,grouped){
         <div class="nbEx">“${nbHL(it)}”</div>
         ${src}
       </div></div>
-      <div class="nbFoot"><button class="nbMoreBtn" type="button" aria-expanded="false">Nghĩa &amp; ví dụ ${CHEVRON}</button><span>${nbAgo(it.savedAt)}</span></div>
+      <div class="nbFoot"><button class="nbMoreBtn" type="button" aria-expanded="false" aria-label="Nghĩa và ví dụ">${CHEVRON}</button></div>
     </article></div>`;
 }
 
@@ -1726,7 +1724,6 @@ $("#nbBackdrop").addEventListener("click",nbClose);
 function nbSyncGroup(g){
   if(!g) return;
   const cards=[...g.querySelectorAll(".nbItem")], l=cards.filter(c=>c.classList.contains("learned")).length;
-  g.querySelector(".nbGSub").textContent=`${cards.length} cụm · ${l} đã thuộc`;
   g.querySelector(".nbGBar u").style.width=(cards.length?l/cards.length*100:0)+"%";
 }
 function nbSetLearned(card,key){
@@ -1739,7 +1736,7 @@ function nbSetLearned(card,key){
 /* xoá có hoàn tác (5 giây) */
 let nbUndoTimer=0, nbLast=null;
 function nbShowUndo(){
-  const u=$("#nbUndo"); u.querySelector("span").textContent=`Đã xoá “${nbLast.item.upgraded}”`;
+  const u=$("#nbUndo"); u.querySelector("span").textContent="Đã xoá";
   u.classList.add("show"); clearTimeout(nbUndoTimer); nbUndoTimer=setTimeout(()=>u.classList.remove("show"),5000);
 }
 function nbDelete(key,card){

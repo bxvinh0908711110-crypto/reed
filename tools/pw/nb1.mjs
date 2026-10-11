@@ -8,7 +8,7 @@ for(const [name,opts] of [['13',devices['iPhone 13']],['d1280',{viewport:{width:
   // nạp sổ tay mẫu từ dữ liệu thật của app
   await p.evaluate(()=>{ const items=[]; let t=Date.now(); ALL.filter(x=>x.id>0).forEach(l=>l.hl.slice(0,2).forEach(h=>{ items.push({key:nbKey(h.o,h.u),base:h.o,upgraded:h.u,level:h.lv,meaning:h.vn,example:h.ex,topic:l.topic,category:nbCategory(h.u),savedAt:t-=3600e3*7}); })); items[0].learned=true; items[3].learned=true; nbSaveAll(items); nbRenderCount(); });
   await p.evaluate(()=>nbOpen()); await p.waitForTimeout(900);
-  const info=()=>p.evaluate(()=>({sub:nbSub.textContent,pct:nbPct.textContent,count:nbCountTxt.textContent,tabs:[...document.querySelectorAll('.nbTab')].map(t=>t.textContent),cards:document.querySelectorAll('.nbItem').length,kinds:[...document.querySelectorAll('.nbKind')].map(k=>k.textContent).slice(0,6)}));
+  const info=()=>p.evaluate(()=>({pct:nbPct.textContent,tabs:[...document.querySelectorAll('.nbTab')].map(t=>t.textContent),cards:document.querySelectorAll('.nbItem').length,kinds:[...document.querySelectorAll('.nbKind')].map(k=>k.textContent).slice(0,6)}));
   console.log(name,'mở',await info());
   await p.screenshot({path:`tools/pw/shots/nb1_${name}.png`});
   await p.evaluate(()=>document.querySelector('.nbTab[data-tab="phrasal"]').click()); await p.waitForTimeout(500); console.log(' tab Phrasal',await info());
@@ -17,7 +17,7 @@ for(const [name,opts] of [['13',devices['iPhone 13']],['d1280',{viewport:{width:
   await p.fill('#nbSearch','zzz'); await p.waitForTimeout(400); console.log(' tìm zzz',await p.evaluate(()=>nbBody.textContent.trim().slice(0,40)));
   await p.fill('#nbSearch',''); await p.waitForTimeout(400);
   await p.selectOption('#nbSort','az'); await p.waitForTimeout(500); console.log(' A–Z',await p.evaluate(()=>[...document.querySelectorAll('.nbItem .nbph .o:nth-child(3)')].slice(0,5).map(e=>e.textContent)));
-  const before=await info(); await p.evaluate(()=>document.querySelectorAll('.nbLearn')[5].click()); await p.waitForTimeout(300); console.log(' đã thuộc +1:',before.sub,'→',(await info()).sub,(await info()).pct);
+  const before=await info(); await p.evaluate(()=>document.querySelectorAll('.nbLearn')[5].click()); await p.waitForTimeout(300); console.log(' đã thuộc +1:',before.pct,'→',(await info()).pct,(await info()).pct);
   await p.screenshot({path:`tools/pw/shots/nb1_${name}_b.png`});
   // nhảy về bài nguồn (chủ đề khác)
   await p.evaluate(()=>{ setTopic('tech'); });

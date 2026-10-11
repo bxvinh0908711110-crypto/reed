@@ -1,0 +1,14 @@
+import { chromium, devices } from 'playwright'; import http from 'http'; import fs from 'fs';
+const types={'.svg':'image/svg+xml','.html':'text/html','.webp':'image/webp'};
+const srv=http.createServer((q,r)=>{const u=decodeURIComponent(q.url.split('?')[0]).replace(/^\//,'');try{const e=u.slice(u.lastIndexOf('.'));if(types[e])r.setHeader('Content-Type',types[e]);r.end(fs.readFileSync('E:/Your English/'+u))}catch{r.statusCode=404;r.end()}}).listen(8816);
+const b=await chromium.launch(); const ctx=await b.newContext(devices['iPhone 13']);
+await ctx.addInitScript(()=>{localStorage.setItem('reed_tour_done','1')}); await ctx.route('**/*supabase.co/**',r=>r.abort());
+const p=await ctx.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message)); await p.goto('http://localhost:8816/index.html'); await p.waitForTimeout(5000);
+await p.evaluate(()=>{ const items=[]; ALL.filter(x=>x.id===9).forEach(l=>l.hl.forEach((h,k)=>items.push({key:nbKey(h.o,h.u),base:h.o,upgraded:h.u,level:h.lv,meaning:h.vn,example:h.ex,topic:l.topic,category:nbCategory(h.u),savedAt:Date.now()-k*1000}))); items[0].learned=true; nbSaveAll(items); nbRenderCount(); nbPeeked=true; nbOpen(); });
+await p.waitForTimeout(900);
+console.log('thứ tự tab:',await p.evaluate(()=>[...document.querySelectorAll('.nbTab')].map(t=>t.textContent+(t.classList.contains('zero')?'(mờ)':''))));
+console.log('chữ còn lại trong đầu sổ tay:',await p.evaluate(()=>[...document.querySelectorAll('.nbHead h2,.nbPct,.nbGTitle')].map(e=>e.textContent)));
+await p.screenshot({path:'tools/pw/shots/nb6_a.png'});
+await p.evaluate(()=>document.querySelector('.nbTab[data-tab="word"]').click()); await p.waitForTimeout(500);
+console.log('tab Words (đang 0 cụm) vẫn chọn được:',await p.evaluate(()=>[document.querySelectorAll('.nbItem').length,nbBody.textContent.trim().slice(0,30)]),'lỗi',errs);
+await b.close(); srv.close();
