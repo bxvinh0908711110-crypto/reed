@@ -181,10 +181,11 @@ body{margin:0;background:var(--bg);color:var(--ink);
 .player .lang{flex:0 0 auto;margin-left:6px;border:0;border-radius:999px;background:var(--leaf);color:#0b0b0b;font:inherit;font-size:13px;font-weight:800;letter-spacing:.02em;min-width:40px;height:30px;padding:0 12px;cursor:pointer;transition:transform .15s ease}
 .player .lang:active{transform:scale(.92)}
 /* Chế độ dịch (VI): chữ Việt thay chữ Anh; dòng Anh vẫn giữ nguyên bố cục (ẩn bằng visibility) để đo/cuộn không đổi */
-.sent .vt{display:none;margin:0;font-size:calc(var(--fitv,1) * .92 * clamp(30px,4.5vw,66px));line-height:1.25;letter-spacing:-.03em;font-weight:500;color:#3b3b3b}
+.sent .vt{display:none;position:absolute;left:0;top:0;width:100%;margin:0;font-size:calc(var(--fitv,1) * clamp(30px,4.5vw,66px));line-height:1.22;letter-spacing:-.035em;font-weight:500;color:#3b3b3b}
 body.lang-vi .sent .vt{display:block}
-body.lang-vi .sent:not(.novi) .cap{display:none}   /* chế độ VI: ẩn chú thích cụm */
-body.lang-vi .sent:not(.novi):not(.recap) .line{height:0;margin:0!important;overflow:hidden;visibility:hidden;pointer-events:none}
+body.lang-vi .sent:not(.novi) .cap{visibility:hidden}   /* chế độ VI: ẩn chú thích cụm (giữ chỗ để khung không đổi) */
+/* dòng Anh vẫn nằm trong luồng (ẩn bằng visibility) → khung câu y hệt bản EN; chữ Việt đặt đè đúng vị trí dòng đầu, cùng cỡ chữ */
+body.lang-vi .sent:not(.novi):not(.recap) .line{visibility:hidden;pointer-events:none}
 .rl.rv{opacity:0;pointer-events:none}
 .sent .rcw .rl.rl{margin-top:0}   /* dòng recap xếp chồng nhau: bỏ lề 16px của ".line+.line" (làm dòng sau lệch xuống và bị cắt đáy) */
 .recap .rv mark{cursor:default}
@@ -304,7 +305,7 @@ body.lang-vi .foot .tg{visibility:hidden}
 .label .d{width:1.5px;height:17px;background:#b9b9b9;flex:0 0 auto}
 .label .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .sents{display:grid;grid-template-columns:minmax(0,1fr);max-height:calc(100vh - 260px);max-height:calc(100dvh - 260px);overflow:hidden}
-.sent{grid-area:1/1;opacity:0;pointer-events:none;will-change:opacity,transform}
+.sent{position:relative;grid-area:1/1;opacity:0;pointer-events:none;will-change:opacity,transform}
 .line{font-size:calc(var(--fit,1) * clamp(30px,4.5vw,66px));line-height:1.22;letter-spacing:-.035em;font-weight:500;color:#3b3b3b;margin:0}
 .sent .line+.line{margin-top:16px}
 .line.plain{font-size:calc(var(--fit,1) * clamp(22px,2.7vw,40px));color:var(--muted)}   /* câu không có cụm từ để học: thu nhỏ, bớt nổi bật vì không quan trọng bằng */
@@ -438,7 +439,7 @@ body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webki
 @media (max-width:480px){
   .player .mic{width:30px;height:30px;flex-basis:30px;margin-left:4px}
   .player .lang{height:28px;min-width:36px;padding:0 10px;font-size:12px;margin-left:4px}
-  .sent .vt{font-size:calc(var(--fitv,1) * .92 * clamp(24px,7vw,66px))}
+  .sent .vt{font-size:calc(var(--fitv,1) * clamp(24px,7vw,66px))}
   .player .mic.has .bd{width:9px;height:9px;top:1px;right:1px}
   .player .rl-text{font-size:12px}
   .player .rcancel2{padding:8px 14px;font-size:13px}
@@ -983,8 +984,9 @@ function fitSlides(){
     pp.sents.forEach(s=>{
       const el=s.el, v=el&&el.querySelector(".vt"); if(!v||s.recap) return;
       const nat=()=>{ el.style.alignSelf="start"; const h=el.offsetHeight; el.style.alignSelf=""; return h; };
-      let f=1; el.style.setProperty("--fitv",1);
-      for(let k=0;k<14&&nat()>box.clientHeight&&f>.4;k++){ f=Math.max(.4,f*.93); el.style.setProperty("--fitv",f.toFixed(3)); }
+      let f=parseFloat(el.style.getPropertyValue("--fit"))||1; el.style.setProperty("--fitv",f);   /* bắt đầu từ đúng cỡ chữ tiếng Anh, chỉ co thêm khi tiếng Việt dài quá khung */
+      const avail=()=>box.offsetTop+box.clientHeight-el.offsetTop;   /* offsetTop: không bị ảnh hưởng bởi transform đang chạy */
+      for(let k=0;k<14&&v.offsetHeight>avail()+1&&f>.4;k++){ f=Math.max(.4,f*.93); el.style.setProperty("--fitv",f.toFixed(3)); }
     });
   });
   if(!was) document.body.classList.remove("lang-vi");
