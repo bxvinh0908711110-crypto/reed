@@ -13,10 +13,10 @@ for(const [name,opts] of [['13',devices['iPhone 13']],['d1280',{viewport:{width:
   await p.screenshot({path:`tools/pw/shots/nb1_${name}.png`});
   await p.evaluate(()=>document.querySelector('.nbTab[data-tab="phrasal"]').click()); await p.waitForTimeout(500); console.log(' tab Phrasal',await info());
   await p.evaluate(()=>document.querySelector('.nbTab[data-tab="all"]').click()); await p.waitForTimeout(300);
-  await p.fill('#nbSearch','bo me'); await p.waitForTimeout(500); console.log(' tìm "bo me" (không dấu)',(await info()).cards,await p.evaluate(()=>[...document.querySelectorAll('.nbItem .up')].map(e=>e.textContent)));
+  await p.fill('#nbSearch','bo me'); await p.waitForTimeout(500); console.log(' tìm "bo me" (không dấu)',(await info()).cards,await p.evaluate(()=>[...document.querySelectorAll('.nbItem .nbph .o:nth-child(3)')].map(e=>e.textContent)));
   await p.fill('#nbSearch','zzz'); await p.waitForTimeout(400); console.log(' tìm zzz',await p.evaluate(()=>nbBody.textContent.trim().slice(0,40)));
   await p.fill('#nbSearch',''); await p.waitForTimeout(400);
-  await p.selectOption('#nbSort','az'); await p.waitForTimeout(500); console.log(' A–Z',await p.evaluate(()=>[...document.querySelectorAll('.nbItem .up')].slice(0,5).map(e=>e.textContent)));
+  await p.selectOption('#nbSort','az'); await p.waitForTimeout(500); console.log(' A–Z',await p.evaluate(()=>[...document.querySelectorAll('.nbItem .nbph .o:nth-child(3)')].slice(0,5).map(e=>e.textContent)));
   const before=await info(); await p.evaluate(()=>document.querySelectorAll('.nbLearn')[5].click()); await p.waitForTimeout(300); console.log(' đã thuộc +1:',before.sub,'→',(await info()).sub,(await info()).pct);
   await p.screenshot({path:`tools/pw/shots/nb1_${name}_b.png`});
   // nhảy về bài nguồn (chủ đề khác)
