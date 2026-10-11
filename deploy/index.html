@@ -183,6 +183,8 @@ body.lang-vi .sent:not(.novi):not(.recap) .line{height:0;margin:0!important;over
 /* Chuyển EN↔VI: chữ mờ nhẹ + hơi trượt xuống, đổi nội dung ở điểm mờ nhất rồi hiện lại */
 .sents{transition:opacity .2s ease,filter .2s ease,transform .26s cubic-bezier(.3,.9,.3,1)}
 body.lang-sw .sents{opacity:0;filter:blur(5px);transform:translateY(8px)}
+/* lúc đổi ngôn ngữ (đang ẩn): các dòng tổng kết đổi tức thì, không chạy chuyển động riêng nên không chồng chữ EN/VI */
+body.lang-nt .rcw,body.lang-nt .rl,body.lang-nt .rl *{transition:none!important}
 .player .lang.pop{animation:langPop .32s cubic-bezier(.3,1.4,.5,1)}
 @keyframes langPop{0%{transform:scale(.86)}100%{transform:scale(1)}}
 @media (prefers-reduced-motion:reduce){.sents{transition:none}.player .lang.pop{animation:none}}
@@ -1183,9 +1185,12 @@ const langBtn=$("#langBtn");
 let langT=0;
 function setLang(v,save){
   const apply=()=>{
+    document.body.classList.add("lang-nt");
     document.body.classList.toggle("lang-vi",v==="vi"); langBtn.textContent=v==="vi"?"VI":"EN"; langBtn.setAttribute("aria-pressed",v==="vi");
     if(v==="vi") document.querySelectorAll(".vt mark[data-vi]").forEach(m=>{ const f=(F[+m.dataset.vp]||[])[+m.dataset.vi]||0; m.classList.toggle("m1",f>=.5); });
     if(typeof movePills==="function"&&P.length) movePills();
+    void document.body.offsetWidth;   /* chốt giá trị mới trước khi bật lại chuyển động */
+    requestAnimationFrame(()=>requestAnimationFrame(()=>document.body.classList.remove("lang-nt")));
   };
   clearTimeout(langT);
   if(!save||matchMedia("(prefers-reduced-motion:reduce)").matches){ document.body.classList.remove("lang-sw"); apply(); return; }
