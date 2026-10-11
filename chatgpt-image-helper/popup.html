@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  body { width: 380px; margin: 0; padding: 12px; font: 13px system-ui, sans-serif; }
+  label { display: block; margin: 8px 0 3px; font-weight: 600; }
+  textarea, input { width: 100%; box-sizing: border-box; padding: 6px; font: inherit; }
+  textarea { height: 150px; resize: vertical; }
+  .row { display: flex; gap: 6px; margin-top: 10px; }
+  button { flex: 1; padding: 8px; cursor: pointer; font: inherit; }
+  #start { background: #10a37f; color: #fff; border: 0; border-radius: 4px; }
+  #stop { background: #d33; color: #fff; border: 0; border-radius: 4px; }
+  #status { margin-top: 10px; padding: 6px; background: #f2f2f2; border-radius: 4px; min-height: 18px; white-space: pre-wrap; }
+  small { color: #666; }
+</style>
+</head>
+<body>
+  <label for="prompts">Prompts <small>(mỗi dòng 1 prompt)</small></label>
+  <textarea id="prompts" placeholder="a cartoon cat reading a book&#10;a red apple on a desk"></textarea>
+
+  <label for="prefix">Chèn trước mỗi prompt <small>(tuỳ chọn)</small></label>
+  <input id="prefix" placeholder="Create an image: ">
+
+  <label for="suffix">Chèn sau mỗi prompt <small>(tuỳ chọn, ví dụ style chung)</small></label>
+  <input id="suffix" placeholder=", flat illustration, white background">
+
+  <label for="fname">Tên file <small>(vd: lesson → lesson-01.png)</small></label>
+  <input id="fname" value="image">
+
+  <div class="row">
+    <button id="start">▶ Chạy</button>
+    <button id="stop">■ Dừng</button>
+  </div>
+  <div class="row"><button id="grab">⬇ Tải tất cả ảnh đang có trên trang</button></div>
+
+  <div id="status"></div>
+  <script src="popup.js"></script>
+</body>
+</html>

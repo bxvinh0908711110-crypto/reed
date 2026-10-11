@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "ChatGPT Image Helper",
+  "version": "1.0.0",
+  "description": "Nhập hàng loạt prompt vào ChatGPT và tự tải ảnh tạo ra về máy.",
+  "permissions": ["storage", "downloads", "activeTab"],
+  "host_permissions": [
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*",
+    "https://*.oaiusercontent.com/*"
+  ],
+  "action": { "default_popup": "popup.html", "default_title": "ChatGPT Image Helper" },
+  "background": { "service_worker": "background.js" },
+  "content_scripts": [
+    {
+      "matches": ["https://chatgpt.com/*", "https://chat.openai.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
