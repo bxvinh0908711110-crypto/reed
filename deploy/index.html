@@ -46,8 +46,8 @@ body{margin:0;background:var(--bg);color:var(--ink);
 .nbGroup h3{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:22px 0 10px;font-weight:700}
 .nbGroup:first-child h3{margin-top:16px}
 .nbItem{position:relative;padding:14px 16px 12px 18px;margin:0 0 12px;border:1px solid #e7ebf2;border-radius:18px;background:#fff;box-shadow:0 4px 16px #193d7708;cursor:pointer;
-  opacity:0;transform:translateY(9px);animation:nbIn .45s cubic-bezier(.2,.8,.2,1) both}
-@keyframes nbIn{to{opacity:1;transform:translateY(0)}}
+  animation:nbIn .45s cubic-bezier(.2,.8,.2,1) backwards}
+@keyframes nbIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.nbItem{animation:none;opacity:1;transform:none}}
 .nbItem .row{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
 .nbItem .base{font-weight:800;font-size:16px;letter-spacing:-.02em;color:var(--ink)}
@@ -110,6 +110,44 @@ body{margin:0;background:var(--bg);color:var(--ink);
 .nbFoot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;font-size:11.5px;color:var(--muted)}
 .nbSrc{border:0;background:none;padding:0;font:inherit;color:var(--accent);font-weight:700;cursor:pointer;text-align:left}
 .nbSrc:hover{text-decoration:underline}
+/* Nhóm theo bài (chồng thẻ kiểu thông báo iOS) + vuốt thẻ + hoàn tác */
+.nbGroup{position:relative;margin:0 0 18px}
+.nbGroup::before,.nbGroup::after{content:"";position:absolute;left:14px;right:14px;height:64px;top:8px;border-radius:18px;background:#fff;border:1px solid #e7ebf2;opacity:0;z-index:0;transition:opacity .25s ease,transform .25s ease;pointer-events:none}
+.nbGroup::after{left:26px;right:26px;top:14px}
+.nbGroup.s1:not(.open)::before,.nbGroup.s2:not(.open)::before{opacity:.75}
+.nbGroup.s2:not(.open)::after{opacity:.5}
+.nbGHead{position:relative;z-index:1;width:100%;display:flex;align-items:center;gap:12px;padding:11px 14px;border:1px solid #e7ebf2;border-radius:18px;background:#fff;box-shadow:0 4px 16px #193d7708;cursor:pointer;font:inherit;text-align:left;color:var(--ink)}
+.nbGHead:active{transform:scale(.985)}
+.nbThumb{position:relative;flex:none;width:46px;height:46px;border-radius:13px;background:var(--leaf);display:block}
+.nbThumb img{width:100%;height:100%;object-fit:cover;border-radius:13px;display:block}
+.nbBadge{position:absolute;top:-6px;right:-6px;min-width:19px;height:19px;padding:0 5px;border-radius:999px;background:var(--accent);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #fff}
+.nbGMid{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.nbGTitle{font-size:15px;font-weight:800;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nbGSub{font-size:12px;color:var(--muted);font-weight:600}
+.nbGBar{display:block;height:3px;border-radius:99px;background:#edf1f7;overflow:hidden;margin-top:4px;max-width:140px}
+.nbGBar u{display:block;height:100%;width:0;background:#17a86b;border-radius:99px;transition:width .4s ease;text-decoration:none}
+.nbGTime{flex:none;font-size:12px;color:var(--muted);font-weight:600;align-self:flex-start;margin-top:2px}
+.nbChev{flex:none;color:#a4adbd;transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.nbGroup.open .nbChev{transform:rotate(180deg)}
+.nbGList{display:grid;grid-template-rows:0fr;transition:grid-template-rows .35s cubic-bezier(.2,.8,.2,1);position:relative;z-index:1}
+.nbGroup.open .nbGList{grid-template-rows:1fr}
+.nbGInner{min-height:0;overflow:hidden;padding-top:0}
+.nbGroup.open .nbGInner{padding-top:12px}
+.nbGroup:not(.open) .nbGInner{visibility:hidden}
+.nbSw{position:relative;margin:0 0 12px;border-radius:18px;overflow:hidden}
+.nbSw:last-child{margin-bottom:0}
+.nbSwBg{position:absolute;inset:0;border-radius:18px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:13px;font-weight:800;opacity:var(--p,0);background:#17a86b;color:#fff}
+.nbSwBg span{display:none;align-items:center;gap:6px}
+.nbSw[data-dir=r] .nbSwBg .l,.nbSw[data-dir=l] .nbSwBg .r{display:inline-flex}
+.nbSw[data-dir=l] .nbSwBg{background:#e5484d;justify-content:flex-end}
+.nbSw.armed .nbSwBg{filter:saturate(1.2)}
+.nbSw .nbItem{margin:0;touch-action:pan-y;transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+.nbSw .nbItem.dragging{transition:none}
+.nbBody>.nbSw{margin-bottom:12px}
+.nbUndo{position:absolute;left:18px;right:18px;bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-radius:14px;background:#1d2433;color:#fff;font-size:13px;font-weight:600;transform:translateY(20px);opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;z-index:3}
+.nbUndo.show{transform:none;opacity:1;pointer-events:auto}
+.nbUndo button{border:0;background:none;color:var(--leaf);font:inherit;font-weight:800;cursor:pointer;padding:2px 4px}
+@media (prefers-reduced-motion:reduce){.nbGList,.nbChev,.nbSw .nbItem{transition:none}}
 .foot .sv{border:1.5px solid var(--grey);background:#fff;color:var(--muted);
   width:28px;height:28px;padding:0;border-radius:999px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex:none;
   transition:opacity .2s ease,visibility .2s ease}
@@ -612,6 +650,7 @@ body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webki
     <div class="nbMeta"><span id="nbCountTxt"></span><select id="nbSort" aria-label="Sắp xếp"><option value="new">Mới lưu</option><option value="az">A–Z</option><option value="level">Cấp độ</option></select></div>
   </div>
   <div class="nbBody" id="nbBody"></div>
+  <div class="nbUndo" id="nbUndo" role="status"><span></span><button id="nbUndoBtn" type="button">Hoàn tác</button></div>
 </aside>
 
 <section class="hero">
@@ -1555,6 +1594,34 @@ function nbUpdateStats(all){
   $("#nbSub").textContent=saved?`${saved} đã lưu · ${learned} đã thuộc`:"Chưa lưu cụm nào";
   $("#nbProgFill").style.width=pct+"%"; $("#nbPct").textContent=pct+"%";
 }
+const NBOPEN=new Set(); let nbOpenInit=false;   /* các nhóm (bài) đang mở; lần đầu mở nhóm mới lưu nhất */
+const nbDayDiff=ts=>{ const a=new Date(ts), b=new Date(); a.setHours(0,0,0,0); b.setHours(0,0,0,0); return Math.round((b-a)/864e5); };
+function nbAgo(ts){   /* giờ tương đối kiểu thông báo iOS: "Hôm qua", "3 giờ trước"… */
+  if(!ts) return "";
+  const d=nbDayDiff(ts), m=(Date.now()-ts)/6e4;
+  if(d<=0) return m<1?"Vừa xong":m<60?Math.floor(m)+" phút trước":Math.floor(m/60)+" giờ trước";
+  if(d===1) return "Hôm qua";
+  if(d<7) return d+" ngày trước";
+  const x=new Date(ts); return x.getDate()+"/"+(x.getMonth()+1);
+}
+function nbThumb(pid){ const p=ALL.find(x=>x.id===pid), src=p&&IMG[p.scene]; return src?`<img src="${src}" alt="" loading="lazy" decoding="async">`:""; }
+const CHEVRON=`<svg class="nbChev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`;
+function nbCardHTML(it,anim,n,grouped){
+  const pairHTML=`<span class="arrow">→</span><span class="up">${it.upgraded}</span><span class="lv">${it.level}</span>`;
+  const infoHTML=`${it.vi?`<div class="meaning vi">${it.vi}</div>`:""}<div class="meaning">${it.meaning}</div><div class="ex">“${it.example}”</div>`;
+  const CHECK=`<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 5 5L20 7"/></svg>`;
+  const esc=s=>String(s).replace(/"/g,"&quot;");
+  const link=it._pid>=0?`<button class="nbSrc" type="button" data-src="${esc(it.key)}">${grouped?"Đến câu này":"Từ bài “"+it.topic+"”"} ›</button>`:`<span>Từ bài “${it.topic}”</span>`;
+  return `<div class="nbSw"><div class="nbSwBg"><span class="l">${CHECK}Đã thuộc</span><span class="r">Xoá</span></div>
+    <article class="nbItem k-${it.kind}${it.learned?" learned":""}${anim?"":" noanim"}" style="animation-delay:${n*40}ms">
+      <div class="nbTop"><span class="nbKind">${NB_KIND_ONE[it.kind]}</span>
+        <span class="nbAct"><button class="nbLearn" type="button" data-learn="${esc(it.key)}" aria-pressed="${!!it.learned}" aria-label="Đánh dấu đã thuộc" title="Đã thuộc">${CHECK}</button>
+        <button class="rm" data-rm="${esc(it.key)}" aria-label="Xoá" title="Xoá">✕</button></span></div>
+      <div class="row"><span class="base">${it.base}</span><span class="spoiler"><span class="real">${pairHTML}</span></span></div>
+      <div class="spoiler"><div class="real">${infoHTML}</div></div>
+      <div class="nbFoot">${link}<span>${nbAgo(it.savedAt)}</span></div>
+    </article></div>`;
+}
 function nbRenderList(anim){
   const all=nbLoad().map(nbFill), body=$("#nbBody");
   nbUpdateStats(all);
@@ -1566,24 +1633,29 @@ function nbRenderList(anim){
   if(NBUI.sort==="az") items.sort((a,b)=>a.upgraded.localeCompare(b.upgraded));
   else if(NBUI.sort==="level") items.sort((a,b)=>(LV[a.level]||9)-(LV[b.level]||9)||a.upgraded.localeCompare(b.upgraded));
   else items.sort((a,b)=>(b.savedAt||0)-(a.savedAt||0));
-  $("#nbCountTxt").textContent=`${items.length} ghi chú`;
+  const grouped=NBUI.tab==="all"&&!q;   /* tìm kiếm / lọc theo loại: hiện thẳng danh sách phẳng cho dễ thấy kết quả */
+  $("#nbCountTxt").textContent=grouped?`${items.length} ghi chú · ${new Set(items.map(x=>x._pid)).size} bài`:`${items.length} ghi chú`;
   if(!all.length){ nbCancelDust(); body.innerHTML=`<div class="nbEmpty">Chưa có cụm nào được lưu.<br>Chạm dấu trang dưới cụm từ khi đọc để lưu vào đây.</div>`; return; }
   if(!items.length){ nbCancelDust(); body.innerHTML=`<div class="nbEmpty">Không tìm thấy ghi chú phù hợp.</div>`; return; }
-  const pairHTML=it=>`<span class="arrow">→</span><span class="up">${it.upgraded}</span><span class="lv">${it.level}</span>`;
-  const infoHTML=it=>`${it.vi?`<div class="meaning vi">${it.vi}</div>`:""}<div class="meaning">${it.meaning}</div><div class="ex">“${it.example}”</div>`;
-  const CHECK=`<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 5 5L20 7"/></svg>`;
-  const dateOf=it=>{ if(!it.savedAt) return ""; const d=new Date(it.savedAt); return d.getDate()+"/"+(d.getMonth()+1); };
-  const esc=s=>String(s).replace(/"/g,"&quot;");
+  if(!grouped){ body.innerHTML=items.map((it,i)=>nbCardHTML(it,anim,i,false)).join(""); nbBuildDust(); return; }
+  const by=new Map(); items.forEach(it=>{ if(!by.has(it._pid)) by.set(it._pid,[]); by.get(it._pid).push(it); });
+  const groups=[...by.entries()].map(([pid,list])=>({pid,list,title:list[0].topic,latest:Math.max(...list.map(x=>x.savedAt||0)),lv:Math.min(...list.map(x=>LV[x.level]||9))}));
+  if(NBUI.sort==="az") groups.sort((a,b)=>a.title.localeCompare(b.title));
+  else if(NBUI.sort==="level") groups.sort((a,b)=>a.lv-b.lv||a.title.localeCompare(b.title));
+  else groups.sort((a,b)=>b.latest-a.latest);
+  if(!nbOpenInit){ nbOpenInit=true; if(groups[0]) NBOPEN.add(groups[0].pid); }
   let n=0;
-  body.innerHTML=items.map(it=>`
-    <article class="nbItem k-${it.kind}${it.learned?" learned":""}${anim?"":" noanim"}" style="animation-delay:${(n++)*40}ms">
-      <div class="nbTop"><span class="nbKind">${NB_KIND_ONE[it.kind]}</span>
-        <span class="nbAct"><button class="nbLearn" type="button" data-learn="${esc(it.key)}" aria-pressed="${!!it.learned}" aria-label="Đánh dấu đã thuộc" title="Đã thuộc">${CHECK}</button>
-        <button class="rm" data-rm="${esc(it.key)}" aria-label="Xoá" title="Xoá">✕</button></span></div>
-      <div class="row"><span class="base">${it.base}</span><span class="spoiler"><span class="real">${pairHTML(it)}</span></span></div>
-      <div class="spoiler"><div class="real">${infoHTML(it)}</div></div>
-      <div class="nbFoot">${it._pid>=0?`<button class="nbSrc" type="button" data-src="${esc(it.key)}">Từ bài “${it.topic}” ›</button>`:`<span>Từ bài “${it.topic}”</span>`}<span>${dateOf(it)}</span></div>
-    </article>`).join("");
+  body.innerHTML=groups.map(g=>{
+    const learned=g.list.filter(x=>x.learned).length, open=NBOPEN.has(g.pid), c=g.list.length;
+    return `<section class="nbGroup${open?" open":""}${c>2?" s2":c>1?" s1":""}" data-pid="${g.pid}">
+      <button class="nbGHead" type="button" aria-expanded="${open}">
+        <span class="nbThumb">${nbThumb(g.pid)}<b class="nbBadge">${c}</b></span>
+        <span class="nbGMid"><span class="nbGTitle">${g.title}</span><span class="nbGSub">${c} cụm · ${learned} đã thuộc</span><i class="nbGBar"><u style="width:${c?learned/c*100:0}%"></u></i></span>
+        <span class="nbGTime">${nbAgo(g.latest)}</span>${CHEVRON}
+      </button>
+      <div class="nbGList"><div class="nbGInner">${g.list.map(it=>nbCardHTML(it,anim,n++,true)).join("")}</div></div>
+    </section>`;
+  }).join("");
   nbBuildDust();
 }
 
@@ -1648,13 +1720,14 @@ function nbBuildDust(){
       dustDrawNode(ctx,node,w,h);
       const particles=dustSample(ctx,w,h);
       ctx.clearRect(0,0,w,h);
-      dustFields.push({item,ctx,w,h,particles});
+      dustFields.push({item,ctx,w,h,particles,group:item.closest(".nbGroup")});
     });
   });
   if(dustFields.length) dustRAF=requestAnimationFrame(dustTick);
 }
 function dustTick(){
   dustFields.forEach(f=>{
+    if(f.group&&!f.group.classList.contains("open")) return;   /* nhóm đang gập: không cần vẽ */
     const hovered=f.item.matches(":hover")||f.item.classList.contains("show-lv");
     f.ctx.clearRect(0,0,f.w,f.h);
     f.particles.forEach(p=>{
@@ -1677,18 +1750,89 @@ function nbClose(){ $("#notebook").classList.remove("show"); $("#nbBackdrop").cl
 $("#nbBtn").addEventListener("click",nbOpen);
 $("#nbClose").addEventListener("click",nbClose);
 $("#nbBackdrop").addEventListener("click",nbClose);
+/* đánh dấu đã thuộc: cập nhật tại chỗ (không dựng lại danh sách để mục đang lộ đáp án không bị che lại) */
+function nbSyncGroup(g){
+  if(!g) return;
+  const cards=[...g.querySelectorAll(".nbItem")], l=cards.filter(c=>c.classList.contains("learned")).length;
+  g.querySelector(".nbGSub").textContent=`${cards.length} cụm · ${l} đã thuộc`;
+  g.querySelector(".nbGBar u").style.width=(cards.length?l/cards.length*100:0)+"%";
+}
+function nbSetLearned(card,key){
+  const items=nbLoad(), it=items.find(x=>x.key===key); if(!it) return;
+  it.learned=!it.learned; nbSaveAll(items);
+  card.classList.toggle("learned",!!it.learned);
+  const b=card.querySelector(".nbLearn"); if(b) b.setAttribute("aria-pressed",!!it.learned);
+  nbUpdateStats(items); nbSyncGroup(card.closest(".nbGroup"));
+}
+/* xoá có hoàn tác (5 giây) */
+let nbUndoTimer=0, nbLast=null;
+function nbShowUndo(){
+  const u=$("#nbUndo"); u.querySelector("span").textContent=`Đã xoá “${nbLast.item.upgraded}”`;
+  u.classList.add("show"); clearTimeout(nbUndoTimer); nbUndoTimer=setTimeout(()=>u.classList.remove("show"),5000);
+}
+function nbDelete(key,card){
+  const items=nbLoad(), idx=items.findIndex(x=>x.key===key); if(idx<0) return;
+  nbLast={item:items[idx],idx}; items.splice(idx,1); nbSaveAll(items); nbRenderCount();
+  const sw=card&&card.parentElement, done=()=>{ nbRenderList(false); nbShowUndo(); };
+  if(!sw||matchMedia("(prefers-reduced-motion: reduce)").matches){ done(); return; }
+  sw.style.height=sw.offsetHeight+"px"; card.style.transform="translateX(-110%)";
+  requestAnimationFrame(()=>{ sw.style.transition="height .22s ease,margin .22s ease,opacity .22s ease"; sw.style.height="0"; sw.style.marginBottom="0"; sw.style.opacity="0"; });
+  setTimeout(done,250);
+}
+$("#nbUndoBtn").addEventListener("click",()=>{
+  if(!nbLast) return;
+  const items=nbLoad(); items.splice(Math.min(nbLast.idx,items.length),0,nbLast.item); nbSaveAll(items);
+  nbLast=null; nbRenderCount(); nbRenderList(false); $("#nbUndo").classList.remove("show");
+});
+let nbSwiped=0;
 $("#nbBody").addEventListener("click",e=>{
-  const b=e.target.closest(".rm"), ln=e.target.closest(".nbLearn"), sr=e.target.closest(".nbSrc");
-  if(b){ nbSaveAll(nbLoad().filter(x=>x.key!==b.dataset.rm)); nbRenderCount(); nbRenderList(false); return; }
-  if(ln){   /* đánh dấu đã thuộc: cập nhật tại chỗ (không dựng lại danh sách để mục đang lộ đáp án không bị che lại) */
-    const items=nbLoad(), it=items.find(x=>x.key===ln.dataset.learn);
-    if(it){ it.learned=!it.learned; nbSaveAll(items); ln.setAttribute("aria-pressed",!!it.learned); ln.closest(".nbItem").classList.toggle("learned",!!it.learned); nbUpdateStats(items); }
+  if(Date.now()-nbSwiped<350) return;   /* cú nhả tay sau khi vuốt không được tính là chạm */
+  const gh=e.target.closest(".nbGHead");
+  if(gh){
+    const g=gh.parentElement, open=!g.classList.contains("open"), pid=+g.dataset.pid;
+    g.classList.toggle("open",open); gh.setAttribute("aria-expanded",open); if(open) NBOPEN.add(pid); else NBOPEN.delete(pid);
     return;
   }
+  const b=e.target.closest(".rm"), ln=e.target.closest(".nbLearn"), sr=e.target.closest(".nbSrc");
+  if(b){ nbDelete(b.dataset.rm,b.closest(".nbItem")); return; }
+  if(ln){ nbSetLearned(ln.closest(".nbItem"),ln.dataset.learn); return; }
   if(sr){ nbGoSource(sr.dataset.src); return; }
   const item=e.target.closest(".nbItem");           /* chạm/bấm vào mục để lộ mức CEFR (thay cho hover trên di động) */
   if(item) item.classList.toggle("show-lv");
 });
+/* Vuốt thẻ: sang phải = đã thuộc, sang trái = xoá (có hoàn tác). Ngưỡng 90px; vuốt dọc vẫn cuộn danh sách bình thường. */
+(function(){
+  const body=$("#nbBody"), TH=90; let st=null;
+  const keyOf=card=>{ const b=card.querySelector(".nbLearn"); return b&&b.dataset.learn; };
+  body.addEventListener("pointerdown",e=>{
+    const card=e.target.closest(".nbItem"); if(!card||e.target.closest("button")||(e.pointerType==="mouse"&&e.button!==0)) return;
+    st={card,sw:card.parentElement,x:e.clientX,y:e.clientY,drag:false,id:e.pointerId,dx:0};
+  });
+  body.addEventListener("pointermove",e=>{
+    if(!st||e.pointerId!==st.id) return;
+    const dx=e.clientX-st.x, dy=e.clientY-st.y;
+    if(!st.drag){
+      if(Math.abs(dy)>10&&Math.abs(dy)>Math.abs(dx)){ st=null; return; }   /* cuộn dọc: bỏ qua */
+      if(Math.abs(dx)<10) return;
+      st.drag=true; st.card.classList.add("dragging"); try{ st.card.setPointerCapture(e.pointerId); }catch(_){}
+    }
+    st.dx=dx;
+    const a=Math.abs(dx), t=a<=120?dx:Math.sign(dx)*(120+(a-120)*.3);   /* quá 120px thì kéo nặng dần */
+    st.card.style.transform=`translateX(${t}px)`;
+    st.sw.dataset.dir=dx>0?"r":"l"; st.sw.style.setProperty("--p",Math.min(1,a/TH).toFixed(2)); st.sw.classList.toggle("armed",a>=TH);
+  });
+  const end=e=>{
+    if(!st||e.pointerId!==st.id) return;
+    const s=st; st=null;
+    if(!s.drag) return;
+    nbSwiped=Date.now();
+    s.card.classList.remove("dragging"); s.sw.classList.remove("armed"); s.sw.style.setProperty("--p",0);
+    if(e.type!=="pointercancel"&&s.dx>=TH){ s.card.style.transform=""; nbSetLearned(s.card,keyOf(s.card)); }
+    else if(e.type!=="pointercancel"&&s.dx<=-TH){ nbDelete(keyOf(s.card),s.card); }
+    else s.card.style.transform="";
+  };
+  body.addEventListener("pointerup",end); body.addEventListener("pointercancel",end);
+})();
 let nbQT=0;
 $("#nbSearch").addEventListener("input",e=>{ NBUI.q=e.target.value; clearTimeout(nbQT); nbQT=setTimeout(()=>nbRenderList(false),120); });
 $("#nbTabs").addEventListener("click",e=>{ const t=e.target.closest(".nbTab"); if(!t) return; NBUI.tab=t.dataset.tab; nbRenderList(true); });
