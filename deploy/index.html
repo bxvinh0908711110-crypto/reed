@@ -1673,13 +1673,17 @@ function nbMeasurePh(){
     nbSetPh(ph,ph._f||0);
   });
 }
+/* Đổi A1 ⇄ A2: làm mượt kiểu mũ (hằng số 150ms) y hệt vòng lặp tick() của bài đọc, nên cùng cảm giác “lăn”.
+   Không tắt theo prefers-reduced-motion, vì bước đọc trong bài cũng luôn chạy chuyển động này. */
 function nbFlip(ph){
-  if(ph._raf) cancelAnimationFrame(ph._raf);
-  const from=ph._f||0, to=from>=.5?0:1, t0=performance.now(), D=matchMedia("(prefers-reduced-motion: reduce)").matches?0:520;
-  const step=now=>{
-    const k=D?1:Math.min(1,(now-t0)/D), e=k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2;
-    ph._f=from+(to-from)*e; nbSetPh(ph,ph._f);
-    if(k<1) ph._raf=requestAnimationFrame(step); else { ph._f=to; ph._raf=0; nbSetPh(ph,to); ph.setAttribute("aria-pressed",to>0); }
+  ph._t=(ph._t||0)>=.5?0:1; ph.setAttribute("aria-pressed",ph._t>0);
+  if(ph._raf) return;
+  let last=0;
+  const step=t=>{
+    const dt=Math.min(64,last?t-last:16); last=t;
+    const kf=1-Math.exp(-dt/150), e=ph._t-(ph._f||0);
+    if(Math.abs(e)>.002){ ph._f=(ph._f||0)+e*kf; nbSetPh(ph,ph._f); ph._raf=requestAnimationFrame(step); }
+    else { ph._f=ph._t; nbSetPh(ph,ph._f); ph._raf=0; }
   };
   ph._raf=requestAnimationFrame(step);
 }
