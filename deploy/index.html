@@ -104,6 +104,14 @@ body{margin:0;background:var(--bg);color:var(--ink);
 .toast.on{opacity:1;transform:translate(-50%,0)}
  #main{transition:opacity .17s ease}
 #main.leaving{opacity:0}
+/* Logo → hero: bài mờ + nhoè nhẹ rồi biến mất, hero hiện lên lần lượt (tiêu đề → câu mô tả → nút → ảnh) */
+#main.homeOut{opacity:0;filter:blur(6px);transform:scale(.99);transition:opacity .22s ease,filter .22s ease,transform .26s ease}
+@keyframes heroIn{from{opacity:0;transform:translateY(16px);filter:blur(5px)}to{opacity:1;transform:none;filter:none}}
+@keyframes heroImgIn{from{opacity:0;transform:translateY(26px) scale(.985);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
+.hero.heroRise h1,.hero.heroRise p,.hero.heroRise .heroCta{animation:heroIn .6s cubic-bezier(.2,.8,.2,1) both}
+.hero.heroRise p{animation-delay:.08s}
+.hero.heroRise .heroCta{animation-delay:.16s}
+.hero.heroRise .heroImg{animation:heroImgIn .85s .06s cubic-bezier(.2,.8,.2,1) both}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 #main.entering .label,#main.entering .sents{animation:rise .55s cubic-bezier(.2,.8,.2,1) both}
 #main.entering .art{animation:rise .65s .08s cubic-bezier(.2,.8,.2,1) both}
@@ -1265,11 +1273,16 @@ function goHome(){
   if(document.body.classList.contains("lang-vi")) setLang("en");
   /* Nhảy thẳng về đầu (không cuộn qua từng bước ở giữa — mỗi khung hình đều dựng lại nên giật): nội dung mờ nhanh → nhảy → hiện lại */
   const main=$("#main"), reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
-  stepping=true; setTimeout(()=>{ stepping=false; },600);
+  stepping=true; setTimeout(()=>{ stepping=false; },1000);
   const jump=()=>{ scrollTo(0,0); update(); };
   if(reduce){ jump(); stepping=false; return; }
-  main.classList.add("leaving");
-  setTimeout(()=>{ jump(); requestAnimationFrame(()=>requestAnimationFrame(()=>{ main.classList.remove("leaving"); stepping=false; })); },150);
+  const hero=$(".hero");
+  main.classList.add("homeOut");
+  setTimeout(()=>{
+    hero.classList.add("heroRise"); jump();
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{ main.classList.remove("homeOut"); }));
+    setTimeout(()=>{ hero.classList.remove("heroRise"); stepping=false; },1000);
+  },230);
 }
 $("#brandHome").addEventListener("click",goHome);
 $("#brandHome").addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); goHome(); } });
