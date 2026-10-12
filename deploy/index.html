@@ -1379,9 +1379,11 @@ function goStep(dir){
   if(t===undefined || (dir>0 && t>lockBoundY+1)) return;
   if(document.body.classList.contains("lang-vi")) setLang("en");   /* sang bước khác: trả về tiếng Anh */
   stepping=true; setTimeout(()=>{ stepping=false; },900);   /* an toàn: không bao giờ kẹt khoá nếu rAF bị trình duyệt tạm dừng */
-  const from=y, d=t-from, T=380, t0=performance.now(), root=document.documentElement;
+  const from=y, d=t-from, t0=performance.now(), root=document.documentElement;
+  /* thời gian theo quãng đường (đoạn dài như hero → bài 1 không bị lao nhanh) + easing sine vào-ra: không giật ở khung hình đầu */
+  const T=Math.round(Math.min(780,Math.max(380,280+Math.abs(d)*.55)));
   (function f(now){
-    const k=Math.min(1,(now-t0)/T), e=1-Math.pow(1-k,3);
+    const k=Math.min(1,(now-t0)/T), e=(1-Math.cos(Math.PI*k))/2;
     scrollTo(0,from+d*e);
     if(k<1) requestAnimationFrame(f);
     else { scrollTo(0,t); stepping=false; tipEvt("step"); }
