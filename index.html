@@ -103,7 +103,6 @@ body{margin:0;background:var(--bg);color:var(--ink);
 .nbItem.dragging{transition:none}
 @keyframes nbIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
 .nbItem.noanim{animation:none}
-.nbTop{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .nbKind{font-size:11.5px;font-weight:700;color:#6b665d;background:#f2f2ec;padding:4px 11px;border-radius:999px}
 .nbAct{display:flex;align-items:center;gap:6px}
 .nbLearn{border:0;background:#f2f2ec;color:#b3aea5;width:30px;height:30px;border-radius:999px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;transition:background .25s,color .25s,transform .2s cubic-bezier(.3,1.6,.5,1)}
@@ -134,7 +133,6 @@ body{margin:0;background:var(--bg);color:var(--ink);
 .nbSrcRow{margin-top:10px}
 .nbSrc{border:0;background:none;padding:0;font:inherit;font-size:12.5px;color:var(--accent);font-weight:700;cursor:pointer;text-align:left}
 .nbSrc:hover{text-decoration:underline}
-.nbFoot{display:flex;align-items:center;justify-content:center;margin-top:4px}
 .nbMoreBtn{border:0;background:none;padding:4px 40px;color:#aaa59b;cursor:pointer;display:inline-flex;align-items:center}
 .nbMoreBtn svg{transition:transform .3s cubic-bezier(.2,.8,.2,1)}
 .nbItem.more .nbMoreBtn svg{transform:rotate(180deg)}
@@ -142,6 +140,30 @@ body{margin:0;background:var(--bg);color:var(--ink);
 .nbUndo.show{transform:none;opacity:1;pointer-events:auto}
 .nbUndo button{border:0;background:none;color:var(--leaf);font:inherit;font-weight:800;cursor:pointer;padding:2px 4px}
 @media (prefers-reduced-motion:reduce){.nbGList,.nbChev,.nbItem,.nbMore,.nbFold{transition:none}.nbItem{animation:none}}
+/* thẻ gọn: 1 hàng khi gập */
+.nbItem{padding:12px 10px 12px 14px;border-radius:20px}
+.nbSw,.nbSwBg{border-radius:20px}
+.nbSw{margin-bottom:10px}
+.nbRow{display:flex;align-items:center;gap:6px}
+.nbPhrase{flex:1;min-width:0;margin:0;font-size:clamp(20px,5.6vw,24px)}
+.nbAct{flex:none;display:flex;align-items:center;gap:2px}
+.nbLearn{width:28px;height:28px}
+.nbMoreBtn{padding:4px 4px 4px 6px}
+.nbMoreIn>*:first-child{margin-top:8px}
+.nbMeaning{font-size:14.5px}
+.nbEx{margin-top:8px;font-size:13.5px}
+.nbMeta2{display:flex;align-items:center;gap:10px;margin-top:10px;padding-right:4px}
+.nbMeta2 .nbSrc{flex:1;min-width:0;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nbMeta2 .rm{margin-left:auto}
+.nbKind{font-size:11px;padding:3px 9px}
+.nbGroup{margin:10px 0 14px}
+.nbGHead{padding:9px 14px 9px 9px;border-radius:20px;gap:11px}
+.nbThumb{width:42px;height:42px;border-radius:14px}
+.nbThumb img{border-radius:14px}
+.nbGTitle{font-size:15px}
+.nbGBar{margin-top:5px}
+.nbGroup.open .nbGInner{padding:10px 0 0}
+.nbGInner>.nbSw:last-child{margin-bottom:4px}
 @media (max-width:390px){.nbGHead{gap:11px}}
 .foot .sv{border:1.5px solid var(--grey);background:#fff;color:var(--muted);
   width:28px;height:28px;padding:0;border-radius:999px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex:none;
@@ -1703,20 +1725,20 @@ const nbHL=it=>{   /* tô cụm nâng cấp trong câu ví dụ */
 function nbCardHTML(it,anim,n,grouped){
   const CHECK=`<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 5 5L20 7"/></svg>`;
   const esc=s=>String(s).replace(/"/g,"&quot;");
-  const src=it._pid>=0?`<div class="nbSrcRow"><button class="nbSrc" type="button" data-src="${esc(it.key)}">${grouped?"Đến câu này":it.topic} ›</button></div>`:`<div class="nbSrcRow nbSrc">${it.topic}</div>`;
+  const src=it._pid>=0?`<button class="nbSrc" type="button" data-src="${esc(it.key)}">${grouped?"Đến câu này":it.topic} \u203a</button>`:`<span class="nbSrc">${it.topic}</span>`;
   return `<div class="nbSw"><div class="nbSwBg"><span class="l">${CHECK}Đã thuộc</span><span class="r">Xoá</span></div>
     <article class="nbItem${it.learned?" learned":""}${anim?"":" noanim"}" style="animation-delay:${n*40}ms">
-      <div class="nbTop"><span class="nbKind">${NB_KIND_ONE[it.kind]}</span>
+      <div class="nbRow">
+        <div class="nbPhrase"><span class="nbph" role="button" tabindex="0" aria-pressed="false" aria-label="Chạm để đổi giữa A1 và ${it.level}"><span class="bg"></span><span class="o">${it.base}</span><span class="o">${it.upgraded}</span></span><em class="nbLv" data-up="${it.level}">A1</em></div>
         <span class="nbAct"><button class="nbLearn" type="button" data-learn="${esc(it.key)}" aria-pressed="${!!it.learned}" aria-label="Đánh dấu đã thuộc" title="Đã thuộc">${CHECK}</button>
-        <button class="rm" data-rm="${esc(it.key)}" aria-label="Xoá" title="Xoá">✕</button></span></div>
-      <div class="nbPhrase"><span class="nbph" role="button" tabindex="0" aria-pressed="false" aria-label="Chạm để đổi giữa A1 và ${it.level}"><span class="bg"></span><span class="o">${it.base}</span><span class="o">${it.upgraded}</span></span><em class="nbLv" data-up="${it.level}">A1</em></div>
+        <button class="nbMoreBtn" type="button" aria-expanded="false" aria-label="Nghĩa và ví dụ">${CHEVRON}</button></span>
+      </div>
       <div class="nbMore"><div class="nbMoreIn">
         ${it.vi?`<div class="nbMeaning">${it.vi}</div>`:""}
         <div class="nbMeaningEn">${it.meaning}</div>
-        <div class="nbEx">“${nbHL(it)}”</div>
-        ${src}
+        <div class="nbEx">\u201c${nbHL(it)}\u201d</div>
+        <div class="nbMeta2"><span class="nbKind">${NB_KIND_ONE[it.kind]}</span>${src}<button class="rm" data-rm="${esc(it.key)}" aria-label="Xoá" title="Xoá">\u2715</button></div>
       </div></div>
-      <div class="nbFoot"><button class="nbMoreBtn" type="button" aria-expanded="false" aria-label="Nghĩa và ví dụ">${CHEVRON}</button></div>
     </article></div>`;
 }
 

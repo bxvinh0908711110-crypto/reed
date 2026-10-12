@@ -15,7 +15,7 @@ for(const [name,opts] of [['13',devices['iPhone 13']],['SE',devices['iPhone SE']
   await p.evaluate(()=>document.querySelectorAll('#nbBody .nbph')[1].click()); await p.waitForTimeout(800);
   console.log('  chạm cụm thứ 2 →',await p.evaluate(()=>{const ph=document.querySelectorAll('#nbBody .nbph')[1];return {f:ph._f,lv:ph.closest('.nbItem').querySelector('.nbLv').textContent,color:getComputedStyle(ph).color}}));
   const h0=await p.evaluate(()=>document.querySelectorAll('#nbBody .nbItem')[0].offsetHeight);
-  await p.evaluate(()=>document.querySelectorAll('#nbBody .nbItem')[0].querySelector('.nbFoot').click()); await p.waitForTimeout(600);
+  await p.evaluate(()=>document.querySelectorAll('#nbBody .nbItem')[0].querySelector('.nbMoreBtn').click()); await p.waitForTimeout(600);
   console.log('  chạm thẻ → mở nghĩa: cao',h0,'→',await p.evaluate(()=>document.querySelectorAll('#nbBody .nbItem')[0].offsetHeight));
   await p.screenshot({path:`tools/pw/shots/nb4_${name}_b.png`});
   // cụm dài có vừa thẻ không
