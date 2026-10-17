@@ -51,3 +51,15 @@ Tôi đang làm **Reed**, web app học tiếng Anh một file HTML (`E:\Your En
 - Không đoán kết quả: chạy Playwright và xem ảnh chụp trước khi báo xong. Trung thực những gì chưa kiểm tra (iPhone thật, micro thật).
 - Những việc cần người dùng tự làm (đăng nhập, mật khẩu, khoá bí mật, tải lên Netlify, tạo Google OAuth) thì hướng dẫn, không làm thay.
 - Mỗi thay đổi: sync 3 nơi + commit + báo ngắn gọn.
+
+### 7. Cập nhật sau phiên bàn giao (10–18/10/2026)
+- **Hosting:** đã chuyển sang Cloudflare (Workers static assets). Cấu hình ở `wrangler.jsonc` (thư mục `deploy/`), tự đăng khi `git push` lên `main` của repo `tothanhhuy1207-debug/reed` (private). Địa chỉ: https://reed.tothanhhuy1207.workers.dev. Netlify cũ còn giữ tới khi ổn định. Kiểm tra nhanh site thật: `node tools/pw/live.mjs`.
+- **Đồng bộ file:** `node tools/sync.mjs` chép `index.html` + file PWA (manifest, sw.js, _headers, icons, fonts) từ gốc sang `deploy/` và `netlify-upload/`. Quy tắc 3 nơi vẫn giữ.
+- **PWA:** manifest, icon, `sw.js` (cache khung app, mp3 lưu theo lần nghe + hỗ trợ Range; app đã cài tự tải sẵn âm thanh), phông Inter tự lưu, nút cài app, thanh "Có bản mới". Khi đổi ảnh/phông/icon: tăng `VERSION` trong `sw.js`; đổi âm thanh cùng tên file: tăng `AUDIO_CACHE`.
+- **Nút EN/VI** (trong player, bên trái mic): chữ Việt thay chữ Anh, cùng cỡ và cùng điểm bắt đầu, cụm học được tô theo dạng `{n:chữ}` trong `VI` (dữ liệu bản dịch nằm trong code, chưa lên Supabase). Về EN khi qua bước.
+- **Sổ tay:** thiết kế lại (gộp theo bài, tìm kiếm, tab Words/Phrasal Verbs/Collocations/Idioms, vuốt phải = đã thuộc / trái = xoá có hoàn tác, chạm cụm đổi A1⇄A2).
+- **Quyết định mới (spec v5), người dùng đã chọn:**
+  - **Start Reading mở màn hình danh sách bài** (thẻ có ảnh, số bài, mức, "1 min"; ✓ cho bài đã đọc, ổ khoá cho bài chưa mở). Vuốt/lăn vẫn đi thẳng vào bài 1. Bài đã đọc lưu ở `localStorage reed_read_v1` (ghi khi cuộn tới trang tổng kết).
+  - **Điện thoại (hover:none hoặc rộng ≤ 820px): đổi chữ A1→A2 tức thì**, không blur, không làm mượt. Máy tính giữ hiệu ứng lăn.
+- **Chưa làm (spec v5):** tab "Bài đã đọc" trong sổ tay + lọc kết hợp, màn hình hoàn thành bài + SFX, nhắc nghỉ 30 phút, nút Dịch tuỳ ý, nút Đăng nhập, màu 4 cấp A1–B2.
+- Việc cloud (admin, kiểm thử+CI) chưa chạy được vì chưa cấp quyền GitHub cho tài khoản Claude; làm trực tiếp trên máy.

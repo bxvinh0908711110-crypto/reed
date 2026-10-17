@@ -44,7 +44,7 @@ const newCtx=async(opts={},init)=>{ const c=await b.newContext(opts); await c.ad
   await p.reload(); await p.waitForTimeout(4500);
   const offPage=await p.evaluate(()=>({h1:!!document.querySelector('.hero h1'),topics:document.querySelectorAll('#topics button').length,heroImg:document.querySelector('.heroImg').naturalWidth,lessons:typeof passages!=='undefined'&&passages.length}));
   ok(offPage.h1&&offPage.topics>=7&&offPage.heroImg>0&&offPage.lessons>0,'offline: tải lại trang vẫn chạy '+JSON.stringify(offPage));
-  await p.evaluate(()=>{ document.querySelector('#startBtn').click(); }); await p.waitForTimeout(1500);
+  await p.evaluate(()=>{ document.querySelector('#startBtn').click(); }); await p.waitForTimeout(900); await p.evaluate(()=>{ document.querySelector('.lscCard').click(); }); await p.waitForTimeout(1600);   // Start Reading mở danh sách bài, chọn bài 1
   ok(await p.evaluate(()=>scrollY)>300,'offline: Start Reading vào được bài (scrollY='+await p.evaluate(()=>Math.round(scrollY))+')');
   await ctx.setOffline(false);
   ok(errs.length===0,'không lỗi JS/console'+(errs.length?': '+errs.slice(0,3).join(' | '):''));
@@ -100,7 +100,7 @@ const newCtx=async(opts={},init)=>{ const c=await b.newContext(opts); await c.ad
   ok(await p.evaluate(()=>window.__prompted===1),'bấm nút gọi hộp thoại cài app');
   // ẩn khi vào bài
   await p.evaluate(()=>{ const e=new Event('beforeinstallprompt'); e.prompt=()=>{}; e.userChoice=Promise.resolve({}); window.dispatchEvent(e); }); await p.waitForTimeout(300);
-  await p.evaluate(()=>document.querySelector('#startBtn').click()); await p.waitForTimeout(1500);
+  await p.evaluate(()=>document.querySelector('#startBtn').click()); await p.waitForTimeout(900); await p.evaluate(()=>document.querySelector('.lscCard').click()); await p.waitForTimeout(1600);
   ok(await p.evaluate(()=>{ const x=document.querySelector('.pwaPill'); return !x||getComputedStyle(x).display==='none'; }),'nút cài ẩn khi đã vào bài');
   await ctx.close();
   // đã cài (standalone): không hiện nút, tự tải sẵn âm thanh
