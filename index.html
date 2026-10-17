@@ -1174,8 +1174,10 @@ if(noBlurMQ.addEventListener) noBlurMQ.addEventListener("change",e=>{ noBlur=e.m
 function setPhrase(ph,f){
   const w=ph._w, n=w.length, lo=Math.min(Math.floor(f),n-1), hi=Math.min(lo+1,n-1), fr=f-lo;
   const X=w[lo]+(w[hi]-w[lo])*fr;
-  ph.style.width=`calc(${Math.max(X,ph._floor||0)}px + .28em)`;                 /* chỗ chiếm trong dòng */
-  ph.querySelector(".bg").style.width=`calc(${X}px + .28em)`;                     /* nền bám sát chữ hiện tại */
+  const W=ph._fixW!=null?ph._fixW:X;   /* sổ tay: cụm quá dài giữ rộng cố định, xuống dòng, chỉ đổi chiều cao (ph._h) */
+  ph.style.width=`calc(${Math.max(W,ph._floor||0)}px + .28em)`;                 /* chỗ chiếm trong dòng */
+  ph.querySelector(".bg").style.width=`calc(${W}px + .28em)`;                     /* nền bám sát chữ hiện tại */
+  if(ph._h) ph.style.height=(ph._h[0]+(ph._h[1]-ph._h[0])*f).toFixed(1)+"px";
   ph.style.setProperty("--u", n>1 ? f/(n-1) : 1);
   ph.querySelectorAll(".o").forEach((o,j)=>{
     const d=f-j, ad=Math.abs(d);
@@ -1207,14 +1209,6 @@ function refreshLocks(){
 }
 function unlockUpTo(n){
   if(n>unlockedCount && n<=passages.length){ unlockedCount=n; saveUnlocked(); refreshLocks(); }
-}
-function fadeJump(getY){
-  let ov=$("#fadeOv");
-  if(!ov){ ov=document.createElement("div"); ov.id="fadeOv";
-    ov.style.cssText="position:fixed;inset:0;z-index:30;pointer-events:none;opacity:0;transition:opacity .14s ease;background:var(--bg)";
-    document.body.appendChild(ov); }
-  ov.style.opacity=1;
-  setTimeout(()=>{ scrollTo(0,getY()); requestAnimationFrame(()=>requestAnimationFrame(()=>{ ov.style.opacity=0; })); },150);
 }
 /* nhảy tức thì + fade nhẹ, không cuộn qua từng bước của các bài ở giữa. compute() chạy lúc màn hình đã mờ, trả về vị trí cuộn (hoặc null) */
 function fadeJump(compute){
@@ -1699,17 +1693,9 @@ function nbRenderList(anim){
 function nbAfterRender(){ nbMeasurePh(); nbPeek(); if(document.fonts&&document.fonts.status!=="loaded") document.fonts.ready.then(()=>{ if(!$("#notebook").hidden) nbMeasurePh(); }); }
 
 /* Thẻ cụm từ: cụm hiển thị trong dải lime, chạm để chuyển A1 ⇄ A2 bằng đúng kiểu con lăn của bước đọc (chữ trượt lên + nhoè nhẹ, dải nền co giãn, màu xanh → đỏ hồng). */
+/* thẻ sổ tay dùng chung setPhrase() của bài đọc; thêm nhãn mức A1/A2 bên cạnh */
 function nbSetPh(ph,f){
-  const w=ph._w||[0,0], X=ph._fixW!=null?ph._fixW:w[0]+(w[1]-w[0])*f;   /* cụm quá dài: giữ chiều rộng cố định, xuống dòng, chỉ đổi chiều cao */
-  ph.style.width=`calc(${X}px + .28em)`; ph.querySelector(".bg").style.width=`calc(${X}px + .28em)`;
-  if(ph._h) ph.style.height=(ph._h[0]+(ph._h[1]-ph._h[0])*f).toFixed(1)+"px";
-  ph.style.setProperty("--u",f.toFixed(3));
-  ph.querySelectorAll(".o").forEach((o,j)=>{
-    const d=f-j, ad=Math.abs(d);
-    o.style.opacity=clamp(1.15-ad*1.7);
-    o.style.transform=`translateY(${-d*.42}em)`;
-    o.style.filter=(noBlur||ad<.01)?"none":`blur(${(ad*5).toFixed(2)}px)`;
-  });
+  setPhrase(ph,f);
   const card=ph.closest(".nbItem"), lv=card&&card.querySelector(".nbLv");
   if(lv){ lv.style.setProperty("--u",f.toFixed(3)); lv.textContent=f>=.5?lv.dataset.up:"A1"; }
 }
