@@ -647,6 +647,16 @@ body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webki
   #reed-splash.play .rbody,#reed-splash.play .rs,#reed-splash.play .wm path,#reed-splash.play .tag{
     animation:rsFade 300ms forwards!important;transform:none;clip-path:none}
 }
+/* ---- Điện thoại / màn nhỏ: không dùng blur trong chuyển cảnh (nặng với GPU di động) ---- */
+@keyframes heroInSoft{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes heroImgInSoft{from{opacity:0;transform:translateY(26px) scale(.985)}to{opacity:1;transform:none}}
+@media (hover:none),(max-width:820px){
+  #main.homeOut{filter:none}
+  body.lang-sw .sents{filter:none}
+  .rcw[data-m=up] .base,.rcw[data-m=base] .up{filter:none}
+  .hero.heroRise h1,.hero.heroRise p,.hero.heroRise .heroCta{animation-name:heroInSoft}
+  .hero.heroRise .heroImg{animation-name:heroImgInSoft}
+}
 /* ---- PWA: thanh thông báo + nút cài app ---- */
 .pwaBar{position:fixed;z-index:90;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);transform:translate(-50%,16px);width:max-content;max-width:calc(100vw - 32px);display:flex;align-items:center;gap:14px;padding:12px 18px;border-radius:999px;background:var(--bar);color:#fff;font-size:13.5px;font-weight:600;box-shadow:0 12px 32px rgba(0,0,0,.28);opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease}
 .pwaBar.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
@@ -1157,6 +1167,10 @@ function layout(){
 }
 
 /* ---------- Cập nhật khi cuộn ---------- */
+/* Điện thoại / màn nhỏ: bỏ hiệu ứng nhoè (blur) khi chữ trượt, vì nặng với GPU di động; vẫn giữ trượt + mờ dần. */
+const noBlurMQ=matchMedia("(hover: none), (max-width: 820px)");
+let noBlur=noBlurMQ.matches;
+if(noBlurMQ.addEventListener) noBlurMQ.addEventListener("change",e=>{ noBlur=e.matches; });
 function setPhrase(ph,f){
   const w=ph._w, n=w.length, lo=Math.min(Math.floor(f),n-1), hi=Math.min(lo+1,n-1), fr=f-lo;
   const X=w[lo]+(w[hi]-w[lo])*fr;
@@ -1167,7 +1181,7 @@ function setPhrase(ph,f){
     const d=f-j, ad=Math.abs(d);
     o.style.opacity=clamp(1.15-ad*1.7);                       /* từ cũ tan trước, từ mới hiện sau -> không chồng chữ */
     o.style.transform=`translateY(${-d*.42}em)`;             /* trượt lên như con lăn */
-    o.style.filter=ad<.01?"none":`blur(${(ad*5).toFixed(2)}px)`;
+    o.style.filter=(noBlur||ad<.01)?"none":`blur(${(ad*5).toFixed(2)}px)`;
   });
 }
 let active={pi:0,si:0}, live=[], raf=0, lastT=0;
@@ -1694,7 +1708,7 @@ function nbSetPh(ph,f){
     const d=f-j, ad=Math.abs(d);
     o.style.opacity=clamp(1.15-ad*1.7);
     o.style.transform=`translateY(${-d*.42}em)`;
-    o.style.filter=ad<.01?"none":`blur(${(ad*5).toFixed(2)}px)`;
+    o.style.filter=(noBlur||ad<.01)?"none":`blur(${(ad*5).toFixed(2)}px)`;
   });
   const card=ph.closest(".nbItem"), lv=card&&card.querySelector(".nbLv");
   if(lv){ lv.style.setProperty("--u",f.toFixed(3)); lv.textContent=f>=.5?lv.dataset.up:"A1"; }
