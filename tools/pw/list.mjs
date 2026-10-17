@@ -14,8 +14,8 @@ for(const [name,opts] of [['mobile',devices['iPhone 13']],['desktop',{viewport:{
   ok(await p.evaluate(()=>scrollY)<5,'đang ở màn hình đầu (hero)');
   // 1. Start Reading mở danh sách
   await p.evaluate(()=>document.querySelector('#startBtn').click()); await p.waitForTimeout(900);
-  const s1=await p.evaluate(()=>({open:document.body.classList.contains('listOpen'),title:lscTitle.textContent,count:lscSub.textContent,cards:document.querySelectorAll('.lscCard').length,locked:document.querySelectorAll('.lscCard.locked').length,y:scrollY,vis:getComputedStyle(lessonScreen).opacity}));
-  ok(s1.open&&s1.cards===2&&s1.title==='School'&&s1.y<5&&+s1.vis>.9,'Start Reading mở danh sách bài: '+JSON.stringify(s1));
+  const s1=await p.evaluate(()=>({open:document.body.classList.contains('listOpen'),title:curTopic,cards:document.querySelectorAll('.lscCard').length,locked:document.querySelectorAll('.lscCard.locked').length,y:scrollY,vis:getComputedStyle(lessonScreen).opacity}));
+  ok(s1.open&&s1.cards===2&&s1.title==='school'&&s1.y<5&&+s1.vis>.9,'Start Reading mở danh sách bài: '+JSON.stringify(s1));
   await p.screenshot({path:`tools/pw/shots/list_${name}.png`});
   // 2. vuốt/lăn khi danh sách mở không đi bước
   await p.evaluate(()=>goStep(1)); await p.mouse.wheel(0,400); await p.waitForTimeout(700);
@@ -25,11 +25,15 @@ for(const [name,opts] of [['mobile',devices['iPhone 13']],['desktop',{viewport:{
   ok(await p.evaluate(()=>document.body.classList.contains('listOpen')&&document.querySelectorAll('.lscCard')[1].classList.contains('shake')),'bài chưa mở: lắc nhẹ, không vào');
   // 4. đổi chủ đề khi danh sách mở
   await p.evaluate(()=>document.querySelector('#topics button[data-k="family"]').click()); await p.waitForTimeout(1200);
-  const s4=await p.evaluate(()=>({title:lscTitle.textContent,cards:document.querySelectorAll('.lscCard').length,open:document.body.classList.contains('listOpen'),y:Math.round(scrollY)}));
-  ok(s4.title==='Family'&&s4.open&&s4.y<5,'đổi chủ đề: danh sách làm mới, trang phía sau giữ nguyên '+JSON.stringify(s4));
+  const s4=await p.evaluate(()=>({title:curTopic,cards:document.querySelectorAll('.lscCard').length,open:document.body.classList.contains('listOpen'),y:Math.round(scrollY)}));
+  ok(s4.title==='family'&&s4.open&&s4.y<5,'đổi chủ đề: danh sách làm mới, trang phía sau giữ nguyên '+JSON.stringify(s4));
   // 5. Esc đóng
   await p.keyboard.press('Escape'); await p.waitForTimeout(700);
   ok(await p.evaluate(()=>!document.body.classList.contains('listOpen')&&lessonScreen.hidden),'Esc đóng danh sách');
+  // 5b. bấm logo REED cũng đóng danh sách (không còn nút ✕)
+  await p.evaluate(()=>document.querySelector('#startBtn').click()); await p.waitForTimeout(700);
+  await p.evaluate(()=>document.querySelector('#brandHome').click()); await p.waitForTimeout(700);
+  ok(await p.evaluate(()=>!document.body.classList.contains('listOpen')&&lessonScreen.hidden&&!document.querySelector('#lscClose')),'bấm logo đóng danh sách, không còn nút ✕');
   // 6. chọn bài 1 từ danh sách
   await p.evaluate(()=>document.querySelector('#startBtn').click()); await p.waitForTimeout(800);
   await p.evaluate(()=>document.querySelectorAll('.lscCard')[0].click()); await p.waitForTimeout(1500);
@@ -41,7 +45,7 @@ for(const [name,opts] of [['mobile',devices['iPhone 13']],['desktop',{viewport:{
   ok(rd.length>=1,'tới trang tổng kết: ghi nhận bài đã đọc '+JSON.stringify(rd));
   await p.evaluate(()=>document.querySelector('#brandHome').click()); await p.waitForTimeout(1500);
   await p.evaluate(()=>document.querySelector('#startBtn').click()); await p.waitForTimeout(800);
-  ok(await p.evaluate(()=>document.querySelectorAll('.lscCard.read').length>=1&&/1 read/.test(lscSub.textContent)),'danh sách hiện dấu ✓ cho bài đã đọc ('+await p.evaluate(()=>lscSub.textContent)+')');
+  ok(await p.evaluate(()=>document.querySelectorAll('.lscCard.read').length>=1&&document.querySelectorAll('.lscCard.read').length===1),'danh sách hiện dấu ✓ và vạch đã đọc cho bài đã đọc');
   await p.screenshot({path:`tools/pw/shots/list_${name}_read.png`});
   // chip lọc Unread / Read (giống chip Mới nhất/Phổ biến của YouTube)
   await p.evaluate(()=>document.querySelector('#lscChips [data-f="read"]').click()); await p.waitForTimeout(300);
