@@ -1,0 +1,18 @@
+{
+  "name": "Reed: Read English Every Day",
+  "short_name": "Reed",
+  "description": "Đọc tiếng Anh mỗi ngày: câu ngắn, cụm từ nâng cấp từ A1 lên A2, nghe giọng đọc và ghi âm lại.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "lang": "en",
+  "categories": ["education"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
