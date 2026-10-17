@@ -1215,6 +1215,7 @@ function layout(){
 /* Điện thoại / màn nhỏ: bỏ hiệu ứng nhoè (blur) khi chữ trượt, vì nặng với GPU di động; vẫn giữ trượt + mờ dần. */
 const noBlurMQ=matchMedia("(hover: none), (max-width: 820px)");
 let noBlur=noBlurMQ.matches;
+const PH_TAU=()=>noBlur?40:150;   /* hằng số làm mượt khi đổi A1⇄A2 (ms): điện thoại 40ms ≈ xong trong 0,15s, máy tính 150ms */
 if(noBlurMQ.addEventListener) noBlurMQ.addEventListener("change",e=>{ noBlur=e.matches; });
 function setPhrase(ph,f){
   const w=ph._w, n=w.length, lo=Math.min(Math.floor(f),n-1), hi=Math.min(lo+1,n-1), fr=f-lo;
@@ -1601,7 +1602,7 @@ function update(){
 /* Vòng lặp hiệu ứng: từ trượt/mờ, câu tan trước rồi câu mới hiện sau */
 function tick(t){
   const dt=Math.min(64,lastT?t-lastT:16); lastT=t;
-  const kf=noBlur?1:1-Math.exp(-dt/150), ko=1-Math.exp(-dt/90);   /* điện thoại: đổi chữ tức thì */
+  const kf=1-Math.exp(-dt/PH_TAU()), ko=1-Math.exp(-dt/90);   /* điện thoại: đổi chữ rất nhanh (~0,15s), không blur */
   let busy=false;
   live.forEach(pp=>{
     pp.sents.forEach(s=>{
@@ -1789,7 +1790,7 @@ function nbFlip(ph){
   let last=0;
   const step=t=>{
     const dt=Math.min(64,last?t-last:16); last=t;
-    const kf=noBlur?1:1-Math.exp(-dt/150), e=ph._t-(ph._f||0);
+    const kf=1-Math.exp(-dt/PH_TAU()), e=ph._t-(ph._f||0);
     if(Math.abs(e)>.002){ ph._f=(ph._f||0)+e*kf; nbSetPh(ph,ph._f); ph._raf=requestAnimationFrame(step); }
     else { ph._f=ph._t; nbSetPh(ph,ph._f); ph._raf=0; }
   };

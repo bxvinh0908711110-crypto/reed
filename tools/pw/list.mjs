@@ -57,9 +57,9 @@ for(const [name,opts] of [['mobile',devices['iPhone 13']],['desktop',{viewport:{
   await p.keyboard.press('Escape'); await p.waitForTimeout(500);
   // 8. đổi chữ A1→A2: tức thì trên điện thoại, mượt trên máy tính
   await p.evaluate(()=>goStep(1)); await p.waitForTimeout(1300); await p.evaluate(()=>goStep(1)); await p.waitForTimeout(900);
-  const sw=await p.evaluate(()=>new Promise(res=>{ const act=[...document.querySelectorAll('.sent')].find(s=>+s.style.opacity>.5&&s.querySelector('.ph')); if(!act) return res(null); const ph=act.querySelector('.ph'); const before=ph._f||0; ph.click(); requestAnimationFrame(()=>requestAnimationFrame(()=>requestAnimationFrame(()=>res({before,after3frames:+(ph._f||0).toFixed(2),target:ph._t})))); }));
-  const mobile=name==='mobile';
-  ok(sw&&(mobile?sw.after3frames===sw.target:sw.after3frames<sw.target&&sw.after3frames>sw.before),'đổi chữ '+(mobile?'tức thì':'mượt (đang chạy)')+' sau 3 khung hình: '+JSON.stringify(sw));
+  const sw=await p.evaluate(()=>new Promise(res=>{ const act=[...document.querySelectorAll('.sent')].find(s=>+s.style.opacity>.5&&s.querySelector('.ph')); if(!act) return res(null); const ph=act.querySelector('.ph'); const before=ph._f||0, t0=performance.now(); ph.click(); const out={before,target:ph._t}; requestAnimationFrame(()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{ out.f3=+(ph._f||0).toFixed(2); (function w(){ const dt=performance.now()-t0; if(dt>=300&&!out.f300) out.f300=+(ph._f||0).toFixed(2); if(dt<1200) requestAnimationFrame(w); else { out.f1200=+(ph._f||0).toFixed(2); res(out); } })(); }))); }));
+  const mobile=name==='mobile', fin=sw&&Math.abs((sw.f1200)-sw.target)<.02;
+  ok(sw&&fin&&(mobile?(sw.f3>sw.before&&sw.f3<sw.target&&Math.abs(sw.f300-sw.target)<.03):(sw.f300<sw.target-.05)),'đổi chữ '+(mobile?'rất nhanh (~0,15s, xong trước 0,3s)':'mượt (còn đang chạy ở 0,3s)')+': '+JSON.stringify(sw));
   ok(errs.length===0,'không lỗi JS'+(errs.length?': '+errs[0]:''));
   await ctx.close();
 }
