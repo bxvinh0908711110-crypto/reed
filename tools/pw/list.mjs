@@ -14,7 +14,7 @@ for(const [name,opts] of [['mobile',devices['iPhone 13']],['desktop',{viewport:{
   ok(await p.evaluate(()=>scrollY)<5,'đang ở màn hình đầu (hero)');
   // 1. Start Reading mở danh sách
   await p.evaluate(()=>document.querySelector('#startBtn').click()); await p.waitForTimeout(900);
-  const s1=await p.evaluate(()=>({open:document.body.classList.contains('listOpen'),title:lscTitle.textContent,count:lscCount.textContent,cards:document.querySelectorAll('.lscCard').length,locked:document.querySelectorAll('.lscCard.locked').length,y:scrollY,vis:getComputedStyle(lessonScreen).opacity}));
+  const s1=await p.evaluate(()=>({open:document.body.classList.contains('listOpen'),title:lscTitle.textContent,count:lscSub.textContent,cards:document.querySelectorAll('.lscCard').length,locked:document.querySelectorAll('.lscCard.locked').length,y:scrollY,vis:getComputedStyle(lessonScreen).opacity}));
   ok(s1.open&&s1.cards===2&&s1.title==='School'&&s1.y<5&&+s1.vis>.9,'Start Reading mở danh sách bài: '+JSON.stringify(s1));
   await p.screenshot({path:`tools/pw/shots/list_${name}.png`});
   // 2. vuốt/lăn khi danh sách mở không đi bước
@@ -41,8 +41,15 @@ for(const [name,opts] of [['mobile',devices['iPhone 13']],['desktop',{viewport:{
   ok(rd.length>=1,'tới trang tổng kết: ghi nhận bài đã đọc '+JSON.stringify(rd));
   await p.evaluate(()=>document.querySelector('#brandHome').click()); await p.waitForTimeout(1500);
   await p.evaluate(()=>document.querySelector('#startBtn').click()); await p.waitForTimeout(800);
-  ok(await p.evaluate(()=>document.querySelectorAll('.lscCard.read').length>=1&&lscCount.textContent.startsWith('1/')),'danh sách hiện dấu ✓ cho bài đã đọc ('+await p.evaluate(()=>lscCount.textContent)+')');
+  ok(await p.evaluate(()=>document.querySelectorAll('.lscCard.read').length>=1&&/1 read/.test(lscSub.textContent)),'danh sách hiện dấu ✓ cho bài đã đọc ('+await p.evaluate(()=>lscSub.textContent)+')');
   await p.screenshot({path:`tools/pw/shots/list_${name}_read.png`});
+  // chip lọc Unread / Read (giống chip Mới nhất/Phổ biến của YouTube)
+  await p.evaluate(()=>document.querySelector('#lscChips [data-f="read"]').click()); await p.waitForTimeout(300);
+  const fr=await p.evaluate(()=>({cards:document.querySelectorAll('.lscCard').length,all:[...document.querySelectorAll('.lscCard')].every(c=>c.classList.contains('read')),pressed:document.querySelector('#lscChips [data-f="read"]').getAttribute('aria-pressed')}));
+  await p.evaluate(()=>document.querySelector('#lscChips [data-f="unread"]').click()); await p.waitForTimeout(300);
+  const fu=await p.evaluate(()=>({cards:document.querySelectorAll('.lscCard').length,empty:!!document.querySelector('.lscEmpty')}));
+  await p.evaluate(()=>document.querySelector('#lscChips [data-f="all"]').click()); await p.waitForTimeout(300);
+  ok(fr.cards>=1&&fr.all&&fr.pressed==='true'&&fu.cards===0&&fu.empty&&await p.evaluate(()=>document.querySelectorAll('.lscCard').length)>=1,'chip lọc: Read '+JSON.stringify(fr)+', Unread '+JSON.stringify(fu)+', All trở lại');
   await p.keyboard.press('Escape'); await p.waitForTimeout(500);
   // 8. đổi chữ A1→A2: tức thì trên điện thoại, mượt trên máy tính
   await p.evaluate(()=>goStep(1)); await p.waitForTimeout(1300); await p.evaluate(()=>goStep(1)); await p.waitForTimeout(900);
