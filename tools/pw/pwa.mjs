@@ -5,9 +5,10 @@ const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript','.webmani
 let swSuffix='';   // đổi để mô phỏng bản mới của sw.js
 const srv=http.createServer((q,r)=>{
   const u=decodeURIComponent(q.url.split('?')[0]).replace(/^\//,'')||'index.html';
+  if(q.url.split('?')[0]==='/index.html'){ r.statusCode=307; r.setHeader('Location','/'); r.end(); return; }   // giống Cloudflare: /index.html chuyển về /
   try{
     let buf=fs.readFileSync(ROOT+u); const ext=path.extname(u);
-    if(u==='sw.js'&&swSuffix) buf=Buffer.from(buf.toString('utf8').replace('"reed-v1"','"reed-v1'+swSuffix+'"'));
+    if(u==='sw.js'&&swSuffix) buf=Buffer.from(buf.toString('utf8').replace('"reed-v2"','"reed-v2'+swSuffix+'"'));
     r.setHeader('Content-Type',MIME[ext]||'application/octet-stream');
     if(u==='sw.js'||u==='index.html') r.setHeader('Cache-Control','no-cache');
     r.setHeader('Accept-Ranges','bytes'); r.end(buf);
@@ -50,6 +51,18 @@ const newCtx=async(opts={},init)=>{ const c=await b.newContext(opts); await c.ad
   await ctx.close();
 }
 
+// ---------- 1b. Ngoại tuyến ngay sau lần cài đầu (chưa có lần điều hướng nào qua service worker) ----------
+{
+  const ctx=await newCtx({viewport:{width:1280,height:720}}); const p=await ctx.newPage();
+  await p.goto(base+'index.html'); await p.waitForTimeout(4500); await p.evaluate(()=>navigator.serviceWorker.ready); await p.waitForTimeout(800);
+  await ctx.setOffline(true);
+  const resp=await p.goto(base,{timeout:15000}).catch(e=>({err:String(e).slice(0,80)}));
+  await p.waitForTimeout(3500);
+  const okPage=await p.evaluate(()=>!!document.querySelector('.hero h1')).catch(()=>false);
+  ok(okPage,'offline ngay sau lần cài đầu: trang chính tải được từ bản đã lưu (không bị lỗi "redirected")');
+  await ctx.setOffline(false); await ctx.close();
+}
+
 // ---------- 2. Tải sẵn âm thanh qua service worker ----------
 {
   const ctx=await newCtx({viewport:{width:1280,height:720}}); const p=await ctx.newPage();
@@ -70,7 +83,7 @@ const newCtx=async(opts={},init)=>{ const c=await b.newContext(opts); await c.ad
   const nav=p.waitForNavigation({timeout:8000}).catch(()=>null);
   await p.evaluate(()=>document.querySelector('.pwaBar button').click()); await nav; await p.waitForTimeout(3000);
   const keys=await p.evaluate(()=>caches.keys());
-  ok(keys.includes('reed-v1-test2-shell')&&!keys.includes('reed-v1-shell'),'sau cập nhật: cache mới thay cache cũ ('+keys.join(', ')+')');
+  ok(keys.includes('reed-v2-test2-shell')&&!keys.includes('reed-v2-shell'),'sau cập nhật: cache mới thay cache cũ ('+keys.join(', ')+')');
   swSuffix=''; await ctx.close();
 }
 

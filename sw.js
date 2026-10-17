@@ -3,11 +3,11 @@
    - Âm thanh mp3: lưu lần nghe đầu tiên và có thể tải sẵn hàng loạt (app gửi danh sách qua postMessage). Hỗ trợ yêu cầu Range (Safari).
    - Dữ liệu bài từ Supabase (khác nguồn) không đi qua đây: app tự có cơ chế dự phòng (localStorage + dữ liệu nhúng).
    Khi đổi index.html/ảnh/phông/icon: tăng VERSION. Khi tạo lại âm thanh cho cùng một tên file: tăng AUDIO_CACHE. */
-const VERSION = "reed-v1";
+const VERSION = "reed-v2";
 const SHELL = VERSION + "-shell";
 const AUDIO_CACHE = "reed-audio-v1";
 const SHELL_FILES = [
-  "index.html", "manifest.webmanifest", "reed-icon.svg",
+  "./", "manifest.webmanifest", "reed-icon.svg",
   "icons/icon-192.png", "icons/icon-512.png", "icons/icon-maskable-512.png", "icons/apple-touch-icon.png",
   "fonts/inter-latin.woff2", "fonts/inter-vietnamese.woff2", "fonts/inter-latin-ext.woff2",
   "img/hero.webp", "img/hero-sm.webp", "img/family.webp", "img/friends.webp", "img/school.webp", "img/work.webp",
@@ -17,8 +17,11 @@ const SHELL_FILES = [
 self.addEventListener("install", e => {
   e.waitUntil((async () => {
     const cache = await caches.open(SHELL);
-    await cache.add("index.html");   /* bắt buộc: không có thì cài thất bại */
-    await Promise.allSettled(SHELL_FILES.filter(f => f !== "index.html").map(f => cache.add(f)));   /* các file phụ thiếu cũng không làm hỏng việc cài */
+    /* trang chính lấy từ "./" (một số máy chủ, như Cloudflare, chuyển /index.html → /): lưu bản không bị đánh dấu "redirected" vì trình duyệt từ chối trả bản đó cho yêu cầu điều hướng */
+    const home = await fetch("./", { cache: "reload" });
+    if (!home.ok) throw new Error("không tải được trang chính");
+    await cache.put("index.html", await clean(home));   /* bắt buộc: không có thì cài thất bại */
+    await Promise.allSettled(SHELL_FILES.filter(f => f !== "./").map(f => cache.add(f)));   /* các file phụ thiếu cũng không làm hỏng việc cài */
   })());
 });
 
@@ -30,6 +33,11 @@ self.addEventListener("activate", e => {
   })());
 });
 
+/* tạo bản sao sạch (không còn cờ redirected) của một phản hồi */
+async function clean(r) {
+  if (!r || !r.redirected) return r;
+  return new Response(await r.blob(), { status: r.status, statusText: r.statusText, headers: r.headers });
+}
 const same = req => new URL(req.url).origin === location.origin;
 const withTimeout = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))]);
 
@@ -37,11 +45,11 @@ async function navigate(req) {
   const cache = await caches.open(SHELL);
   try {
     const net = await withTimeout(fetch(req), 4000);
-    if (net && net.ok && net.status === 200) cache.put("index.html", net.clone());
+    if (net && net.ok && net.status === 200 && !net.redirected) cache.put("index.html", net.clone());
     return net;
   } catch (err) {
     const hit = await cache.match("index.html");
-    if (hit) return hit;
+    if (hit) return clean(hit);
     throw err;
   }
 }
