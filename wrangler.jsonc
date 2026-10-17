@@ -1,0 +1,9 @@
+{
+  // Cloudflare: đăng thư mục deploy/ như một site tĩnh (không có mã Worker).
+  // _headers trong deploy/ được dùng để đặt cache cho sw.js, index.html, ảnh, âm thanh.
+  "name": "reed",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./deploy"
+  }
+}
