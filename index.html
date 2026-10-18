@@ -2623,7 +2623,8 @@ lscGrid.addEventListener("click",e=>{
    Mỗi chủ đề là một mục: tên + "See all ›" và vài bài đầu (hàng ảnh 16:9 trên máy tính, danh sách dọc trên điện thoại).
    Chạm tên chủ đề → danh sách bài của chủ đề; chạm một bài → vào thẳng bài đó. */
 const ovsEl=$("#overviewScreen"), ovsBody=$("#ovsBody");
-const TOPIC_THUMB={};   /* ảnh bìa chủ đề: { family:"img/topic-family.webp", … } (chưa có thì hiện ô xám) */
+const TOPIC_THUMB=Object.fromEntries(["family","friends","school","work","lifestyle","health","tech"].map(k=>[k,"img/topic-"+k+".webp"]));   /* ảnh bìa chủ đề 640×360 (chủ đề nào chưa có ảnh thì ô xám) */
+const TOPIC_ALT={family:"A family having breakfast together",friends:"Friends laughing at a cafe table",school:"Children in uniforms walking to school",work:"A young professional smiling at her desk",lifestyle:"A person relaxing at home with tea and a book",health:"A person stretching in a park at sunrise",tech:"A person using a laptop and smartphone"};
 const topicLessons=k=>ALL.filter(p=>p.cat===k&&p.id>0);
 const topicUnlocked=k=>{ try{ const n=+localStorage.getItem("reed_unlocked_"+k); return n>=1?n:1; }catch(e){ return 1; } };
 function syncTabs(){   /* tab "All" sáng khi đang ở trang tổng quan; tab chủ đề sáng khi không ở đó */
@@ -2641,7 +2642,7 @@ function renderOverview(){
     return `<section class="ovSec" data-k="${t.k}">
     <button type="button" class="ovHead" data-k="${t.k}"><span class="ovIcon"><svg viewBox="${t.vb}" fill="currentColor" aria-hidden="true">${t.icon}</svg></span><span class="ovName">${t.label}</span><span class="ovMore">See all ›</span></button>
     <div class="ovRows"><button type="button" class="lscCard ovTopic" data-k="${t.k}" style="--n:${n}" aria-label="${t.label}, ${cnt}">
-      <span class="lscThumb">${im?`<img src="${im}" alt="" loading="lazy" decoding="async">`:'<span class="ovGray"></span>'}</span>
+      <span class="lscThumb">${im?`<img src="${im}" alt="${TOPIC_ALT[t.k]||t.label}" loading="lazy" decoding="async" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'ovGray'}))">`:'<span class="ovGray"></span>'}</span>
       <span class="lscText"><span class="lscTitle">${t.label}</span><span class="lscMeta">${cnt}</span></span>
       <span class="lscSide"></span>
     </button></div>

@@ -8,7 +8,7 @@ const srv=http.createServer((q,r)=>{
   if(q.url.split('?')[0]==='/index.html'){ r.statusCode=307; r.setHeader('Location','/'); r.end(); return; }   // giống Cloudflare: /index.html chuyển về /
   try{
     let buf=fs.readFileSync(ROOT+u); const ext=path.extname(u);
-    if(u==='sw.js'&&swSuffix) buf=Buffer.from(buf.toString('utf8').replace('"reed-v2"','"reed-v2'+swSuffix+'"'));
+    if(u==='sw.js'&&swSuffix) buf=Buffer.from(buf.toString('utf8').replace('"reed-v3"','"reed-v3'+swSuffix+'"'));
     r.setHeader('Content-Type',MIME[ext]||'application/octet-stream');
     if(u==='sw.js'||u==='index.html') r.setHeader('Cache-Control','no-cache');
     r.setHeader('Accept-Ranges','bytes'); r.end(buf);
@@ -83,7 +83,7 @@ const newCtx=async(opts={},init)=>{ const c=await b.newContext(opts); await c.ad
   const nav=p.waitForNavigation({timeout:8000}).catch(()=>null);
   await p.evaluate(()=>document.querySelector('.pwaBar button').click()); await nav; await p.waitForTimeout(3000);
   const keys=await p.evaluate(()=>caches.keys());
-  ok(keys.includes('reed-v2-test2-shell')&&!keys.includes('reed-v2-shell'),'sau cập nhật: cache mới thay cache cũ ('+keys.join(', ')+')');
+  ok(keys.includes('reed-v3-test2-shell')&&!keys.includes('reed-v3-shell'),'sau cập nhật: cache mới thay cache cũ ('+keys.join(', ')+')');
   swSuffix=''; await ctx.close();
 }
 

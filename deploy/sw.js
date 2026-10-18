@@ -3,7 +3,7 @@
    - Âm thanh mp3: lưu lần nghe đầu tiên và có thể tải sẵn hàng loạt (app gửi danh sách qua postMessage). Hỗ trợ yêu cầu Range (Safari).
    - Dữ liệu bài từ Supabase (khác nguồn) không đi qua đây: app tự có cơ chế dự phòng (localStorage + dữ liệu nhúng).
    Khi đổi index.html/ảnh/phông/icon: tăng VERSION. Khi tạo lại âm thanh cho cùng một tên file: tăng AUDIO_CACHE. */
-const VERSION = "reed-v2";
+const VERSION = "reed-v3";
 const SHELL = VERSION + "-shell";
 const AUDIO_CACHE = "reed-audio-v1";
 const SHELL_FILES = [
@@ -11,7 +11,8 @@ const SHELL_FILES = [
   "icons/icon-192.png", "icons/icon-512.png", "icons/icon-maskable-512.png", "icons/apple-touch-icon.png",
   "fonts/inter-latin.woff2", "fonts/inter-vietnamese.woff2", "fonts/inter-latin-ext.woff2",
   "img/hero.webp", "img/hero-sm.webp", "img/family.webp", "img/friends.webp", "img/school.webp", "img/work.webp",
-  "img/weekend.webp", "img/health.webp", "img/tech.webp", "img/welcome.webp"
+  "img/weekend.webp", "img/health.webp", "img/tech.webp", "img/welcome.webp",
+  "img/topic-family.webp", "img/topic-friends.webp", "img/topic-school.webp", "img/topic-work.webp", "img/topic-lifestyle.webp", "img/topic-health.webp", "img/topic-tech.webp"
 ];
 
 self.addEventListener("install", e => {
