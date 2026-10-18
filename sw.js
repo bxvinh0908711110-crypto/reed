@@ -98,7 +98,7 @@ self.addEventListener("fetch", e => {
   if (req.method !== "GET" || !same(req)) return;
   if (req.mode === "navigate") { e.respondWith(navigate(req)); return; }
   const p = new URL(req.url).pathname;
-  if (/\/audio\/(female|male)\/[^/]+\.mp3$/.test(p)) e.respondWith(audio(req));
+  if (/\/audio\/(female|male|music)\/[^/]+\.mp3$/.test(p)) e.respondWith(audio(req));
   else if (/\/(img|fonts|icons)\//.test(p)) e.respondWith(cacheFirst(req));
   else if (/manifest\.webmanifest$|reed-icon\.svg$/.test(p)) e.respondWith(staleWhileRevalidate(req));
 });

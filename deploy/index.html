@@ -41,6 +41,10 @@ body{margin:0;background:var(--bg);color:var(--ink);
 .top .right{display:flex;align-items:center;gap:10px;pointer-events:none}
 .nbBtn{height:32px;box-sizing:border-box;pointer-events:auto;border:1px solid #e4e2dc;background:#fff;color:var(--ink);border-radius:999px;box-shadow:0 1px 3px rgba(0,0,0,.05);
   padding:5px 11px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.musicBtn{width:32px;padding:0;justify-content:center;color:#8b8b93;transition:background .2s ease,color .2s ease,border-color .2s ease}
+.musicBtn svg{opacity:.6;transition:opacity .2s ease}
+.musicBtn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.musicBtn[aria-pressed="true"] svg{opacity:1}
 .nbBtn b{background:var(--accent);color:#fff;border-radius:999px;padding:1px 6px;font-size:10.5px;min-width:1.4em;text-align:center}
 .nbBackdrop{position:fixed;inset:0;background:rgba(30,20,10,.32);z-index:48;opacity:0;transition:opacity .35s}
 .nbBackdrop.show{opacity:1}
@@ -762,7 +766,7 @@ body:has(.player:not(.away)) .pwaPill{display:none}   /* chỉ hiện ở màn h
   </svg>
 </div>
 <div id="pickBubble"><b>01</b></div>
-<div class="top"><span class="brand" id="brandHome" role="button" tabindex="0" aria-label="Về trang chủ"><img src="reed-icon.svg" alt="" width="22" height="23"><span class="brandtext"><b>REED</b><i>Read English Every Day</i></span></span><nav class="topics" id="topics" aria-label="Topics"></nav><span class="right"><button id="tipBtn" class="nbBtn tipBtn" aria-label="How to Learn: xem lại hướng dẫn" title="How to Learn">How to Learn</button><button id="nbBtn" class="nbBtn" aria-label="Vocabulary notebook"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M16 2v20"/></svg> <b id="nbCount">0</b></button></span></div>
+<div class="top"><span class="brand" id="brandHome" role="button" tabindex="0" aria-label="Về trang chủ"><img src="reed-icon.svg" alt="" width="22" height="23"><span class="brandtext"><b>REED</b><i>Read English Every Day</i></span></span><nav class="topics" id="topics" aria-label="Topics"></nav><span class="right"><button id="tipBtn" class="nbBtn tipBtn" aria-label="How to Learn: xem lại hướng dẫn" title="How to Learn">How to Learn</button><button id="musicBtn" class="nbBtn musicBtn" aria-pressed="false" aria-label="Nhạc nền: bật/tắt" title="Background music"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg></button><button id="nbBtn" class="nbBtn" aria-label="Vocabulary notebook"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M16 2v20"/></svg> <b id="nbCount">0</b></button></span></div>
 
 <section id="lessonScreen" class="lsc" hidden aria-label="Lessons">
   <div class="lscBar"><div class="lscChips" id="lscChips"><button type="button" data-f="all" aria-pressed="true">All</button><button type="button" data-f="unread" aria-pressed="false">Unread</button><button type="button" data-f="read" aria-pressed="false">Read</button></div></div>
@@ -1869,6 +1873,17 @@ function nbCardHTML(it,anim,n,grouped){
 function nbOpen(){ $("#notebook").hidden=false; $("#nbBackdrop").hidden=false; requestAnimationFrame(()=>{ $("#notebook").classList.add("show"); $("#nbBackdrop").classList.add("show"); }); $("#nbSearch").value=NBUI.q; $("#nbSort").value=NBUI.sort; $("#notebook").classList.remove("scrolled"); $("#nbBody").scrollTop=0; nbRenderList(true); }
 function nbClose(){ $("#notebook").classList.remove("show"); $("#nbBackdrop").classList.remove("show"); setTimeout(()=>{ $("#notebook").hidden=true; $("#nbBackdrop").hidden=true; },400); }
 $("#nbBtn").addEventListener("click",nbOpen);
+/* Nhạc nền: nút trên đầu trang, bấm bật / bấm nữa tắt; lặp lại, âm lượng nhỏ; tạm dừng khi ẩn tab hoặc đang ghi âm */
+const Bgm=(function(){
+  const btn=$("#musicBtn"); let a=null, want=false;
+  const sync=()=>{ btn.setAttribute("aria-pressed",want&&a&&!a.paused?"true":"false"); };
+  function ensure(){ if(!a){ a=new Audio("audio/music/reed_family_lofi_30s.mp3"); a.loop=true; a.volume=.3; a.preload="auto"; a.addEventListener("play",sync); a.addEventListener("pause",sync); } return a; }
+  function on(){ want=true; const p=ensure().play(); if(p&&p.catch) p.catch(()=>{ want=false; sync(); }); sync(); }
+  function off(){ want=false; if(a) a.pause(); sync(); }
+  btn.addEventListener("click",()=>{ want&&a&&!a.paused?off():on(); });
+  document.addEventListener("visibilitychange",()=>{ if(!a) return; if(document.hidden) a.pause(); else if(want) a.play().catch(()=>{}); });
+  return {on,off,get playing(){ return !!a&&!a.paused; },pauseTemp(){ if(a&&!a.paused) a.pause(); },resume(){ if(want&&a&&a.paused) a.play().catch(()=>{}); }};
+})();
 $("#nbClose").addEventListener("click",nbClose);
 $("#nbBackdrop").addEventListener("click",nbClose);
 /* đánh dấu đã thuộc: cập nhật tại chỗ (không dựng lại danh sách để mục đang lộ đáp án không bị che lại) */
@@ -2445,7 +2460,7 @@ const Rec=(function(){
   async function refreshDot(){ const r=await dbGet(keyOf(currentText())); micB.classList.toggle("has",!!r); }
 
   async function start(){
-    stopAll(); stopPlay();
+    stopAll(); stopPlay(); Bgm.pauseTemp();   /* nhạc nền tạm dừng để micro không thu nhạc */
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||typeof MediaRecorder==="undefined"){ return fail("Trình duyệt này chưa hỗ trợ ghi âm. Hãy thử Chrome hoặc Safari bản mới."); }
     curText=currentText(); curKey=keyOf(curText);
     try{ stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}}); }
@@ -2474,8 +2489,8 @@ const Rec=(function(){
   /* tự phát sau khi ghi / bấm "So sánh": giọng bạn rồi giọng mẫu */
   function playSeq(){ if(!curBlob) return; stopPlay(); const tok=++cmpTok; bCmp.classList.add("on");
     playMine(()=>{ if(tok!==cmpTok) return; setTimeout(()=>{ if(tok!==cmpTok) return; playModel(()=>{ if(tok===cmpTok) bCmp.classList.remove("on"); },true); },350); },true); }
-  function close(){ if(api.state==="recording") cancelRec(); stopPlay(); api.open=false; api.state="idle"; hideErr(); }
-  function cancelRec(){ api.state="idle"; api.open=false; clearInterval(tmr2); try{ if(mr&&mr.state!=="inactive") mr.stop(); }catch(e){} release(); }
+  function close(){ if(api.state==="recording") cancelRec(); stopPlay(); api.open=false; api.state="idle"; hideErr(); Bgm.resume(); }
+  function cancelRec(){ api.state="idle"; api.open=false; Bgm.resume(); clearInterval(tmr2); try{ if(mr&&mr.state!=="inactive") mr.stop(); }catch(e){} release(); }
   /* chạm: chưa có bản ghi → ghi; có bản ghi → nghe lại; đang phát → dừng. Nhấn giữ (khi đã có bản ghi): ghi lại. */
   let lpT=0, lpFired=false;
   async function onMic(){

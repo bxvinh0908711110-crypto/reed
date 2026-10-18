@@ -44,7 +44,7 @@ const newCtx=async(opts={},init)=>{ const c=await b.newContext(opts); await c.ad
   await p.reload(); await p.waitForTimeout(4500);
   const offPage=await p.evaluate(()=>({h1:!!document.querySelector('.hero h1'),topics:document.querySelectorAll('#topics button').length,heroImg:document.querySelector('.heroImg').naturalWidth,lessons:typeof passages!=='undefined'&&passages.length}));
   ok(offPage.h1&&offPage.topics>=7&&offPage.heroImg>0&&offPage.lessons>0,'offline: tải lại trang vẫn chạy '+JSON.stringify(offPage));
-  await p.evaluate(()=>{ document.querySelector('#startBtn').click(); }); await p.waitForTimeout(900); await p.evaluate(()=>{ document.querySelector('.lscCard').click(); }); await p.waitForTimeout(1600);   // Start Reading mở danh sách bài, chọn bài 1
+  await p.evaluate(()=>{ document.querySelector('#startBtn').click(); }); await p.waitForTimeout(900); await p.evaluate(()=>{ document.querySelector('.ovTopic').click(); }); await p.waitForTimeout(900); await p.evaluate(()=>{ document.querySelector('#lscGrid .lscCard').click(); }); await p.waitForTimeout(1600);   // Start Reading → tổng quan → chủ đề → bài 1
   ok(await p.evaluate(()=>scrollY)>300,'offline: Start Reading vào được bài (scrollY='+await p.evaluate(()=>Math.round(scrollY))+')');
   await ctx.setOffline(false);
   ok(errs.length===0,'không lỗi JS/console'+(errs.length?': '+errs.slice(0,3).join(' | '):''));
