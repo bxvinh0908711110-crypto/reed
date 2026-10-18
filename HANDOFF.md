@@ -81,3 +81,9 @@ Tôi đang làm **Reed**, web app học tiếng Anh một file HTML (`E:\Your En
 - Việc cần người dùng tự làm (đăng nhập/cấp quyền GitHub-Cloudflare-Supabase-Google, chạy SQL, mua tên miền, kéo `netlify-upload/` nếu còn dùng Netlify) thì hướng dẫn, không làm thay. Không nhận khoá `service_role`.
 
 **Sở thích người dùng:** trả lời tiếng Việt ngắn gọn; giao diện ít chữ (nhiều chỗ chuyển sang tiếng Anh ngắn: Search/Recent/Level, All/Unread/Read, "1 min"); bố cục theo hình tham chiếu YouTube (danh sách bài, trang tổng quan); màu theo bảng màu app (lime `#e4ffa4`, xanh `#4433ff`/`#1b3bff`, đỏ hồng `#ff004c`, navy `#1d2433`); ghét hiệu ứng nặng/giật trên điện thoại; muốn tên miền riêng sau (hiện dùng `.workers.dev`).
+
+### 9. Cập nhật phiên 3 (18/10/2026)
+- **Trang tổng quan** (Start Reading) đã merge: tab **All** đầu thanh chủ đề, mỗi chủ đề = icon + tên + "See all ›" + MỘT thẻ bìa (ô xám, điền ảnh vào `TOPIC_THUMB`) + số bài; chạm → danh sách bài của chủ đề. Vuốt ngang trên danh sách/tổng quan đổi chủ đề (`lswipe.mjs`). Không hiệu ứng thẻ trên điện thoại (từng gây nhấp nháy).
+- **Trong bài:** vuốt ngang cũng đổi bước (trái = tiếp, phải = lùi; `hswipe.mjs`). Player điện thoại cao 68px, cách đáy 34px.
+- **Nhạc nền:** nút ♫ trên đầu trang (giữa How to Learn và Sổ tay), file `audio/music/reed_family_lofi_30s.mp3`, lặp, volume .3, tạm dừng khi ghi âm / ẩn tab (`Bgm`, `music.mjs`).
+- **Icon lưu** đổi thành ngôi sao. **Tour hướng dẫn 13 bước** theo nội dung người dùng đưa (`tour13.mjs`; `tour2.mjs` là bản cũ 9 bước, không còn đúng).
