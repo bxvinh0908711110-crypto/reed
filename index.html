@@ -688,6 +688,28 @@ body.listOpen .pwaPill{display:none}
   .lscDur{font-size:11px}
 }
 @media (prefers-reduced-motion:reduce){.lsc,.lscCard{transition:none;animation:none}}
+/* ---- Trang tổng quan các chủ đề (mục theo chủ đề như trang kênh YouTube) ---- */
+.lsc[hidden]{display:none}
+.ovsBody{flex:1;overflow-y:auto;padding:0 6vw calc(env(safe-area-inset-bottom,0px) + 36px);-webkit-overflow-scrolling:touch}
+.ovSec{padding:22px 0 10px;border-top:1px solid #ececec}
+.ovSec:first-child{border-top:0;padding-top:6px}
+.ovHead{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;padding:0 0 16px;font:inherit;color:var(--ink);cursor:pointer;text-align:left;-webkit-tap-highlight-color:transparent}
+.ovIcon{flex:none;width:30px;height:30px;border-radius:50%;background:var(--leaf);color:var(--accent);display:flex;align-items:center;justify-content:center}
+.ovIcon svg{width:52%;height:52%;display:block}
+.ovName{font-size:18px;font-weight:700;letter-spacing:-.02em}
+.ovMore{margin-left:auto;font-size:13px;font-weight:600;color:var(--accent)}
+.ovRows{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:26px 22px}
+.ovSec:not(.open) .ovRows .lscCard:nth-child(n+4){display:none}
+.ovExpand{display:flex;margin:10px auto 0;border:0;background:none;padding:6px 18px;color:var(--ink);cursor:pointer}
+.ovExpand svg{transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.ovSec.open .ovExpand svg{transform:rotate(180deg)}
+@media (max-width:820px){
+  .ovsBody{padding:0 5vw calc(env(safe-area-inset-bottom,0px) + 36px)}
+  .ovSec{padding:18px 0 8px}
+  .ovName{font-size:16px}
+  .ovHead{padding-bottom:12px}
+  .ovRows{grid-template-columns:minmax(0,1fr);gap:16px}
+}
 /* ---- Điện thoại / màn nhỏ: không dùng blur trong chuyển cảnh (nặng với GPU di động) ---- */
 @keyframes heroInSoft{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 @keyframes heroImgInSoft{from{opacity:0;transform:translateY(26px) scale(.985)}to{opacity:1;transform:none}}
@@ -732,6 +754,10 @@ body:has(.player:not(.away)) .pwaPill{display:none}   /* chỉ hiện ở màn h
 <section id="lessonScreen" class="lsc" hidden aria-label="Lessons">
   <div class="lscBar"><div class="lscChips" id="lscChips"><button type="button" data-f="all" aria-pressed="true">All</button><button type="button" data-f="unread" aria-pressed="false">Unread</button><button type="button" data-f="read" aria-pressed="false">Read</button></div></div>
   <div class="lscGrid" id="lscGrid"></div>
+</section>
+<section id="overviewScreen" class="lsc" hidden aria-label="Topics">
+  <div class="lscBar"><div class="lscChips" id="ovsChips"><button type="button" data-f="all" aria-pressed="true">All</button><button type="button" data-f="unread" aria-pressed="false">Unread</button><button type="button" data-f="read" aria-pressed="false">Read</button></div></div>
+  <div class="ovsBody" id="ovsBody"></div>
 </section>
 <div id="nbBackdrop" class="nbBackdrop" hidden></div>
 <aside id="notebook" class="nb" hidden aria-label="My Vocabulary">
@@ -1479,7 +1505,7 @@ function goStep(dir){
 }
 /* Bấm logo: cuộn mượt về đầu trang (hero) */
 function goHome(){
-  if(document.body.classList.contains("listOpen")) closeLessonList();   /* danh sách bài đang mở: bấm logo để đóng */
+  if(document.body.classList.contains("listOpen")) closeAllScreens();   /* trang tổng quan / danh sách bài đang mở: bấm logo để đóng hết */
   if(stepping||(typeof Tour!=="undefined"&&(Tour.active||Tour.welcomeOpen))) return;
   if(typeof Rec!=="undefined"){ if(Rec.open){ if(Rec.state==="recording") return; Rec.close(); } else if(Rec.playing()) Rec.stopPlay(); }
   const y=scrollY; if(y<2) return;
@@ -2515,21 +2541,23 @@ const lscEl=$("#lessonScreen"), lscGrid=$("#lscGrid");
 const listOpen=()=>document.body.classList.contains("listOpen");
 const LSC_LOCK=`<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="11" x="4" y="11" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>`;
 const LSC_CHECK=`<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 5 5L20 7"/></svg>`;
-function lscPlace(){ lscEl.style.setProperty("--lsc-top",Math.round($(".top").getBoundingClientRect().bottom)+"px"); }
+function lscPlace(){ const v=Math.round($(".top").getBoundingClientRect().bottom)+"px"; lscEl.style.setProperty("--lsc-top",v); document.getElementById("overviewScreen").style.setProperty("--lsc-top",v); }
 let lscFilter="all";   /* all | unread | read */
-function renderLessonList(){
-  document.querySelectorAll("#lscChips button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.f===lscFilter));
-  const rows=passages.map((p,i)=>({p,i,read:readSet.has(p.id)})).filter(r=>lscFilter==="all"||(lscFilter==="read"?r.read:!r.read));
-  if(!rows.length){ lscGrid.innerHTML=`<div class="lscEmpty">${lscFilter==="read"?"No lessons read yet":"All lessons read"}</div>`; return; }
-  lscGrid.innerHTML=rows.map(({p,i,read},k)=>{
-    const locked=i>=unlockedCount, src=IMG[p.scene];
-    const art=src?`<img src="${src}" alt="" loading="lazy" decoding="async" onerror="this.remove()">`:(scenes[p.scene]||scenes.hobbies).replace("<svg ",'<svg preserveAspectRatio="xMidYMid slice" ');
-    return `<button type="button" class="lscCard${locked?" locked":""}${read?" read":""}" data-i="${i}" style="--n:${k}" aria-label="${p.topic}${locked?" (locked)":""}">
+const lscCardHTML=(p,i,locked,read,n,k)=>{
+  const src=IMG[p.scene];
+  const art=src?`<img src="${src}" alt="" loading="lazy" decoding="async" onerror="this.remove()">`:(scenes[p.scene]||scenes.hobbies).replace("<svg ",'<svg preserveAspectRatio="xMidYMid slice" ');
+  return `<button type="button" class="lscCard${locked?" locked":""}${read?" read":""}" data-i="${i}" data-k="${k}" data-id="${p.id}" style="--n:${n}" aria-label="${p.topic}${locked?" (locked)":""}">
       <span class="lscThumb">${art}<span class="lscDur">1 min</span>${locked?`<span class="lscLockBadge">${LSC_LOCK}</span>`:""}${read?'<i class="lscSeen"></i>':""}</span>
       <span class="lscText"><span class="lscTitle">${p.topic}</span><span class="lscMeta">Lesson ${String(i+1).padStart(2,"0")} · ${p.level||"A1"}</span></span>
       <span class="lscSide">${read?LSC_CHECK:""}</span>
     </button>`;
-  }).join("");
+};
+const lscFilterOK=(read)=>lscFilter==="all"||(lscFilter==="read"?read:!read);
+function renderLessonList(){
+  document.querySelectorAll("#lscChips button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.f===lscFilter));
+  const rows=passages.map((p,i)=>({p,i,read:readSet.has(p.id)})).filter(r=>lscFilterOK(r.read));
+  if(!rows.length){ lscGrid.innerHTML=`<div class="lscEmpty">${lscFilter==="read"?"No lessons read yet":"All lessons read"}</div>`; return; }
+  lscGrid.innerHTML=rows.map(({p,i,read},n)=>lscCardHTML(p,i,i>=unlockedCount,read,n,curTopic)).join("");
 }
 $("#lscChips").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; lscFilter=b.dataset.f; renderLessonList(); lscGrid.scrollTop=0; });
 function openLessonList(){
@@ -2539,9 +2567,12 @@ function openLessonList(){
   document.body.classList.add("listOpen");
   requestAnimationFrame(()=>requestAnimationFrame(()=>lscEl.classList.add("on")));
 }
-function closeLessonList(){
-  lscEl.classList.remove("on"); document.body.classList.remove("listOpen");
-  setTimeout(()=>{ if(!listOpen()) lscEl.hidden=true; },340);
+let lscFrom="";   /* "ov": danh sách chủ đề được mở từ trang tổng quan, Esc sẽ quay lại tổng quan */
+function closeLessonList(back){
+  lscEl.classList.remove("on");
+  const toOv=back&&lscFrom==="ov"; lscFrom="";
+  if(toOv) openOverview(); else document.body.classList.remove("listOpen");
+  setTimeout(()=>{ if(!lscEl.classList.contains("on")) lscEl.hidden=true; },340);
 }
 lscGrid.addEventListener("click",e=>{
   const c=e.target.closest(".lscCard"); if(!c) return;
@@ -2549,9 +2580,63 @@ lscGrid.addEventListener("click",e=>{
   if(i>=unlockedCount){ c.classList.remove("shake"); void c.offsetWidth; c.classList.add("shake"); return; }   /* bài chưa mở: lắc nhẹ */
   closeLessonList(); jumpToLesson(i);
 });
-addEventListener("keydown",e=>{ if(e.key==="Escape"&&listOpen()) closeLessonList(); });
+
+/* ---------- Trang tổng quan các chủ đề (Start Reading mở trang này trước) ----------
+   Mỗi chủ đề là một mục: tên + "See all ›" và vài bài đầu (hàng ảnh 16:9 trên máy tính, danh sách dọc trên điện thoại).
+   Chạm tên chủ đề → danh sách bài của chủ đề; chạm một bài → vào thẳng bài đó. */
+const ovsEl=$("#overviewScreen"), ovsBody=$("#ovsBody");
+const topicLessons=k=>ALL.filter(p=>p.cat===k&&p.id>0);
+const topicUnlocked=k=>{ try{ const n=+localStorage.getItem("reed_unlocked_"+k); return n>=1?n:1; }catch(e){ return 1; } };
+const OV_CHEV=`<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`;
+function renderOverview(){
+  document.querySelectorAll("#ovsChips button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.f===lscFilter));
+  const secs=TOPICS.map(t=>{
+    const un=topicUnlocked(t.k);
+    return {t,rows:topicLessons(t.k).map((p,i)=>({p,i,read:readSet.has(p.id),locked:i>=un})).filter(r=>lscFilterOK(r.read))};
+  }).filter(s=>s.rows.length);
+  if(!secs.length){ ovsBody.innerHTML=`<div class="lscEmpty">${lscFilter==="read"?"No lessons read yet":"All lessons read"}</div>`; return; }
+  let n=0;
+  ovsBody.innerHTML=secs.map(({t,rows})=>`<section class="ovSec" data-k="${t.k}">
+    <button type="button" class="ovHead" data-k="${t.k}"><span class="ovIcon"><svg viewBox="${t.vb}" fill="currentColor" aria-hidden="true">${t.icon}</svg></span><span class="ovName">${t.label}</span><span class="ovMore">See all ›</span></button>
+    <div class="ovRows">${rows.map(r=>lscCardHTML(r.p,r.i,r.locked,r.read,n++,t.k)).join("")}</div>
+    ${rows.length>3?`<button type="button" class="ovExpand" aria-label="Show more">${OV_CHEV}</button>`:""}
+  </section>`).join("");
+}
+function openOverview(){
+  if(typeof Tour!=="undefined"&&(Tour.active||Tour.welcomeOpen)) return;
+  if(typeof Rec!=="undefined"&&Rec.open) return;
+  renderOverview(); lscPlace(); ovsEl.hidden=false; ovsBody.scrollTop=0;
+  document.body.classList.add("listOpen");
+  requestAnimationFrame(()=>requestAnimationFrame(()=>ovsEl.classList.add("on")));
+}
+function hideOverview(){ ovsEl.classList.remove("on"); setTimeout(()=>{ if(!ovsEl.classList.contains("on")) ovsEl.hidden=true; },340); }
+function closeOverview(){ document.body.classList.remove("listOpen"); hideOverview(); }
+function closeAllScreens(){ lscFrom=""; if(lscEl.classList.contains("on")) closeLessonList(); if(ovsEl.classList.contains("on")) closeOverview(); }
+function openTopicList(k){ hideOverview(); if(curTopic!==k) setTopic(k); lscFrom="ov"; openLessonList(); }
+function tabToTopicList(){ hideOverview(); lscFrom="ov"; openLessonList(); }   /* bấm tab chủ đề khi đang ở trang tổng quan */
+function goToLesson(k,id){
+  closeAllScreens();
+  fadeJump(()=>{
+    if(curTopic!==k) setTopic(k);
+    const pi=passages.findIndex(x=>x.id===id); if(pi<0||pi>=unlockedCount) return null;
+    return lessonY(pi,0);
+  });
+}
+ovsBody.addEventListener("click",e=>{
+  const h=e.target.closest(".ovHead"); if(h){ openTopicList(h.dataset.k); return; }
+  const x=e.target.closest(".ovExpand"); if(x){ x.parentElement.classList.toggle("open"); return; }
+  const c=e.target.closest(".lscCard"); if(!c) return;
+  if(c.classList.contains("locked")){ c.classList.remove("shake"); void c.offsetWidth; c.classList.add("shake"); return; }
+  goToLesson(c.dataset.k,+c.dataset.id);
+});
+$("#ovsChips").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; lscFilter=b.dataset.f; renderOverview(); ovsBody.scrollTop=0; });
+addEventListener("keydown",e=>{
+  if(e.key!=="Escape"||!listOpen()) return;
+  if(lscEl.classList.contains("on")) closeLessonList(true);   /* danh sách chủ đề: quay lại tổng quan (nếu mở từ đó) */
+  else closeOverview();
+});
 addEventListener("resize",()=>{ if(listOpen()) lscPlace(); });
-$("#startBtn").addEventListener("click",openLessonList);   /* Start Reading: mở danh sách bài (vuốt xuống vẫn đi thẳng vào bài 1) */
+$("#startBtn").addEventListener("click",openOverview);   /* Start Reading: trang tổng quan các chủ đề (vuốt xuống vẫn đi thẳng vào bài 1) */
 
 function setTopic(k,jump){
   curTopic=k; if(k!=="practice"){ try{localStorage.setItem("reed_topic",k)}catch(e){} }
@@ -2563,7 +2648,7 @@ function setTopic(k,jump){
   { const bar=$("#topics"), cur=bar.querySelector(`button[data-k="${k}"]`); if(cur&&bar.scrollWidth>bar.clientWidth) bar.scrollTo({left:cur.offsetLeft-(bar.clientWidth-cur.offsetWidth)/2,behavior:"smooth"}); }
   const lo=document.body.classList.contains("listOpen");
   if(jump&&!lo) scrollTo(0, firstLessonY());
-  if(lo&&typeof renderLessonList==="function") renderLessonList();
+  if(lo&&typeof renderLessonList==="function"){ const ovEl=document.getElementById("overviewScreen"); if(ovEl&&ovEl.classList.contains("on")) tabToTopicList(); else renderLessonList(); }
 }
 const firstLessonY=()=>{   /* điểm dừng (snap) đầu tiên của bài đầu — để cú vuốt kế tiếp sang ngay bước 2 */
   const pp=P[0], sn=[...pp.el.querySelectorAll(".snap")].map(e=>e.getBoundingClientRect().top+scrollY);
