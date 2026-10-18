@@ -278,10 +278,10 @@ body{margin:0;background:var(--bg);color:var(--ink);
 .tourCard .tf .tg2{background:var(--accent);border-color:var(--accent);color:#fff}
 .tourCard .tf .tx{margin-right:auto;border-color:#d4d4d4;color:#55514c}
 .tourCard .tf button[hidden]{display:none}
-.player .mic{position:relative;width:34px;height:34px;flex:0 0 34px;margin-left:6px;border:0;border-radius:50%;background:var(--bar2);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;
+.player .mic{position:relative;width:42px;height:42px;flex:0 0 42px;margin-left:6px;border:0;border-radius:50%;background:var(--bar2);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;
   transition:background .2s ease,transform .15s ease}
 .player .mic:active{transform:scale(.9)}
-.player .lang{flex:0 0 auto;margin-left:6px;border:0;border-radius:999px;background:var(--leaf);color:#0b0b0b;font:inherit;font-size:13px;font-weight:800;letter-spacing:.02em;min-width:40px;height:30px;padding:0 12px;cursor:pointer;transition:transform .15s ease}
+.player .lang{flex:0 0 auto;margin-left:6px;border:0;border-radius:999px;background:var(--leaf);color:#0b0b0b;font:inherit;font-size:13px;font-weight:800;letter-spacing:.02em;min-width:40px;height:38px;padding:0 12px;cursor:pointer;transition:transform .15s ease}
 .player .lang:active{transform:scale(.92)}
 /* Chế độ dịch (VI): chữ Việt thay chữ Anh; dòng Anh vẫn giữ nguyên bố cục (ẩn bằng visibility) để đo/cuộn không đổi */
 .sent .vt{display:none;position:absolute;left:0;top:0;width:100%;margin:0;font-size:calc(var(--fitv,1) * clamp(30px,4.5vw,66px));line-height:1.22;letter-spacing:-.035em;font-weight:500;color:#3b3b3b}
@@ -330,7 +330,7 @@ body.lang-vi .foot .tg{visibility:hidden}
 .player.recording .rec-live{display:flex}
 .player.recording .rcancel2{display:block}
 .player.recording .lesson-content,.player.recording .mic,.player.recording .lang,.player.recording .d2,.player.recording .chevron-button{display:none}
-.recSheet{position:fixed;z-index:70;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 92px);width:min(460px,calc(100vw - 24px));transform:translate(-50%,12px);
+.recSheet{position:fixed;z-index:70;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 102px);width:min(460px,calc(100vw - 24px));transform:translate(-50%,12px);
   background:var(--bar);color:#fff;border-radius:22px;padding:10px 12px;box-shadow:0 16px 40px rgba(0,0,0,.35);opacity:0;transition:opacity .25s ease,transform .25s ease}
 .recSheet.on{opacity:1;transform:translate(-50%,0)}
 .recSheet[hidden]{display:none}
@@ -466,15 +466,15 @@ body.lang-vi .foot .tg{visibility:hidden}
 /* ---- Player (dock): 1 hàng Lesson + picker cuộn dọc / 1 hàng cài đặt giọng-tốc độ, vuốt hoặc bấm chevron để đổi.
    Cỡ thu nhỏ lại gần bằng dock gọn trước đây (~56px) — bản 88px trước quá to so với phần còn lại của app. */
 .player{position:fixed;z-index:40;left:50%;bottom:20px;transform:translateX(-50%);width:min(92vw,420px);
-  height:50px;background:var(--bar);border-radius:25px;overflow:hidden;box-shadow:0 10px 25px rgba(0,0,0,.28);touch-action:pan-y}
+  height:60px;background:var(--bar);border-radius:30px;overflow:hidden;box-shadow:0 10px 25px rgba(0,0,0,.28);touch-action:pan-y}
 .player{transition:transform .45s cubic-bezier(.2,.8,.2,1),opacity .3s ease}
 .player.away{transform:translate(-50%,calc(100% + 48px));opacity:0;pointer-events:none}
 @media (prefers-reduced-motion:reduce){.player{transition:none}}
 .player .viewport{width:100%;height:100%;overflow:hidden;position:relative}
 .player .slider{width:100%;position:absolute;left:0;top:0;transition:transform .35s cubic-bezier(.22,.8,.25,1)}
-.player.settings .slider{transform:translateY(-50px)}
-.player .row,.player .settings-row{width:100%;height:50px;display:flex;align-items:center;padding:5px 9px}
-.player .play{width:38px;height:38px;flex:0 0 38px;border:0;border-radius:50%;background:#d9ff73;
+.player.settings .slider{transform:translateY(-60px)}
+.player .row,.player .settings-row{width:100%;height:60px;display:flex;align-items:center;padding:6px 10px}
+.player .play{width:46px;height:46px;flex:0 0 46px;border:0;border-radius:50%;background:#d9ff73;
   display:flex;justify-content:center;align-items:center;cursor:pointer;transition:transform .15s ease;color:#151515}
 .player .play:active{transform:scale(.92)}
 .player .play svg{display:block}
@@ -487,13 +487,13 @@ body.lang-vi .foot .tg{visibility:hidden}
 .player .dots{display:flex;gap:3px;margin-top:3px}
 .player .dots .dot{width:4px;height:4px;border-radius:50%;background:#454545;flex:0 0 4px}
 .player .dots .dot.active{background:#fff}
-.chevron-button{width:24px;height:24px;flex:0 0 24px;border:0;background:transparent;color:#777;
+.chevron-button{width:38px;height:48px;flex:0 0 38px;border:0;background:transparent;color:#777;
   display:flex;justify-content:center;align-items:center;cursor:pointer}
 .chevron{width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;
   transform:rotate(45deg);transition:transform .3s ease}
 .player.settings .chevron{transform:rotate(225deg)}
 .setting-group{flex:1;height:100%;display:flex;align-items:center;justify-content:center;gap:2px;min-width:0}
-.setting{width:34px;height:34px;flex:0 0 34px;border:0;border-radius:50%;background:transparent;color:#777;
+.setting{width:42px;height:42px;flex:0 0 42px;border:0;border-radius:50%;background:transparent;color:#777;
   display:flex;justify-content:center;align-items:center;cursor:pointer;
   transition:background .2s ease,color .2s ease,transform .15s ease}
 .setting:hover{background:rgba(255,255,255,.06)}
@@ -505,7 +505,7 @@ body.lang-vi .foot .tg{visibility:hidden}
 /* Bấm giữ: không bôi chữ / hiện menu sao chép; bong bóng số nổi phía trên ngón tay */
 body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 .lesson-content,#lessonContent{touch-action:none}
-#pickBubble{position:fixed;z-index:60;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 82px);transform:translate(-50%,8px) scale(.85);
+#pickBubble{position:fixed;z-index:60;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 92px);transform:translate(-50%,8px) scale(.85);
   width:46px;height:46px;border-radius:50%;background:rgba(14,14,14,.92);color:#fff;display:flex;align-items:center;justify-content:center;
   -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);pointer-events:none;
   box-shadow:0 6px 18px rgba(0,0,0,.28);opacity:0;transition:opacity .14s ease,transform .18s ease}
@@ -540,25 +540,25 @@ body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webki
   border-radius:50%;border:1px solid rgba(255,255,255,.08);pointer-events:none}
 
 @media (max-width:480px){
-  .player .mic{width:30px;height:30px;flex-basis:30px;margin-left:4px}
-  .player .lang{height:28px;min-width:36px;padding:0 10px;font-size:12px;margin-left:4px}
+  .player .mic{width:40px;height:40px;flex-basis:40px;margin-left:4px}
+  .player .lang{height:36px;min-width:40px;padding:0 12px;font-size:13px;margin-left:4px}
   .sent .vt{font-size:calc(var(--fitv,1) * clamp(24px,7vw,66px))}
   .player .mic.has .bd{width:9px;height:9px;top:1px;right:1px}
   .player .rl-text{font-size:12px}
   .player .rcancel2{padding:8px 14px;font-size:13px}
-  .recSheet{bottom:calc(env(safe-area-inset-bottom,0px) + 80px);padding:8px 10px}
+  .recSheet{bottom:calc(env(safe-area-inset-bottom,0px) + 90px);padding:8px 10px}
   .recSheet.s-rev{padding:14px 12px 10px}
   .recSheet .rlk{font-size:14px;padding:8px 6px}
   .recSheet .rb{padding:9px 13px;font-size:13.5px;gap:6px}
-  .player{width:calc(100vw - 24px);height:46px;border-radius:23px}
+  .player{width:calc(100vw - 24px);height:58px;border-radius:29px}
   .player .slider{transform:translateY(0)}
-  .player.settings .slider{transform:translateY(-46px)}
-  .player .row,.player .settings-row{height:46px;padding:4px 7px}
-  .player .play{width:34px;height:34px;flex-basis:34px}
+  .player.settings .slider{transform:translateY(-58px)}
+  .player .row,.player .settings-row{height:58px;padding:5px 8px}
+  .player .play{width:44px;height:44px;flex-basis:44px}
   .player .divider{margin:0 6px;height:16px}
   .lesson-title{font-size:12px}
   .lesson-subtitle{font-size:9px}
-  .setting{width:30px;height:30px;flex-basis:30px}
+  .setting{width:40px;height:40px;flex-basis:40px}
   .setting .icon{width:16px;height:16px}
   .setting .speed-icon{width:16px;height:16px}
   .lesson-number{width:30px;flex-basis:30px;height:30px;font-size:11px}
@@ -699,7 +699,7 @@ body.listOpen .pwaPill{display:none}
   .hero.heroRise .heroImg{animation-name:heroImgInSoft}
 }
 /* ---- PWA: thanh thông báo + nút cài app ---- */
-.pwaBar{position:fixed;z-index:90;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);transform:translate(-50%,16px);width:max-content;max-width:calc(100vw - 32px);display:flex;align-items:center;gap:14px;padding:12px 18px;border-radius:999px;background:var(--bar);color:#fff;font-size:13.5px;font-weight:600;box-shadow:0 12px 32px rgba(0,0,0,.28);opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease}
+.pwaBar{position:fixed;z-index:90;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 106px);transform:translate(-50%,16px);width:max-content;max-width:calc(100vw - 32px);display:flex;align-items:center;gap:14px;padding:12px 18px;border-radius:999px;background:var(--bar);color:#fff;font-size:13.5px;font-weight:600;box-shadow:0 12px 32px rgba(0,0,0,.28);opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease}
 .pwaBar.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
 .pwaBar button{border:0;background:none;color:var(--leaf);font:inherit;font-weight:800;cursor:pointer;padding:2px 4px;white-space:nowrap}
 .pwaBar button[hidden]{display:none}
