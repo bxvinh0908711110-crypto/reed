@@ -12,6 +12,8 @@ for(const [name,opts] of [['SE',devices['iPhone SE']],['13',devices['iPhone 13']
   const m=await p.evaluate(()=>{ const R=s=>{const e=document.querySelector(s);const r=e.getBoundingClientRect();return [Math.round(r.width),Math.round(r.height)]}; const pl=document.querySelector('#player').getBoundingClientRect(); return {bar:[Math.round(pl.width),Math.round(pl.height)],play:R('.row .play'),lang:R('#langBtn'),mic:R('#micBtn'),chev:R('#openSettings'),inView:pl.bottom<=innerHeight&&pl.top>0}; });
   const tall=[m.play,m.lang,m.mic].every(x=>x[1]>=36)&&m.bar[1]>=56;
   ok(tall&&m.inView,name+': thanh '+m.bar.join('×')+', play '+m.play.join('×')+', EN '+m.lang.join('×')+', mic '+m.mic.join('×')+', mũi tên '+m.chev.join('×'));
+  const gap=await p.evaluate(()=>{ const pl=document.querySelector('#player').getBoundingClientRect(); const bars=[...document.querySelectorAll('.foot')].map(f=>f.getBoundingClientRect()).filter(r=>r.height>0&&r.top>0&&r.top<innerHeight&&r.left>=0&&r.left<innerWidth); const b=bars.sort((a,b)=>b.bottom-a.bottom)[0]; return b?Math.round(pl.top-b.bottom):null; });
+  ok(gap!==null&&gap>=10,name+': thanh tiến trình cách thanh player '+gap+'px (cần ≥ 10)');
   // mở hàng cài đặt (giọng/tốc độ) rồi đóng lại
   await p.evaluate(()=>document.querySelector('#openSettings').click()); await p.waitForTimeout(600);
   const st=await p.evaluate(()=>({settings:document.querySelector('#player').classList.contains('settings'),btn:[...document.querySelectorAll('.settings-row .setting')].map(b=>Math.round(b.getBoundingClientRect().height))}));
