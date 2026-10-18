@@ -19,6 +19,8 @@ for(const [name,opts] of [['mobile',devices['iPhone 13']],['desktop',{viewport:{
   const s1=await st(p);
   ok(s1.ov&&!s1.ls&&s1.list&&o1.secs===o1.topics&&o1.secs>=2&&o1.cards>=o1.secs,'Start Reading mở trang tổng quan: '+JSON.stringify(o1));
   await p.screenshot({path:`tools/pw/shots/ov_${name}.png`});
+  const a1=await p.evaluate(()=>({all:document.querySelector('#topics [data-all]').getAttribute('aria-pressed'),others:[...document.querySelectorAll('#topics button:not([data-all])')].filter(b=>b.getAttribute('aria-pressed')==='true').length,first:document.querySelector('#topics button').dataset.all==='1',heads:[...document.querySelectorAll('.ovHead')].every(h=>h.querySelector('.ovThumb')&&/^[0-9]+ lessons?$/.test(h.querySelector('.ovCount').textContent)),n:document.querySelector('.ovCount').textContent}));
+  ok(a1.all==='true'&&a1.others===0&&a1.first&&a1.heads,'tab All đầu thanh và sáng ở trang tổng quan, mỗi chủ đề có thumb xám + số bài '+JSON.stringify(a1));
   // 2. bài khoá: lắc, không vào
   const lk=await p.evaluate(()=>{ const c=document.querySelector('#ovsBody .lscCard.locked'); if(!c) return null; c.click(); return true; }); await p.waitForTimeout(300);
   if(lk) ok(await p.evaluate(()=>document.querySelector('#ovsBody .lscCard.locked.shake')!==null)&&(await st(p)).ov,'bài khoá: lắc, vẫn ở tổng quan'); else console.log('SKIP không có bài khoá');
@@ -27,6 +29,7 @@ for(const [name,opts] of [['mobile',devices['iPhone 13']],['desktop',{viewport:{
   await p.evaluate(()=>document.querySelectorAll('.ovHead')[1].click()); await p.waitForTimeout(900);
   const s3=await st(p), c3=await p.evaluate(()=>document.querySelectorAll('#lscGrid .lscCard').length);
   ok(s3.ls&&!s3.ov&&s3.topic===k1&&c3===(await p.evaluate(k=>topicLessons(k).length,k1)),'chạm tên chủ đề: mở danh sách '+k1+' '+JSON.stringify(s3));
+  ok(await p.evaluate(()=>document.querySelector('#topics [data-all]').getAttribute('aria-pressed')==='false'&&document.querySelector('#topics [data-k="'+curTopic+'"]').getAttribute('aria-pressed')==='true'),'vào danh sách chủ đề: tab All tắt, tab chủ đề sáng');
   // 4. Esc → tổng quan, Esc → đóng hết
   await p.keyboard.press('Escape'); await p.waitForTimeout(700);
   const s4=await st(p); ok(s4.ov&&!s4.ls,'Esc 1: quay về tổng quan');
@@ -40,11 +43,14 @@ for(const [name,opts] of [['mobile',devices['iPhone 13']],['desktop',{viewport:{
   // 6. bấm tab chủ đề khi đang ở tổng quan → danh sách chủ đề đó
   await p.evaluate(()=>document.querySelector('#brandHome').click()); await p.waitForTimeout(1500);
   await start();
-  const k6=await p.evaluate(()=>{ const bs=[...document.querySelectorAll('#topics button:not([data-soon])')]; const bt=bs.find(x=>x.dataset.k!==curTopic)||bs[0]; return bt.dataset.k; });
+  const k6=await p.evaluate(()=>{ const bs=[...document.querySelectorAll('#topics button:not([data-soon]):not([data-all])')]; const bt=bs.find(x=>x.dataset.k!==curTopic)||bs[0]; return bt.dataset.k; });
   await p.evaluate(k=>document.querySelector('#topics button[data-k="'+k+'"]').click(),k6); await p.waitForTimeout(1300);
   const s6=await st(p); ok(s6.ls&&!s6.ov&&s6.topic===k6,'bấm tab chủ đề khi ở tổng quan: mở danh sách '+k6+' '+JSON.stringify(s6));
   await p.keyboard.press('Escape'); await p.waitForTimeout(700);
   ok((await st(p)).ov,'Esc từ danh sách (mở bằng tab) quay lại tổng quan');
+  // 6b. bấm tab All từ danh sách chủ đề → tổng quan
+  await p.evaluate(()=>document.querySelector('#topics [data-all]').click()); await p.waitForTimeout(900);
+  const s6b=await st(p); ok(s6b.ov&&!s6b.ls&&await p.evaluate(()=>document.querySelector('#topics [data-all]').getAttribute('aria-pressed')==='true'),'bấm tab All từ danh sách chủ đề: về tổng quan '+JSON.stringify(s6b));
   // 7. chip lọc
   const f=await p.evaluate(async()=>{ const w=()=>new Promise(r=>setTimeout(r,200)); const q=s=>document.querySelector('#ovsChips [data-f="'+s+'"]');
     q('read').click(); await w(); const rd=document.querySelectorAll('#ovsBody .lscCard').length, empty=!!document.querySelector('#ovsBody .lscEmpty');

@@ -710,9 +710,11 @@ body.listOpen .pwaPill{display:none}
 .ovSec{padding:22px 0 10px;border-top:1px solid #ececec}
 .ovSec:first-child{border-top:0;padding-top:6px}
 .ovHead{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;padding:0 0 16px;font:inherit;color:var(--ink);cursor:pointer;text-align:left;-webkit-tap-highlight-color:transparent}
-.ovIcon{flex:none;width:30px;height:30px;border-radius:50%;background:var(--leaf);color:var(--accent);display:flex;align-items:center;justify-content:center}
-.ovIcon svg{width:52%;height:52%;display:block}
+.ovThumb{flex:none;width:64px;height:44px;border-radius:10px;background:#e3e5e8;overflow:hidden}
+.ovThumb img{width:100%;height:100%;object-fit:cover;display:block}
+.ovTitle{display:flex;flex-direction:column;gap:2px;min-width:0}
 .ovName{font-size:18px;font-weight:700;letter-spacing:-.02em}
+.ovCount{font-size:12.5px;color:var(--muted)}
 .ovMore{margin-left:auto;font-size:13px;font-weight:600;color:var(--accent)}
 .ovRows{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:26px 22px}
 .ovSec:not(.open) .ovRows .lscCard:nth-child(n+4){display:none}
@@ -723,6 +725,7 @@ body.listOpen .pwaPill{display:none}
   .ovsBody{padding:0 5vw calc(env(safe-area-inset-bottom,0px) + 36px)}
   .ovSec{padding:18px 0 8px}
   .ovName{font-size:16px}
+  .ovThumb{width:56px;height:40px;border-radius:9px}
   .ovHead{padding-bottom:12px}
   .ovRows{grid-template-columns:minmax(0,1fr);gap:16px}
 }
@@ -2601,9 +2604,14 @@ lscGrid.addEventListener("click",e=>{
    Mỗi chủ đề là một mục: tên + "See all ›" và vài bài đầu (hàng ảnh 16:9 trên máy tính, danh sách dọc trên điện thoại).
    Chạm tên chủ đề → danh sách bài của chủ đề; chạm một bài → vào thẳng bài đó. */
 const ovsEl=$("#overviewScreen"), ovsBody=$("#ovsBody");
+const TOPIC_THUMB={};   /* ảnh bìa chủ đề: { family:"img/topic-family.webp", … } (chưa có thì hiện ô xám) */
 const topicLessons=k=>ALL.filter(p=>p.cat===k&&p.id>0);
 const topicUnlocked=k=>{ try{ const n=+localStorage.getItem("reed_unlocked_"+k); return n>=1?n:1; }catch(e){ return 1; } };
 const OV_CHEV=`<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`;
+function syncTabs(){   /* tab "All" sáng khi đang ở trang tổng quan; tab chủ đề sáng khi không ở đó */
+  const ov=!ovsEl.hidden&&ovsEl.classList.contains("on");
+  document.querySelectorAll("#topics button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.all?ov:(!ov&&b.dataset.k===curTopic&&curTopic!=="practice")));
+}
 function renderOverview(){
   document.querySelectorAll("#ovsChips button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.f===lscFilter));
   const secs=TOPICS.map(t=>{
@@ -2613,7 +2621,7 @@ function renderOverview(){
   if(!secs.length){ ovsBody.innerHTML=`<div class="lscEmpty">${lscFilter==="read"?"No lessons read yet":"All lessons read"}</div>`; return; }
   let n=0;
   ovsBody.innerHTML=secs.map(({t,rows})=>`<section class="ovSec" data-k="${t.k}">
-    <button type="button" class="ovHead" data-k="${t.k}"><span class="ovIcon"><svg viewBox="${t.vb}" fill="currentColor" aria-hidden="true">${t.icon}</svg></span><span class="ovName">${t.label}</span><span class="ovMore">See all ›</span></button>
+    <button type="button" class="ovHead" data-k="${t.k}"><span class="ovThumb">${TOPIC_THUMB[t.k]?`<img src="${TOPIC_THUMB[t.k]}" alt="">`:""}</span><span class="ovTitle"><span class="ovName">${t.label}</span><span class="ovCount">${topicLessons(t.k).length} ${topicLessons(t.k).length===1?"lesson":"lessons"}</span></span><span class="ovMore">See all ›</span></button>
     <div class="ovRows">${rows.map(r=>lscCardHTML(r.p,r.i,r.locked,r.read,n++,t.k)).join("")}</div>
     ${rows.length>3?`<button type="button" class="ovExpand" aria-label="Show more">${OV_CHEV}</button>`:""}
   </section>`).join("");
@@ -2623,9 +2631,9 @@ function openOverview(){
   if(typeof Rec!=="undefined"&&Rec.open) return;
   renderOverview(); lscPlace(); ovsEl.hidden=false; ovsBody.scrollTop=0;
   document.body.classList.add("listOpen");
-  requestAnimationFrame(()=>requestAnimationFrame(()=>ovsEl.classList.add("on")));
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ ovsEl.classList.add("on"); syncTabs(); }));
 }
-function hideOverview(){ ovsEl.classList.remove("on"); setTimeout(()=>{ if(!ovsEl.classList.contains("on")) ovsEl.hidden=true; },340); }
+function hideOverview(){ ovsEl.classList.remove("on"); syncTabs(); setTimeout(()=>{ if(!ovsEl.classList.contains("on")) ovsEl.hidden=true; },340); }
 function closeOverview(){ document.body.classList.remove("listOpen"); hideOverview(); }
 function closeAllScreens(){ lscFrom=""; if(lscEl.classList.contains("on")) closeLessonList(); if(ovsEl.classList.contains("on")) closeOverview(); }
 function openTopicList(k){ hideOverview(); if(curTopic!==k) setTopic(k); lscFrom="ov"; openLessonList(); }
@@ -2660,7 +2668,7 @@ function setTopic(k,jump){
   P=makeP(); F=passages.map(()=>({})); recapMode=passages.map(()=>"up");
   unlockedCount=loadUnlocked(); active={pi:0,si:0}; live=[];
   build(); buildPlayer(); layout(); measure(); movePills(); update(); fitSlides();   /* fit sau update() vì chú thích (.cap) chỉ có chữ sau khi update chạy */
-  document.querySelectorAll("#topics button").forEach(b=>{ b.setAttribute("aria-pressed",b.dataset.k===k); });
+  syncTabs();
   { const bar=$("#topics"), cur=bar.querySelector(`button[data-k="${k}"]`); if(cur&&bar.scrollWidth>bar.clientWidth) bar.scrollTo({left:cur.offsetLeft-(bar.clientWidth-cur.offsetWidth)/2,behavior:"smooth"}); }
   const lo=document.body.classList.contains("listOpen");
   if(jump&&!lo) scrollTo(0, firstLessonY());
@@ -2686,9 +2694,10 @@ function animateTopic(k){
 }
 (function initTopics(){
   const bar=$("#topics"), toast=$("#toast"); let tt=0;
-  bar.innerHTML=TOPICS.map(t=>`<button type="button" data-k="${t.k}" aria-pressed="false"${hasLessons(t.k)?"":' data-soon="1"'}><svg viewBox="${t.vb}" width="20" height="20" fill="currentColor" aria-hidden="true">${t.icon}</svg><span>${t.label}</span></button>`).join("");
+  bar.innerHTML=`<button type="button" data-k="all" data-all="1" aria-pressed="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg><span>All</span></button>`+TOPICS.map(t=>`<button type="button" data-k="${t.k}" aria-pressed="false"${hasLessons(t.k)?"":' data-soon="1"'}><svg viewBox="${t.vb}" width="20" height="20" fill="currentColor" aria-hidden="true">${t.icon}</svg><span>${t.label}</span></button>`).join("");
   bar.addEventListener("click",e=>{
     const b=e.target.closest("button"); if(!b) return;
+    if(b.dataset.all){ if(Practice.active) Practice.end(); if(lscEl.classList.contains("on")){ lscFrom=""; closeLessonList(); openOverview(); } else if(!(ovsEl.classList.contains("on"))) openOverview(); return; }
     if(b.dataset.soon){ toast.textContent=b.textContent+" lessons are coming soon"; toast.classList.add("on"); clearTimeout(tt); tt=setTimeout(()=>toast.classList.remove("on"),1800); return; }
     if(Practice.active){ Practice.end(); setTopic(b.dataset.k,true); return; }
     animateTopic(b.dataset.k);
