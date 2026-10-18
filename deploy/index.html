@@ -2651,6 +2651,28 @@ addEventListener("keydown",e=>{
   else closeOverview();
 });
 addEventListener("resize",()=>{ if(listOpen()) lscPlace(); });
+/* Vuốt ngang trên danh sách bài / trang tổng quan: chuyển chủ đề kế tiếp / trước (thứ tự như thanh chủ đề: All, Family, Friends…) */
+(function(){
+  const order=()=>["all",...TOPICS.filter(t=>hasLessons(t.k)).map(t=>t.k)];
+  function go(dir){
+    const o=order(), cur=ovsEl.classList.contains("on")?"all":curTopic, i=o.indexOf(cur), j=i+dir;
+    if(i<0||j<0||j>=o.length) return;
+    const to=o[j], el=(to==="all"||cur==="all")?null:lscGrid;
+    if(to==="all"){ lscFrom=""; closeLessonList(); openOverview(); }
+    else if(cur==="all") openTopicList(to);
+    else setTopic(to);
+    const tgt=to==="all"?ovsBody:lscGrid;
+    try{ tgt.animate([{opacity:.2,transform:"translateX("+(dir*28)+"px)"},{opacity:1,transform:"none"}],{duration:200,easing:"cubic-bezier(.2,.8,.2,1)"}); }catch(e){}
+    const b=document.querySelector('#topics button[data-k="'+to+'"]'), bar=$("#topics");
+    if(b&&bar.scrollWidth>bar.clientWidth) bar.scrollTo({left:b.offsetLeft-(bar.clientWidth-b.offsetWidth)/2,behavior:"smooth"});
+  }
+  let sx=0,sy=0,st=0,on=false;
+  const start=e=>{ if(e.touches.length!==1){ on=false; return; } on=true; sx=e.touches[0].clientX; sy=e.touches[0].clientY; st=Date.now(); };
+  const end=e=>{ if(!on) return; on=false; const t=e.changedTouches[0], dx=t.clientX-sx, dy=t.clientY-sy;
+    if(Math.abs(dx)>=60&&Math.abs(dx)>Math.abs(dy)*1.6&&Date.now()-st<800) go(dx<0?1:-1); };
+  for(const el of [lscEl,ovsEl]){ el.addEventListener("touchstart",start,{passive:true}); el.addEventListener("touchend",end,{passive:true}); el.addEventListener("touchcancel",()=>{on=false},{passive:true}); }
+  window.__listSwipe=go;
+})();
 $("#startBtn").addEventListener("click",openOverview);   /* Start Reading: trang tổng quan các chủ đề (vuốt xuống vẫn đi thẳng vào bài 1) */
 
 function setTopic(k,jump){
