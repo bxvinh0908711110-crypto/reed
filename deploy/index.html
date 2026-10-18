@@ -709,6 +709,11 @@ body.listOpen .pwaPill{display:none}
 /* ---- Trang tổng quan các chủ đề (mục theo chủ đề như trang kênh YouTube) ---- */
 .lsc[hidden]{display:none}
 .ovsBody{flex:1;overflow-y:auto;padding:18px 6vw calc(env(safe-area-inset-bottom,0px) + 36px);-webkit-overflow-scrolling:touch}
+@media (min-width:821px){   /* máy tính: 3 chủ đề một hàng */
+  .ovsBody{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:34px 28px;align-content:start}
+  .ovsBody .ovSec,.ovsBody .ovSec:first-child{border-top:0;padding:0}
+  .ovRows{grid-template-columns:minmax(0,1fr)}
+}
 .ovSec{padding:22px 0 10px;border-top:1px solid #ececec}
 .ovSec:first-child{border-top:0;padding-top:6px}
 .ovHead{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;padding:0 0 16px;font:inherit;color:var(--ink);cursor:pointer;text-align:left;-webkit-tap-highlight-color:transparent}
@@ -2196,7 +2201,7 @@ const Tips=(function(){
     if(t.ring) a.classList.add("tip-ring");
   }
   function blocked(){
-    return paused||(typeof Rec!=="undefined"&&Rec.open)||(typeof Practice!=="undefined"&&Practice.active)||(typeof Tour!=="undefined"&&(Tour.active||Tour.welcomeOpen))||document.hidden||stepping||switching||!P.length||
+    return paused||document.body.classList.contains("listOpen")||(typeof Rec!=="undefined"&&Rec.open)||(typeof Practice!=="undefined"&&Practice.active)||(typeof Tour!=="undefined"&&(Tour.active||Tour.welcomeOpen))||document.hidden||stepping||switching||!P.length||
       $("#reed-splash")&&getComputedStyle($("#reed-splash")).display!=="none"||
       player.classList.contains("picker-open")||player.classList.contains("settings")||
       !$("#notebook").hidden;
