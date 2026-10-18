@@ -722,12 +722,8 @@ body.listOpen .pwaPill{display:none}
   .ovRows{grid-template-columns:minmax(0,1fr);gap:16px}
 }
 /* ---- Điện thoại / màn nhỏ: không dùng blur trong chuyển cảnh (nặng với GPU di động) ---- */
-/* Điện thoại: chỉ mờ dần (opacity, chạy trên GPU), không trượt, không so le; vuốt đổi chủ đề thì cả khối mờ vào */
-@keyframes lscFade{from{opacity:0}to{opacity:1}}
-@media (hover:none),(max-width:820px){
-  .lscCard{animation:lscFade .22s ease-out backwards}
-  .lsc.swp .lscCard{animation:none}
-}
+/* Điện thoại: thẻ bài hiện tức thì, không hiệu ứng (tránh nhấp nháy khi vuốt đổi chủ đề) */
+@media (hover:none),(max-width:820px){ .lscCard{animation:none} }
 @keyframes heroInSoft{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 @keyframes heroImgInSoft{from{opacity:0;transform:translateY(26px) scale(.985)}to{opacity:1;transform:none}}
 @media (hover:none),(max-width:820px){
@@ -2659,15 +2655,12 @@ addEventListener("resize",()=>{ if(listOpen()) lscPlace(); });
 (function(){
   const order=()=>["all",...TOPICS.filter(t=>hasLessons(t.k)).map(t=>t.k)];
   function go(dir){
-    lscEl.classList.add("swp"); ovsEl.classList.add("swp"); setTimeout(()=>{ lscEl.classList.remove("swp"); ovsEl.classList.remove("swp"); },320);
     const o=order(), cur=ovsEl.classList.contains("on")?"all":curTopic, i=o.indexOf(cur), j=i+dir;
     if(i<0||j<0||j>=o.length) return;
-    const to=o[j], el=(to==="all"||cur==="all")?null:lscGrid;
+    const to=o[j];
     if(to==="all"){ lscFrom=""; closeLessonList(); openOverview(); }
     else if(cur==="all") openTopicList(to);
     else setTopic(to);
-    const tgt=to==="all"?ovsBody:lscGrid;
-    try{ tgt.animate([{opacity:0},{opacity:1}],{duration:180,easing:"ease-out"}); }catch(e){}
     const b=document.querySelector('#topics button[data-k="'+to+'"]'), bar=$("#topics");
     if(b&&bar.scrollWidth>bar.clientWidth) bar.scrollTo({left:b.offsetLeft-(bar.clientWidth-b.offsetWidth)/2,behavior:"smooth"});
   }
