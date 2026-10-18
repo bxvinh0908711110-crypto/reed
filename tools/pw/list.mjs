@@ -15,18 +15,18 @@ for(const [name,opts] of [['mobile',devices['iPhone 13']],['desktop',{viewport:{
   ok(await p.evaluate(()=>scrollY)<5,'đang ở màn hình đầu (hero)');
   // 1. Start Reading mở danh sách
   await openList(p);
-  const s1=await p.evaluate(()=>({open:document.body.classList.contains('listOpen'),title:curTopic,cards:document.querySelectorAll('.lscCard').length,locked:document.querySelectorAll('.lscCard.locked').length,y:scrollY,vis:getComputedStyle(lessonScreen).opacity}));
+  const s1=await p.evaluate(()=>({open:document.body.classList.contains('listOpen'),title:curTopic,cards:document.querySelectorAll('#lscGrid .lscCard').length,locked:document.querySelectorAll('#lscGrid .lscCard.locked').length,y:scrollY,vis:getComputedStyle(lessonScreen).opacity}));
   ok(s1.open&&s1.cards===2&&s1.title==='school'&&s1.y<5&&+s1.vis>.9,'Start Reading mở danh sách bài: '+JSON.stringify(s1));
   await p.screenshot({path:`tools/pw/shots/list_${name}.png`});
   // 2. vuốt/lăn khi danh sách mở không đi bước
   await p.evaluate(()=>goStep(1)); await p.mouse.wheel(0,400); await p.waitForTimeout(700);
   ok(await p.evaluate(()=>scrollY)<5,'đang mở danh sách: goStep/lăn chuột không cuộn trang phía sau');
   // 3. bài chưa mở: lắc, danh sách vẫn mở
-  await p.evaluate(()=>document.querySelectorAll('.lscCard')[1].click()); await p.waitForTimeout(300);
-  ok(await p.evaluate(()=>document.body.classList.contains('listOpen')&&document.querySelectorAll('.lscCard')[1].classList.contains('shake')),'bài chưa mở: lắc nhẹ, không vào');
+  await p.evaluate(()=>document.querySelectorAll('#lscGrid .lscCard')[1].click()); await p.waitForTimeout(300);
+  ok(await p.evaluate(()=>document.body.classList.contains('listOpen')&&document.querySelectorAll('#lscGrid .lscCard')[1].classList.contains('shake')),'bài chưa mở: lắc nhẹ, không vào');
   // 4. đổi chủ đề khi danh sách mở
   await p.evaluate(()=>document.querySelector('#topics button[data-k="family"]').click()); await p.waitForTimeout(1200);
-  const s4=await p.evaluate(()=>({title:curTopic,cards:document.querySelectorAll('.lscCard').length,open:document.body.classList.contains('listOpen'),y:Math.round(scrollY)}));
+  const s4=await p.evaluate(()=>({title:curTopic,cards:document.querySelectorAll('#lscGrid .lscCard').length,open:document.body.classList.contains('listOpen'),y:Math.round(scrollY)}));
   ok(s4.title==='family'&&s4.open&&s4.y<5,'đổi chủ đề: danh sách làm mới, trang phía sau giữ nguyên '+JSON.stringify(s4));
   // 5. Esc đóng
   await p.keyboard.press('Escape'); await p.waitForTimeout(500); await p.keyboard.press('Escape'); await p.waitForTimeout(700);
@@ -37,7 +37,7 @@ for(const [name,opts] of [['mobile',devices['iPhone 13']],['desktop',{viewport:{
   ok(await p.evaluate(()=>!document.body.classList.contains('listOpen')&&lessonScreen.hidden&&!document.querySelector('#lscClose')),'bấm logo đóng danh sách, không còn nút ✕');
   // 6. chọn bài 1 từ danh sách
   await openList(p);
-  await p.evaluate(()=>document.querySelectorAll('.lscCard')[0].click()); await p.waitForTimeout(1500);
+  await p.evaluate(()=>document.querySelectorAll('#lscGrid .lscCard')[0].click()); await p.waitForTimeout(1500);
   const s6=await p.evaluate(()=>({open:document.body.classList.contains('listOpen'),y:Math.round(scrollY),away:player.classList.contains('away'),cur:active.pi}));
   ok(!s6.open&&s6.y>300&&!s6.away&&s6.cur===0,'chọn bài 1: vào bài, hiện thanh player '+JSON.stringify(s6));
   // 7. bài đã đọc: cuộn tới trang tổng kết
@@ -46,15 +46,15 @@ for(const [name,opts] of [['mobile',devices['iPhone 13']],['desktop',{viewport:{
   ok(rd.length>=1,'tới trang tổng kết: ghi nhận bài đã đọc '+JSON.stringify(rd));
   await p.evaluate(()=>document.querySelector('#brandHome').click()); await p.waitForTimeout(1500);
   await openList(p);
-  ok(await p.evaluate(()=>document.querySelectorAll('.lscCard.read').length>=1&&document.querySelectorAll('.lscCard.read').length===1),'danh sách hiện dấu ✓ và vạch đã đọc cho bài đã đọc');
+  ok(await p.evaluate(()=>document.querySelectorAll('#lscGrid .lscCard.read').length>=1&&document.querySelectorAll('#lscGrid .lscCard.read').length===1),'danh sách hiện dấu ✓ và vạch đã đọc cho bài đã đọc');
   await p.screenshot({path:`tools/pw/shots/list_${name}_read.png`});
   // chip lọc Unread / Read (giống chip Mới nhất/Phổ biến của YouTube)
   await p.evaluate(()=>document.querySelector('#lscChips [data-f="read"]').click()); await p.waitForTimeout(300);
-  const fr=await p.evaluate(()=>({cards:document.querySelectorAll('.lscCard').length,all:[...document.querySelectorAll('.lscCard')].every(c=>c.classList.contains('read')),pressed:document.querySelector('#lscChips [data-f="read"]').getAttribute('aria-pressed')}));
+  const fr=await p.evaluate(()=>({cards:document.querySelectorAll('#lscGrid .lscCard').length,all:[...document.querySelectorAll('#lscGrid .lscCard')].every(c=>c.classList.contains('read')),pressed:document.querySelector('#lscChips [data-f="read"]').getAttribute('aria-pressed')}));
   await p.evaluate(()=>document.querySelector('#lscChips [data-f="unread"]').click()); await p.waitForTimeout(300);
-  const fu=await p.evaluate(()=>({cards:document.querySelectorAll('.lscCard').length,empty:!!document.querySelector('.lscEmpty')}));
+  const fu=await p.evaluate(()=>({cards:document.querySelectorAll('#lscGrid .lscCard').length,empty:!!document.querySelector('.lscEmpty')}));
   await p.evaluate(()=>document.querySelector('#lscChips [data-f="all"]').click()); await p.waitForTimeout(300);
-  ok(fr.cards>=1&&fr.all&&fr.pressed==='true'&&fu.cards===0&&fu.empty&&await p.evaluate(()=>document.querySelectorAll('.lscCard').length)>=1,'chip lọc: Read '+JSON.stringify(fr)+', Unread '+JSON.stringify(fu)+', All trở lại');
+  ok(fr.cards>=1&&fr.all&&fr.pressed==='true'&&fu.cards===0&&fu.empty&&await p.evaluate(()=>document.querySelectorAll('#lscGrid .lscCard').length)>=1,'chip lọc: Read '+JSON.stringify(fr)+', Unread '+JSON.stringify(fu)+', All trở lại');
   await p.keyboard.press('Escape'); await p.waitForTimeout(500); await p.keyboard.press('Escape'); await p.waitForTimeout(500);
   // 8. đổi chữ A1→A2: tức thì trên điện thoại, mượt trên máy tính
   await p.evaluate(()=>goStep(1)); await p.waitForTimeout(1300); await p.evaluate(()=>goStep(1)); await p.waitForTimeout(900);
