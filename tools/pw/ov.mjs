@@ -51,12 +51,7 @@ for(const [name,opts] of [['mobile',devices['iPhone 13']],['desktop',{viewport:{
   // 6b. bấm tab All từ danh sách chủ đề → tổng quan
   await p.evaluate(()=>document.querySelector('#topics [data-all]').click()); await p.waitForTimeout(900);
   const s6b=await st(p); ok(s6b.ov&&!s6b.ls&&await p.evaluate(()=>document.querySelector('#topics [data-all]').getAttribute('aria-pressed')==='true'),'bấm tab All từ danh sách chủ đề: về tổng quan '+JSON.stringify(s6b));
-  // 7. chip lọc
-  const f=await p.evaluate(async()=>{ const w=()=>new Promise(r=>setTimeout(r,200)); const q=s=>document.querySelector('#ovsChips [data-f="'+s+'"]');
-    q('read').click(); await w(); const rd=document.querySelectorAll('#ovsBody .lscCard').length, empty=!!document.querySelector('#ovsBody .lscEmpty');
-    q('unread').click(); await w(); const un=document.querySelectorAll('#ovsBody .lscCard').length;
-    q('all').click(); await w(); const al=document.querySelectorAll('#ovsBody .lscCard').length; return {rd,empty,un,al}; });
-  ok(f.rd===0&&f.empty&&f.un>=1&&f.al>=f.un,'chip lọc All/Unread/Read: '+JSON.stringify(f));
+  ok(await p.evaluate(()=>!document.querySelector('#ovsChips')&&!document.querySelector('#overviewScreen .lscBar')),'trang tổng quan không có thanh chip lọc');
   // 9. bấm logo đóng hết
   await p.evaluate(()=>document.querySelector('#brandHome').click()); await p.waitForTimeout(700);
   const s9=await st(p); ok(!s9.ov&&!s9.ls&&!s9.list,'bấm logo đóng hết '+JSON.stringify(s9));
