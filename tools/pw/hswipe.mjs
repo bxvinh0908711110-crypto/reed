@@ -13,7 +13,14 @@ async function swipe(x1,y1,x2,y2){ await T('touchStart',x1,y1); for(let i=1;i<=8
 const y=()=>p.evaluate(()=>Math.round(scrollY));
 // ở hero (chưa vào bài): vuốt ngang không làm gì
 let y0=await y(); await swipe(300,500,60,510); ok(await y()===y0,'ở trang chủ: vuốt ngang không đi bước (y='+await y()+')');
-await swipe(200,500,200,200); const yIn=await y(); ok(yIn>300,'vuốt lên vào bài (y='+yIn+')');
+// ở trang chủ: vuốt lên / lăn chuột / phím ↓ mở trang tổng quan (như Start Reading), không rơi vào bài
+const ovOpen=()=>p.evaluate(()=>ovsEl.classList.contains('on'));
+const closeOv=async()=>{ await p.keyboard.press('Escape'); await p.waitForTimeout(700); };
+await swipe(200,500,200,200); ok(await ovOpen()&&await y()===0,'trang chủ: vuốt lên mở trang tổng quan (y='+await y()+')'); await closeOv();
+await p.mouse.move(200,400); await p.mouse.wheel(0,300); await p.waitForTimeout(900); ok(await ovOpen()&&await y()===0,'trang chủ: lăn chuột xuống mở trang tổng quan'); await closeOv();
+await p.keyboard.press('ArrowDown'); await p.waitForTimeout(900); ok(await ovOpen()&&await y()===0,'trang chủ: phím ↓ mở trang tổng quan'); await closeOv();
+await p.evaluate(()=>goStep(1)); await p.waitForTimeout(1200); const yIn=await y(); ok(yIn>300,'đi thẳng vào bài bằng goStep (y='+yIn+')');
+await swipe(200,500,200,200); const yNext=await y(); ok(yNext>yIn,'trong bài: vuốt lên = bước kế ('+yIn+' → '+yNext+')'); await swipe(200,300,200,600);
 await swipe(300,500,60,510); const y1=await y(); ok(y1>yIn,'vuốt trái = bước kế ('+yIn+' → '+y1+')');
 await swipe(60,500,300,510); const y2=await y(); ok(y2<y1,'vuốt phải = bước trước ('+y1+' → '+y2+')');
 await swipe(200,400,230,410); ok(await y()===y2,'vuốt ngang ngắn (30px): không đổi bước');

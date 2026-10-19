@@ -1520,6 +1520,11 @@ function renderSave(pp,pi,i,h){
 /* ---- Mỗi lần vuốt/lăn/bấm phím = đúng 1 bước (cuộn mạnh cũng chỉ tính 1), không dùng độ trễ ---- */
 let stepping=false, wheelQuietT=0, wheelLocked=false;
 function snapYs(){ return [...document.querySelectorAll(".snap")].map(e=>e.getBoundingClientRect().top+scrollY).sort((a,b)=>a-b); }
+/* Cử chỉ của người dùng (lăn / vuốt / phím): ở trang chủ, cuộn xuống mở trang tổng quan (như bấm Start Reading) thay vì rơi thẳng vào bài */
+function userStep(dir){
+  if(dir>0&&player.classList.contains("away")&&!document.body.classList.contains("listOpen")&&!stepping&&!(typeof Practice!=="undefined"&&Practice.active)) { if(typeof openOverview==="function") openOverview(); return; }
+  goStep(dir);
+}
 function goStep(dir){
   if(document.body.classList.contains("listOpen")) return;
   if(stepping||(typeof Tour!=="undefined"&&(Tour.active||Tour.welcomeOpen))) return;
@@ -1577,7 +1582,7 @@ addEventListener("wheel",e=>{
   e.preventDefault();
   clearTimeout(wheelQuietT); wheelQuietT=setTimeout(()=>{ wheelLocked=false; },160);   /* cả chuỗi lăn/quán tính trackpad = 1 cử chỉ */
   if(wheelLocked||Math.abs(e.deltaY)<3) return;
-  wheelLocked=true; goStep(e.deltaY>0?1:-1);
+  wheelLocked=true; userStep(e.deltaY>0?1:-1);
 },{passive:false});
 let tY=null, tX=0, tOwn=false, swipeAt=0, hOwn=false, tPick=false;
 /* iOS vẫn có thể bắn "click" sau khi vuốt: nuốt nó để không đổi từ/cuộn ngược ngoài ý muốn */
@@ -1591,7 +1596,7 @@ addEventListener("touchmove",e=>{
 addEventListener("touchend",e=>{
   if(tY===null||tOwn){ tY=null; return; }
   const dy=tY-e.changedTouches[0].clientY, dx=tX-e.changedTouches[0].clientX; tY=null;
-  if(Math.abs(dy)>24 && Math.abs(dy)>Math.abs(dx)){ swipeAt=performance.now(); goStep(dy>0?1:-1); }
+  if(Math.abs(dy)>24 && Math.abs(dy)>Math.abs(dx)){ swipeAt=performance.now(); userStep(dy>0?1:-1); }
   else if(Math.abs(dx)>=50 && Math.abs(dx)>Math.abs(dy)*1.6 && !tPick && !player.classList.contains("away") && !player.classList.contains("picker-open")){ swipeAt=performance.now(); goStep(dx>0?1:-1); }   /* vuốt ngang: trái = bước kế, phải = bước trước (như vuốt lên/xuống) */
 });
 addEventListener("keydown",e=>{
@@ -1599,7 +1604,7 @@ addEventListener("keydown",e=>{
   const k=e.key; let dir=0;
   if(k==="ArrowDown"||k==="PageDown"||(k===" "&&!e.shiftKey)) dir=1;
   else if(k==="ArrowUp"||k==="PageUp"||(k===" "&&e.shiftKey)) dir=-1;
-  if(dir){ e.preventDefault(); goStep(dir); }
+  if(dir){ e.preventDefault(); userStep(dir); }
 });
 function update(){
   if(scrollY>lockBoundY){ scrollTo(0,lockBoundY); return; }   /* chặn cuộn vào bài chưa mở khoá */
