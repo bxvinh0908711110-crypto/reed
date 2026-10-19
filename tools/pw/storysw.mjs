@@ -25,7 +25,7 @@ await ctx.setOffline(true); await p.reload(); await p.waitForTimeout(4500);
 ok(await p.evaluate(()=>!!document.querySelector('.hero h1')&&!!document.querySelector('#startBtn')),'offline: tải lại vẫn ra trang Reed');
 fr=await open();
 ok(await fr.evaluate(()=>document.body.dataset.ready==='1'&&document.querySelectorAll('#stage img').length>=0),'offline: bài Stories mở được từ bản đã lưu');
-const imgs=await fr.evaluate(()=>{ const v=document.getElementById('v'); if(v) return v.poster?1:0; return [...document.images].filter(i=>i.complete&&i.naturalWidth>0).length; });
+const imgs=await fr.evaluate(()=>{ const z=document.getElementById('pz'); if(z) return (z.complete&&z.naturalWidth>0)?1:0; return [...document.images].filter(i=>i.complete&&i.naturalWidth>0).length; });
 ok(imgs>=1,'offline: bài hiển thị (poster/ảnh: '+imgs+')');
 ok(errs.length===0,'không lỗi JS'+(errs.length?': '+errs[0]:''));
 await b.close(); srv.close(); console.log(fails?`\n${fails} rớt`:'\nTất cả đạt'); process.exit(fails?1:0);
