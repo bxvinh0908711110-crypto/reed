@@ -1635,6 +1635,7 @@ function update(){
     const pos=clamp(-r.top,0,pp.total), last=pp.sents.length-1;
     let cur=pp.sents.findIndex(s=>pos<s.b); if(cur<0) cur=last;
     if(pp.cur!==cur) pp.pin={};   /* đổi câu: bỏ ghim thủ công (nếu có) của câu cũ, câu mới luôn theo đúng vị trí cuộn */
+    pp.curPh=null;   /* cụm A1/A2 đang hiển thị ở câu hiện tại (cho Auto-play) */
     let curVocab=null;   /* mục từ vựng của câu đang active — nút Save đọc từ đây, không còn nằm trong .cap */
     pp.sents.forEach((s,si)=>{
       s.tgtOp = si===cur ? 1 : 0;
@@ -1655,7 +1656,7 @@ function update(){
       if(capK<0) capK=s.idx.length-1;
       const i=s.idx[capK], j=F[pi][i]||0;
       const h=renderCap(s,pi,i,j);
-      if(si===cur) curVocab={i,h};
+      if(si===cur){ curVocab={i,h}; pp.curPh={i,j:Math.round(j)}; }
     });
     pp.bar.style.width=(pos/pp.total*100)+"%";
     pp.posEl.textContent=cur<last?`Sentence ${cur+1} / ${last}`:"Recap";
@@ -1679,7 +1680,7 @@ function update(){
     pp.el.classList.toggle("on",on);
     if(on) act={pi,si:cur};
   });
-  if(act){ if((act.pi!==active.pi||act.si!==active.si)&&document.body.classList.contains("lang-vi")) setLang("en"); active=act; if(typeof AutoPlay!=="undefined") AutoPlay.check(act.pi,act.si); const pk=curTopic+":"+act.pi+":"+act.si; if(pk!==preKey){ preKey=pk; setTimeout(()=>prefetchAudio(act.pi,act.si),400); } }   /* qua câu/bài khác: bản dịch tự trả về tiếng Anh */
+  if(act){ if((act.pi!==active.pi||act.si!==active.si)&&document.body.classList.contains("lang-vi")) setLang("en"); active=act; if(typeof AutoPlay!=="undefined") AutoPlay.check(act.pi,act.si,P[act.pi].curPh); const pk=curTopic+":"+act.pi+":"+act.si; if(pk!==preKey){ preKey=pk; setTimeout(()=>prefetchAudio(act.pi,act.si),400); } }   /* qua câu/bài khác: bản dịch tự trả về tiếng Anh */
   updatePlayerUI();
   playBtns.forEach(b=>b.setAttribute("aria-label", P[active.pi].sents[active.si].recap ? "Play whole passage" : "Play sentence"));
   if(!raf){ lastT=0; raf=requestAnimationFrame(tick); }
@@ -2098,7 +2099,7 @@ document.addEventListener("click",e=>{
     const pi=+ph.dataset.p, i=+ph.dataset.i, o=opts(pi,i);
     if(ph.dataset.r) speak(recapMode[pi]==="up"?o[o.length-1].w:o[0].w);
     else if(ph.classList.contains("ph")){
-      tipEvt("tap");
+      tipEvt("tap"); if(typeof AutoPlay!=="undefined") AutoPlay.noteTap();
       /* Bấm/chạm vào cụm từ: nhảy thẳng qua mức nâng cấp (hoặc quay lại bản gốc nếu đang ở mức nâng cấp),
          không cần cuộn đúng khớp mới đổi được chữ. */
       const n=o.length-1, pp=P[pi];
@@ -2196,9 +2197,10 @@ $("#voice").addEventListener("click",e=>{const b=e.target.closest("button");if(!
 $("#rate").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;rate=+b.dataset.r;
   [...$("#rate").children].forEach(x=>x.setAttribute("aria-pressed",x===b))});
 
-/* Auto-play: sang câu mới thì tự đọc câu đó (mặc định bật, lưu trong máy). Không tự phát khi đang ghi âm, đang tour/làm thử, hoặc chưa có file âm thanh (không dùng giọng trình duyệt vì hay bị chặn). */
+/* Auto-play: mỗi bước, tự đọc đúng cụm A1 / A2 đang hiển thị (không đọc cả câu). Mặc định bật, lưu trong máy.
+   Không tự phát khi đang ghi âm, tour / làm thử, ở trang chủ, hoặc chưa có file âm thanh (không dùng giọng trình duyệt vì hay bị chặn). */
 const AutoPlay=(function(){
-  const KEY="reed_autoplay", btn=$("#autoBtn"); let on=true, key="", timer=0;
+  const KEY="reed_autoplay", btn=$("#autoBtn"); let on=true, key="", timer=0, tapAt=0;
   try{ on=localStorage.getItem(KEY)!=="0"; }catch(e){}
   const sync=()=>{ btn.setAttribute("aria-pressed",on); };
   btn.addEventListener("click",()=>{ on=!on; try{ localStorage.setItem(KEY,on?"1":"0"); }catch(e){} sync(); if(!on){ clearTimeout(timer); } });
@@ -2208,25 +2210,27 @@ const AutoPlay=(function(){
       ||(typeof Tour!=="undefined"&&(Tour.active||Tour.welcomeOpen))||(typeof Practice!=="undefined"&&Practice.active)
       ||(typeof Rec!=="undefined"&&(Rec.open||Rec.state==="recording"));
   }
-  function fire(){
+  function fire(text){
     if(!on||blocked()) return;
-    const t=currentText(), id=AUDIO[t]; if(!id) return;
+    const id=AUDIO[text]; if(!id) return;
     stopAll(); const a=new Audio(`audio/${voiceKind}/${id}.mp3`); a.playbackRate=rate; a.preservesPitch=true; audioEl=a;
-    a.onended=()=>{ if(audioEl===a){ audioEl=null; setPlayIcon(false); } };
-    a.onerror=()=>{ if(audioEl===a){ audioEl=null; setPlayIcon(false); } };
-    a.play().then(()=>{ if(audioEl===a) setPlayIcon(true); }).catch(()=>{ if(audioEl===a){ audioEl=null; setPlayIcon(false); } });
+    const done=()=>{ if(audioEl===a){ audioEl=null; setPlayIcon(false); } };
+    a.onended=done; a.onerror=done;
+    a.play().then(()=>{ if(audioEl===a) setPlayIcon(true); }).catch(done);
   }
-  /* gọi từ update(): chỉ chạy khi câu / trạng thái thay đổi (lần đầu chỉ ghi nhận, không phát) */
-  function check(pi,si){
-    const away=player.classList.contains("away"), k=away?"away":curTopic+":"+pi+":"+si;
+  /* gọi từ update(): chạy khi bước thay đổi (đổi câu, hoặc cụm đổi A1⇄A2); lần đầu chỉ ghi nhận, không phát */
+  function check(pi,si,ph){
+    const away=player.classList.contains("away"), k=away?"away":curTopic+":"+pi+":"+si+":"+(ph?ph.i+"."+ph.j:"-");
     if(k===key) return; const first=key===""; key=k;
     if(first||!on) return;
     clearTimeout(timer);
     if(away||blocked()) return;
-    if(isPlaying()) stopAll();   /* vuốt tiếp: dừng giọng của câu cũ ngay */
-    timer=setTimeout(fire,350);
+    if(isPlaying()) stopAll();   /* sang bước khác: dừng giọng cũ ngay */
+    if(!ph||performance.now()-tapAt<900) return;   /* câu không có cụm A1/A2, hoặc người dùng vừa chạm cụm (đã tự đọc) */
+    const o=opts(pi,ph.i), text=o[Math.min(ph.j,o.length-1)].w;
+    timer=setTimeout(()=>fire(text),350);
   }
-  return {check,get on(){ return on; }};
+  return {check,noteTap(){ tapAt=performance.now(); },get on(){ return on; }};
 })();
 
 /* ---------- Hướng dẫn đúng lúc (contextual tips): hiện bong bóng nhỏ đúng chỗ, đúng thời điểm, mỗi gợi ý tối đa vài lần,

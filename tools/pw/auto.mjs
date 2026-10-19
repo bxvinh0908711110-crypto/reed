@@ -13,15 +13,21 @@ for(const [name,opts] of [['13',devices['iPhone 13']],['SE',devices['iPhone SE']
   const src=()=>p.evaluate(()=>{ const l=window.__played.filter(x=>/^(fe)?male[/]/.test(x)); return l.length?l[l.length-1]:null; });
   const mark=()=>p.evaluate(()=>{ window.__played=[]; });
   ok(await p.evaluate(()=>document.querySelector('#autoBtn').getAttribute('aria-pressed')==='true'),'mặc định bật');
-  ok(await src()===null,'ở trang chủ: không tự phát');
-  await mark(); await p.evaluate(()=>goStep(1)); await p.waitForTimeout(2000);
-  let s1=await src(); ok(!!s1&&s1.startsWith('female/'),'vào bài: tự đọc câu đầu ('+s1+')');
-  await mark(); await p.evaluate(()=>goStep(1)); await p.waitForTimeout(1800);
-  let s2=await src(); ok(!!s2&&s2!==s1,'sang câu kế: tự đọc câu mới ('+s2+')');
-  // vuốt nhanh 3 bước liên tiếp: chỉ đọc câu cuối, không chồng
-  await mark(); await p.evaluate(()=>{ goStep(1); }); await p.waitForTimeout(950); await p.evaluate(()=>goStep(1)); await p.waitForTimeout(1600);
-  const cnt=await p.evaluate(()=>({n:window.__played.length,last:window.__played[window.__played.length-1]}));
-  ok(cnt.n>=1&&cnt.n<=3&&!!cnt.last,'qua nhiều bước: ít lần phát, không chồng ('+JSON.stringify(cnt)+')');
+  const said=()=>p.evaluate(()=>{ const inv=Object.fromEntries(Object.entries(AUDIO).map(([k,v])=>[v,k])); return window.__played.filter(x=>/^(fe)?male[/]/.test(x)).map(x=>inv[x.split('/')[1].replace('.mp3','')]); });
+  const mark2=()=>p.evaluate(()=>{ window.__played=[]; });
+  ok((await said()).length===0,'ở trang chủ: không tự phát');
+  await mark2(); await p.evaluate(()=>goStep(1)); await p.waitForTimeout(2000);
+  ok((await said()).length===0,'vào bài, câu đầu không có cụm A1/A2: không đọc gì');
+  await mark2(); await p.evaluate(()=>goStep(1)); await p.waitForTimeout(1800);
+  let sa=await said(); ok(sa.length===1&&sa[0]==='father and mother','sang câu có cụm: chỉ đọc cụm A1, không đọc cả câu '+JSON.stringify(sa));
+  await mark2(); await p.evaluate(()=>goStep(1)); await p.waitForTimeout(1800);
+  sa=await said(); ok(sa.length===1&&sa[0]==='parents','bước kế (A1 → A2): đọc cụm A2 '+JSON.stringify(sa));
+  // chạm cụm: chỉ phát một lần (không đọc đôi)
+  await mark2(); await p.evaluate(()=>{ document.querySelector('.sent .ph').click(); }); await p.waitForTimeout(2200);
+  sa=await said(); ok(sa.length===1,'chạm cụm: đọc đúng một lần '+JSON.stringify(sa));
+  // vuốt nhanh nhiều bước: không chồng
+  await mark2(); await p.evaluate(()=>{ goStep(1); }); await p.waitForTimeout(950); await p.evaluate(()=>goStep(1)); await p.waitForTimeout(1800);
+  sa=await said(); ok(sa.length>=1&&sa.length<=2&&sa.every(x=>x.split(' ').length<=4),'qua nhiều bước: chỉ đọc cụm, ít lần phát '+JSON.stringify(sa));
   // tắt công tắc
   await p.evaluate(()=>document.querySelector('#openSettings').click()); await p.waitForTimeout(600);
   const lay=await p.evaluate(()=>{ const R=e=>{const r=e.getBoundingClientRect();return [Math.round(r.left),Math.round(r.right),Math.round(r.width)]}; const bar=R(document.querySelector('#player')); const bs=[...document.querySelectorAll('.settings-row button')].map(R); return {bar,btns:bs,minW:Math.min(...bs.map(x=>x[2])),inside:bs.every(x=>x[0]>=bar[0]-1&&x[1]<=bar[1]+1)}; });
@@ -30,8 +36,8 @@ for(const [name,opts] of [['13',devices['iPhone 13']],['SE',devices['iPhone SE']
   await p.evaluate(()=>document.querySelector('#autoBtn').click()); await p.waitForTimeout(300);
   ok(await p.evaluate(()=>document.querySelector('#autoBtn').getAttribute('aria-pressed')==='false'&&localStorage.getItem('reed_autoplay')==='0'),'tắt công tắc: lưu trong máy');
   await p.evaluate(()=>document.querySelector('#closeSettings').click()); await p.waitForTimeout(500);
-  await p.evaluate(()=>{ stopAll(); }); await mark(); await p.evaluate(()=>goStep(1)); await p.waitForTimeout(1800);
-  ok(await src()===null,'công tắc tắt: sang câu mới không tự đọc');
+  await p.evaluate(()=>{ stopAll(); }); await mark2(); await p.evaluate(()=>goStep(1)); await p.waitForTimeout(1800);
+  ok((await said()).length===0,'công tắc tắt: sang câu mới không tự đọc');
   await p.reload(); await p.waitForTimeout(5000);
   ok(await p.evaluate(()=>document.querySelector('#autoBtn').getAttribute('aria-pressed')==='false'),'tải lại trang: vẫn tắt');
   ok(errs.length===0,'không lỗi JS'+(errs.length?': '+errs[0]:'')); await ctx.close();
