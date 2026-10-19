@@ -5,7 +5,7 @@ const srv=http.createServer((q,r)=>{const u=decodeURIComponent(q.url.split('?')[
 const port=await new Promise(res=>srv.on('listening',()=>res(srv.address().port)));
 fs.mkdirSync('tools/pw/shots',{recursive:true});
 let fails=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) fails++; };
-const SIZES=[['phone390',390,844,true],['phoneSE',320,568,true],['tabP820',820,1180,true],['tabP834',834,1194,true],['tabL1180',1180,820,true],['tabP1024',1024,1366,true],['desk1280',1280,720,false]];
+const SIZES=[['phone390',390,844,true],['phone375',375,812,true],['phone360',360,800,true],['phoneSE',320,568,true],['tabP820',820,1180,true],['tabP834',834,1194,true],['tabL1180',1180,820,true],['tabP1024',1024,1366,true],['desk1280',1280,720,false]];
 const b=await chromium.launch();
 for(const [name,w,h,touch] of SIZES){
   const ctx=await b.newContext({viewport:{width:w,height:h},deviceScaleFactor:1,isMobile:touch,hasTouch:touch}); await ctx.addInitScript(()=>{localStorage.setItem('reed_tour_done','1');localStorage.setItem('reed_tips',JSON.stringify({swipe_done:1,tap_done:1,listen_done:1,hold_done:1,recap_done:1,save_done:1}))}); await ctx.route('**/*supabase.co/**',r=>r.abort());
@@ -15,8 +15,8 @@ for(const [name,w,h,touch] of SIZES){
   await p.evaluate(()=>goStep(1)); await p.waitForTimeout(1500);
   await p.evaluate(()=>document.querySelector('#topics [data-all]').click()); await p.waitForTimeout(1000);
   const top=await R('.top'), brand=await R('.top .brand'), btext=await R('.top .brandtext'), slog=await R('.top .brandtext i'), topics=await R('#topics'), right=await R('.top .right');
-  ok(slog&&(w<=340?!slog.vis:(slog.vis&&slog.h>0)),name+': '+(w<=340?'màn rất hẹp (≤340px): ẩn slogan để vừa hàng':'có dòng slogan dưới logo ')+JSON.stringify(slog));
-  ok(slog&&(w<=340||(w<=430?slog.h<=26:slog.h<=16)),name+': slogan '+(w<=430?'tối đa 2 dòng':'một dòng')+' (cao '+(slog&&slog.h)+'px)');
+  ok(slog&&(w<=350?!slog.vis:(slog.vis&&slog.h>0)),name+': '+(w<=350?'màn rất hẹp (≤350px): ẩn slogan để vừa hàng':'có dòng slogan dưới logo ')+JSON.stringify(slog));
+  ok(slog&&(w<=350||(w<=430?slog.h<=12:slog.h<=16)),name+': slogan '+(w<=430?'một dòng':'một dòng')+' (cao '+(slog&&slog.h)+'px)');
   ok(right.t<brand.b&&right.b>brand.t,name+': logo và các nút (How to Learn, nhạc, sổ tay) cùng một hàng '+JSON.stringify({brand:[brand.t,brand.b],right:[right.t,right.b]}));
   const tabsInfo=await p.evaluate(()=>[...document.querySelectorAll('#topics button')].map(b=>({k:b.dataset.k,name:b.getAttribute('aria-label'),r:Math.round(b.getBoundingClientRect().right),vis:b.offsetWidth>0})));
   ok(tabsInfo.every(x=>x.name),name+': mọi tab chủ đề có tên (aria-label)');
