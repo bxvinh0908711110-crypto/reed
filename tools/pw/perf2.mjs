@@ -25,7 +25,7 @@ const mk=async(opts,init)=>{ const ctx=await b.newContext(opts); await ctx.addIn
   const n0=reqs.length; await p.evaluate(()=>{ prefetchAudio(active.pi,active.si); }); await p.waitForTimeout(500);
   ok(reqs.length===n0,'không tải lặp lại cùng file');
   await ctx.close(); }
-{ const ctx=await mk(devices['iPhone 13'],()=>{ Object.defineProperty(navigator,'connection',{value:{saveData:true,effectiveType:'4g'},configurable:true}); }); const p=await ctx.newPage(); const reqs=[]; p.on('request',q=>{ if(/\/audio\/(female|male)\//.test(q.url())) reqs.push(q.url()); });
+{ const ctx=await mk(devices['iPhone 13'],()=>{ localStorage.setItem('reed_autoplay','0'); Object.defineProperty(navigator,'connection',{value:{saveData:true,effectiveType:'4g'},configurable:true}); }); const p=await ctx.newPage(); const reqs=[]; p.on('request',q=>{ if(/\/audio\/(female|male)\//.test(q.url())) reqs.push(q.url()); });
   await p.goto(`http://localhost:${port}/`); await p.waitForTimeout(4500); await p.evaluate(()=>goStep(1)); await p.waitForTimeout(2500);
   ok(reqs.length===0,'bật tiết kiệm dữ liệu: không tải trước ('+reqs.length+')'); await ctx.close(); }
 // 3. chế độ nhẹ

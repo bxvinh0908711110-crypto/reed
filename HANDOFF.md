@@ -88,3 +88,4 @@ Tôi đang làm **Reed**, web app học tiếng Anh một file HTML (`E:\Your En
 - **Nhạc nền:** nút ♫ trên đầu trang (giữa How to Learn và Sổ tay), file `audio/music/reed_family_lofi_30s.mp3`, lặp, volume .3, tạm dừng khi ghi âm / ẩn tab (`Bgm`, `music.mjs`).
 - **Icon lưu** đổi thành ngôi sao. **Tour hướng dẫn 13 bước** theo nội dung người dùng đưa (`tour13.mjs`; `tour2.mjs` là bản cũ 9 bước, không còn đúng).
 - **Trang chủ:** lăn chuột / vuốt lên / phím ↓ ở trang chủ mở trang tổng quan (như Start Reading), không rơi thẳng vào bài (`userStep`; `goStep` gọi trực tiếp vẫn đi vào bài, nên test dùng `goStep(1)` để vào bài).
+- **Auto-play** (công tắc 🔊 trong hàng cài đặt của player, mặc định bật, lưu `reed_autoplay`): sang câu mới tự đọc câu đó (trễ 0,35s, vuốt nhanh chỉ đọc câu cuối); không chạy khi ghi âm / tour / làm thử / trang chủ; không dùng giọng trình duyệt (`auto.mjs`).
