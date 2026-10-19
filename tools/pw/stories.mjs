@@ -1,7 +1,9 @@
 // Chủ đề Stories + bài đặc biệt "The Fall of the Soviet Union" (iframe). Chạy: node tools/pw/stories.mjs
 import { chromium, devices } from 'playwright'; import http from 'http'; import fs from 'fs'; import path from 'path';
 const MIME={'.html':'text/html','.js':'text/javascript','.png':'image/png','.webp':'image/webp','.svg':'image/svg+xml','.woff2':'font/woff2','.mp3':'audio/mpeg','.wav':'audio/wav','.webmanifest':'application/manifest+json'};
-const srv=http.createServer((q,r)=>{const u=decodeURIComponent(q.url.split('?')[0]).replace(/^\//,'')||'index.html';try{const b=fs.readFileSync('E:/Your English/deploy/'+u);r.setHeader('Content-Type',MIME[path.extname(u)]||'application/octet-stream');r.end(b)}catch{r.statusCode=404;r.end()}}).listen(0);
+const srv=http.createServer((q,r)=>{let u=decodeURIComponent(q.url.split('?')[0]).replace(/^\//,'');
+  if(/(^|\/)index\.html$/.test(u)){ const qs=q.url.includes('?')?q.url.slice(q.url.indexOf('?')):''; r.statusCode=307; r.setHeader('Location','/'+u.replace(/index\.html$/,'')+qs); r.end(); return; }   // giống Cloudflare: /…/index.html → /…/ (307)
+  if(u===''||u.endsWith('/'))u+='index.html';try{const b=fs.readFileSync('E:/Your English/deploy/'+u);r.setHeader('Content-Type',MIME[path.extname(u)]||'application/octet-stream');r.end(b)}catch{r.statusCode=404;r.end()}}).listen(0);
 const port=await new Promise(res=>srv.on('listening',()=>res(srv.address().port)));
 fs.mkdirSync('tools/pw/shots',{recursive:true});
 let fails=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) fails++; };
@@ -26,7 +28,7 @@ for(const [name,opts] of [['mobile',devices['iPhone 13']],['desktop',{viewport:{
   await p.evaluate(()=>Bgm.on()); await p.waitForTimeout(500);
   ok(await p.evaluate(()=>Bgm.playing),'nhạc nền đang phát trước khi mở bài');
   await p.evaluate(()=>document.querySelector('#lscGrid .lscCard.story').click()); await p.waitForTimeout(500);
-  ok(await p.evaluate(()=>!document.querySelector('#storyView').hidden&&document.body.classList.contains('storyOpen')&&document.querySelector('#storyFrame').src.includes('stories/ussr/index.html?embed=1&lang=en_michael')),'mở bài: overlay + iframe (embed, giọng English)');
+  ok(await p.evaluate(()=>!document.querySelector('#storyView').hidden&&document.body.classList.contains('storyOpen')&&document.querySelector('#storyFrame').src.includes('stories/ussr/?embed=1&lang=en_michael')),'mở bài: overlay + iframe (embed, giọng English)');
   ok(!(await p.evaluate(()=>Bgm.playing)),'mở bài: nhạc nền của Reed tạm dừng');
   const fr=p.frames().find(f=>f.url().includes('/stories/ussr/'));
   await fr.waitForSelector('body[data-ready="1"]',{timeout:60000}); await p.waitForTimeout(500);

@@ -1,7 +1,9 @@
 // Service Worker + Stories: lưu bài sau lần xem đầu, mở lại được khi offline, và không làm hỏng bản lưu trang chủ. Chạy: node tools/pw/storysw.mjs
 import { chromium, devices } from 'playwright'; import http from 'http'; import fs from 'fs'; import path from 'path';
 const MIME={'.html':'text/html','.js':'text/javascript','.png':'image/png','.webp':'image/webp','.svg':'image/svg+xml','.woff2':'font/woff2','.mp3':'audio/mpeg','.wav':'audio/wav','.webmanifest':'application/manifest+json'};
-const srv=http.createServer((q,r)=>{const u=decodeURIComponent(q.url.split('?')[0]).replace(/^\//,'')||'index.html';try{const b=fs.readFileSync('E:/Your English/deploy/'+u);r.setHeader('Content-Type',MIME[path.extname(u)]||'application/octet-stream');r.end(b)}catch{r.statusCode=404;r.end()}}).listen(0);
+const srv=http.createServer((q,r)=>{let u=decodeURIComponent(q.url.split('?')[0]).replace(/^\//,'');
+  if(/(^|\/)index\.html$/.test(u)){ const qs=q.url.includes('?')?q.url.slice(q.url.indexOf('?')):''; r.statusCode=307; r.setHeader('Location','/'+u.replace(/index\.html$/,'')+qs); r.end(); return; }   // giống Cloudflare: /…/index.html → /…/ (307)
+  if(u===''||u.endsWith('/'))u+='index.html';try{const b=fs.readFileSync('E:/Your English/deploy/'+u);r.setHeader('Content-Type',MIME[path.extname(u)]||'application/octet-stream');r.end(b)}catch{r.statusCode=404;r.end()}}).listen(0);
 const port=await new Promise(res=>srv.on('listening',()=>res(srv.address().port)));
 let fails=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) fails++; };
 const b=await chromium.launch({args:['--autoplay-policy=no-user-gesture-required']});
@@ -14,7 +16,7 @@ const open=async()=>{ await p.evaluate(()=>{ document.querySelector('#startBtn')
 let fr=await open();
 await fr.evaluate(()=>document.querySelector('#go').click()); await p.waitForTimeout(500);
 await fr.evaluate(()=>scrollTo(0,innerHeight)); await p.waitForTimeout(4000);   // phát câu 1 để lưu file giọng
-const c=await p.evaluate(async()=>{ const s=await caches.open('reed-stories-v1'); const k=(await s.keys()).map(r=>new URL(r.url).pathname); const sh=await caches.open('reed-v3-shell'); const home=await sh.match('index.html'); const t=home?await home.text():''; return {n:k.length,hasPage:k.some(x=>x.endsWith('/stories/ussr/index.html')),hasImg:k.some(x=>/\.webp$/.test(x)),hasAudio:k.some(x=>/\.(mp3|wav)$/.test(x)),homeIsReed:t.includes('id="startBtn"')&&!t.includes('The Fall of the Soviet Union</title>')}; });
+const c=await p.evaluate(async()=>{ const s=await caches.open('reed-stories-v1'); const k=(await s.keys()).map(r=>new URL(r.url).pathname); const sh=await caches.open('reed-v4-shell'); const home=await sh.match('index.html'); const t=home?await home.text():''; return {n:k.length,hasPage:k.some(x=>x.endsWith('/stories/ussr/')),hasImg:k.some(x=>/\.webp$/.test(x)),hasAudio:k.some(x=>/\.(mp3|wav)$/.test(x)),homeIsReed:t.includes('id="startBtn"')&&!t.includes('The Fall of the Soviet Union</title>')}; });
 ok(c.hasPage&&c.hasImg&&c.hasAudio&&c.n>=20,'đã lưu trang, ảnh và âm thanh của Stories sau lần xem đầu '+JSON.stringify({n:c.n}));
 ok(c.homeIsReed,'bản lưu trang chủ vẫn là trang Reed (iframe không ghi đè)');
 await p.evaluate(()=>document.querySelector('#storyClose').click()); await p.waitForTimeout(400);

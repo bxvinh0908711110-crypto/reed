@@ -2212,21 +2212,22 @@ $("#rate").addEventListener("click",e=>{const b=e.target.closest("button");if(!b
 /* Auto-play: mỗi bước, tự đọc đúng cụm A1 / A2 đang hiển thị (không đọc cả câu). Mặc định bật, lưu trong máy.
    Không tự phát khi đang ghi âm, tour / làm thử, ở trang chủ, hoặc chưa có file âm thanh (không dùng giọng trình duyệt vì hay bị chặn). */
 /* Stories: mở bài đặc biệt toàn màn hình; trang con báo về (sẵn sàng / xem hết / đóng) bằng postMessage */
-let storyId=null;
+let storyId=null, storyT=0;
 function openStory(slug){
   const st=STORIES.find(x=>x.slug===slug); if(!st) return;
   stopAll(); Bgm.pauseTemp();
   const view=$("#storyView"); storyId=st.id;
   let fr=$("#storyFrame"); if(fr) fr.remove();
   fr=document.createElement("iframe"); fr.id="storyFrame"; fr.title="Story"; fr.allow="autoplay; fullscreen"; fr.referrerPolicy="no-referrer"; view.insertBefore(fr,view.firstChild);   /* tạo mới mỗi lần mở, bỏ hẳn khi đóng (dừng âm thanh, trả tiêu điểm bàn phím) */
-  document.body.classList.add("storyOpen"); view.hidden=false; $("#storyLoad").hidden=false;
+  document.body.classList.add("storyOpen"); view.hidden=false; $("#storyLoad").hidden=false; $("#storyLoad").textContent="Loading story…";
   fr.onload=()=>{ try{ fr.contentWindow.focus(); }catch(e){} };
+  clearTimeout(storyT); storyT=setTimeout(()=>{ const l=$("#storyLoad"); if(!l.hidden) l.textContent="Couldn't load the story. Check your connection, tap ✕ and try again."; },20000);
   fr.src=st.src+"?embed=1&lang="+(document.body.classList.contains("lang-vi")?"vi":"en_michael");
   setTimeout(()=>{ $("#storyClose").focus({preventScroll:true}); },50);
 }
 function closeStory(){
   const view=$("#storyView"); if(view.hidden) return;
-  const fr=$("#storyFrame"); if(fr) fr.remove(); view.hidden=true; storyId=null;
+  clearTimeout(storyT); const fr=$("#storyFrame"); if(fr) fr.remove(); view.hidden=true; storyId=null;
   document.body.classList.remove("storyOpen"); Bgm.resume();
   try{ window.focus(); }catch(e){}
   if(typeof renderLessonList==="function"&&document.body.classList.contains("listOpen")) renderLessonList();
@@ -2701,7 +2702,7 @@ const Rec=(function(){
   setInterval(()=>{ w.classList.add("out"); setTimeout(()=>{ i=(i+1)%words.length; w.textContent=words[i]; w.classList.remove("out"); },280); },2400);
 })();
 /* Stories: bài đặc biệt có hoạt hình tương tác, mở bằng trang riêng (iframe) thay vì engine đọc từng câu */
-const STORIES=[{id:"story-ussr",slug:"ussr",title:"The Fall of the Soviet Union",level:"B1",dur:"1:13",cover:"img/topic-stories.webp",src:"stories/ussr/index.html"}];
+const STORIES=[{id:"story-ussr",slug:"ussr",title:"The Fall of the Soviet Union",level:"B1",dur:"1:13",cover:"img/topic-stories.webp",src:"stories/ussr/"}];   /* địa chỉ thư mục: Cloudflare tự chuyển /index.html → / bằng 307, mà Service Worker không được trả lời chuyển hướng cho trang con */
 let storiesView=false;   /* true: danh sách bài đang hiển thị là danh sách Stories (chủ đề đọc hiện tại vẫn giữ nguyên) */
 const hasLessons=k=>k==="stories"?STORIES.length>0:ALL.some(p=>p.cat===k);
 /* ---------- Màn hình danh sách bài (nút Start Reading) ----------

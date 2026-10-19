@@ -3,7 +3,7 @@
    - Âm thanh mp3: lưu lần nghe đầu tiên và có thể tải sẵn hàng loạt (app gửi danh sách qua postMessage). Hỗ trợ yêu cầu Range (Safari).
    - Dữ liệu bài từ Supabase (khác nguồn) không đi qua đây: app tự có cơ chế dự phòng (localStorage + dữ liệu nhúng).
    Khi đổi index.html/ảnh/phông/icon: tăng VERSION. Khi tạo lại âm thanh cho cùng một tên file: tăng AUDIO_CACHE. */
-const VERSION = "reed-v3";
+const VERSION = "reed-v4";   /* v4: dọn bản lưu trang chủ có thể bị bài Stories ghi đè bởi SW cũ */
 const SHELL = VERSION + "-shell";
 const AUDIO_CACHE = "reed-audio-v2";
 const STORY_CACHE = "reed-stories-v1";   /* bài Stories: tải khi mở, lưu lại sau lần xem đầu (không tải sẵn ~13 MB) */
@@ -91,7 +91,8 @@ async function stories(req) {
     try {
       const full = await fetch(key);
       if (!(full.ok && full.status === 200)) return full;
-      cache.put(key, full.clone()); hit = full;
+      hit = full.redirected ? await clean(full) : full;   /* trang con không được nhận phản hồi "redirected" */
+      cache.put(key, hit.clone());
     } catch (err) { return fetch(req); }
   }
   return range ? rangeFrom(hit, range) : hit;
