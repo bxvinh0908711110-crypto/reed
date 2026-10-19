@@ -679,7 +679,9 @@ body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webki
 .lscGrid{flex:1;overflow-y:auto;padding:4px 6vw calc(env(safe-area-inset-bottom,0px) + 32px);display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:30px 22px;align-content:start;-webkit-overflow-scrolling:touch}
 .lscCard{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"thumb thumb" "text side";column-gap:8px;row-gap:12px;border:0;padding:0;margin:0;background:none;text-align:left;font:inherit;color:var(--ink);cursor:pointer;-webkit-tap-highlight-color:transparent;
   animation:rise .45s calc(var(--n,0)*70ms + .08s) cubic-bezier(.2,.8,.2,1) backwards}
-.lscThumb{grid-area:thumb;position:relative;display:block;aspect-ratio:16/9;border-radius:16px;overflow:hidden;background:var(--leaf)}
+.lscThumb{grid-area:thumb;position:relative;display:block;aspect-ratio:16/9;border-radius:16px;overflow:hidden;background:#e3e5e8}   /* ô xám làm khung chờ, ảnh mờ vào khi đã tải xong */
+.lscThumb img{opacity:0;transition:opacity .25s ease}
+.lscThumb img.ld{opacity:1}
 .lscThumb img,.lscThumb svg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 .lscDur{position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.78);color:#fff;font-size:11.5px;font-weight:600;padding:2px 5px;border-radius:5px;line-height:1.35}
 .lscSeen{position:absolute;left:0;right:0;bottom:0;height:4px;background:var(--accent)}   /* đã đọc: vạch tiến độ đầy ở chân ảnh, như video đã xem trên YouTube */
@@ -742,6 +744,15 @@ body.listOpen .pwaPill{display:none}
   .hero.heroRise h1,.hero.heroRise p,.hero.heroRise .heroCta{animation-name:heroInSoft}
   .hero.heroRise .heroImg{animation-name:heroImgInSoft}
 }
+/* Chế độ nhẹ cho máy yếu (html.lite): như điện thoại, thêm bỏ hiệu ứng vào trang và đổ bóng nặng */
+html.lite #main.homeOut{filter:none}
+html.lite body.lang-sw .sents{filter:none}
+html.lite .rcw[data-m=up] .base,html.lite .rcw[data-m=base] .up{filter:none}
+html.lite .hero.heroRise h1,html.lite .hero.heroRise p,html.lite .hero.heroRise .heroCta{animation-name:heroInSoft}
+html.lite .hero.heroRise .heroImg{animation-name:heroImgInSoft}
+html.lite .lscCard,html.lite .lsc,html.lite .ovSec{animation:none;transition:none}
+html.lite .lscThumb img{transition:none}
+html.lite .player,html.lite .pwaBar,html.lite .toast{box-shadow:none}
 /* ---- PWA: thanh thông báo + nút cài app ---- */
 .pwaBar{position:fixed;z-index:90;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 106px);transform:translate(-50%,16px);width:max-content;max-width:calc(100vw - 32px);display:flex;align-items:center;gap:14px;padding:12px 18px;border-radius:999px;background:var(--bar);color:#fff;font-size:13.5px;font-weight:600;box-shadow:0 12px 32px rgba(0,0,0,.28);opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease}
 .pwaBar.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
@@ -1261,9 +1272,13 @@ function layout(){
 /* ---------- Cập nhật khi cuộn ---------- */
 /* Điện thoại / màn nhỏ: bỏ hiệu ứng nhoè (blur) khi chữ trượt, vì nặng với GPU di động; vẫn giữ trượt + mờ dần. */
 const noBlurMQ=matchMedia("(hover: none), (max-width: 820px)");
-let noBlur=noBlurMQ.matches;
+/* Máy yếu (RAM ≤ 2GB, ≤ 4 nhân trên thiết bị cảm ứng, hoặc bật tiết kiệm dữ liệu): chế độ nhẹ = bỏ blur và hiệu ứng vào trang. Thử: ?lite=1 bật, ?lite=0 tắt. */
+const LITE=(()=>{ try{ const q=new URLSearchParams(location.search).get("lite"); if(q==="1") return true; if(q==="0") return false; }catch(e){}
+  const n=navigator, c=n.connection; return (n.deviceMemory&&n.deviceMemory<=2)||(n.hardwareConcurrency&&n.hardwareConcurrency<=4&&matchMedia("(hover: none)").matches)||!!(c&&c.saveData); })();
+if(LITE) document.documentElement.classList.add("lite");
+let noBlur=noBlurMQ.matches||LITE;
 const PH_TAU=()=>noBlur?40:150;   /* hằng số làm mượt khi đổi A1⇄A2 (ms): điện thoại 40ms ≈ xong trong 0,15s, máy tính 150ms */
-if(noBlurMQ.addEventListener) noBlurMQ.addEventListener("change",e=>{ noBlur=e.matches; });
+if(noBlurMQ.addEventListener) noBlurMQ.addEventListener("change",e=>{ noBlur=e.matches||LITE; });
 function setPhrase(ph,f){
   const w=ph._w, n=w.length, lo=Math.min(Math.floor(f),n-1), hi=Math.min(lo+1,n-1), fr=f-lo;
   const X=w[lo]+(w[hi]-w[lo])*fr;
@@ -1642,7 +1657,7 @@ function update(){
     pp.el.classList.toggle("on",on);
     if(on) act={pi,si:cur};
   });
-  if(act){ if((act.pi!==active.pi||act.si!==active.si)&&document.body.classList.contains("lang-vi")) setLang("en"); active=act; }   /* qua câu/bài khác: bản dịch tự trả về tiếng Anh */
+  if(act){ if((act.pi!==active.pi||act.si!==active.si)&&document.body.classList.contains("lang-vi")) setLang("en"); active=act; const pk=curTopic+":"+act.pi+":"+act.si; if(pk!==preKey){ preKey=pk; setTimeout(()=>prefetchAudio(act.pi,act.si),400); } }   /* qua câu/bài khác: bản dịch tự trả về tiếng Anh */
   updatePlayerUI();
   playBtns.forEach(b=>b.setAttribute("aria-label", P[active.pi].sents[active.si].recap ? "Play whole passage" : "Play sentence"));
   if(!raf){ lastT=0; raf=requestAnimationFrame(tick); }
@@ -2124,6 +2139,22 @@ function speak(t,onEnd){
   a.onerror=fallback; a.onended=()=>{ if(audioEl===a){ audioEl=null; setPlayIcon(false); } if(onEnd) onEnd(); };
   a.play().catch(fallback); setPlayIcon(true);
 }
+/* Tải trước âm thanh: câu đang đọc và câu kế tiếp (cả bản A1 lẫn A2), chỉ giọng đang chọn; bỏ qua khi bật tiết kiệm dữ liệu / mạng 2G */
+const preSeen=new Set(); let preKey="";
+function sentTexts(pi,si){
+  const pp=P[pi], s=pp&&pp.sents[si]; if(!s) return [];
+  const tpl=passages[pi].tpl, one=(str,pick)=>str.replace(/{(d)}/g,(_,i)=>pick(+i)), out=[];
+  if(s.recap){ out.push(one(tpl,i=>{const o=opts(pi,i);return o[o.length-1].w}), one(tpl,i=>opts(pi,i)[0].w)); }
+  else { const str=s.lines.map(l=>l.tpl).join(" "); out.push(one(str,i=>opts(pi,i)[0].w), one(str,i=>{const o=opts(pi,i);return o[o.length-1].w})); }
+  return out;
+}
+function prefetchAudio(pi,si){
+  const c=navigator.connection; if(c&&(c.saveData||/(^|-)2g$/.test(c.effectiveType||""))) return;
+  const list=[]; let p=pi, q=si;
+  for(let n=0;n<2;n++){ list.push(...sentTexts(p,q)); q++; if(P[p]&&q>=P[p].sents.length){ p++; q=0; } if(!P[p]) break; }
+  list.forEach(t=>{ const id=AUDIO[t]; if(!id) return; const u=`audio/${voiceKind}/${id}.mp3`; if(preSeen.has(u)) return; preSeen.add(u);
+    try{ fetch(u,{priority:"low"}).then(r=>{ if(!r.ok) preSeen.delete(u); return r.arrayBuffer(); }).catch(()=>preSeen.delete(u)); }catch(e){} });
+}
 function currentText(){
   const {pi,si}=active, s=P[pi].sents[si], tpl=passages[pi].tpl;
   const one=(str,pick)=>str.replace(/\{(\d)\}/g,(_,i)=>pick(+i));
@@ -2583,19 +2614,21 @@ function lscPlace(){ const v=Math.round($(".top").getBoundingClientRect().bottom
 let lscFilter="all";   /* all | unread | read */
 const lscCardHTML=(p,i,locked,read,n,k)=>{
   const src=IMG[p.scene];
-  const art=src?`<img src="${src}" alt="" loading="lazy" decoding="async" onerror="this.remove()">`:(scenes[p.scene]||scenes.hobbies).replace("<svg ",'<svg preserveAspectRatio="xMidYMid slice" ');
+  const art=src?`<img src="${src}" alt="" loading="lazy" decoding="async" onload="this.classList.add('ld')" onerror="this.remove()">`:(scenes[p.scene]||scenes.hobbies).replace("<svg ",'<svg preserveAspectRatio="xMidYMid slice" ');
   return `<button type="button" class="lscCard${locked?" locked":""}${read?" read":""}" data-i="${i}" data-k="${k}" data-id="${p.id}" style="--n:${n}" aria-label="${p.topic}${locked?" (locked)":""}">
       <span class="lscThumb">${art}<span class="lscDur">1 min</span>${locked?`<span class="lscLockBadge">${LSC_LOCK}</span>`:""}${read?'<i class="lscSeen"></i>':""}</span>
       <span class="lscText"><span class="lscTitle">${p.topic}</span><span class="lscMeta">Lesson ${String(i+1).padStart(2,"0")} · ${p.level||"A1"}</span></span>
       <span class="lscSide">${read?LSC_CHECK:""}</span>
     </button>`;
 };
+const markLoaded=root=>root.querySelectorAll("img").forEach(i=>{ if(i.complete&&i.naturalWidth) i.classList.add("ld"); });
 const lscFilterOK=(read)=>lscFilter==="all"||(lscFilter==="read"?read:!read);
 function renderLessonList(){
   document.querySelectorAll("#lscChips button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.f===lscFilter));
   const rows=passages.map((p,i)=>({p,i,read:readSet.has(p.id)})).filter(r=>lscFilterOK(r.read));
   if(!rows.length){ lscGrid.innerHTML=`<div class="lscEmpty">${lscFilter==="read"?"No lessons read yet":"All lessons read"}</div>`; return; }
   lscGrid.innerHTML=rows.map(({p,i,read},n)=>lscCardHTML(p,i,i>=unlockedCount,read,n,curTopic)).join("");
+  markLoaded(lscGrid);
 }
 $("#lscChips").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; lscFilter=b.dataset.f; renderLessonList(); lscGrid.scrollTop=0; });
 function openLessonList(){
@@ -2642,11 +2675,12 @@ function renderOverview(){
     return `<section class="ovSec" data-k="${t.k}">
     <button type="button" class="ovHead" data-k="${t.k}"><span class="ovIcon"><svg viewBox="${t.vb}" fill="currentColor" aria-hidden="true">${t.icon}</svg></span><span class="ovName">${t.label}</span><span class="ovMore">See all ›</span></button>
     <div class="ovRows"><button type="button" class="lscCard ovTopic" data-k="${t.k}" style="--n:${n}" aria-label="${t.label}, ${cnt}">
-      <span class="lscThumb">${im?`<img src="${im}" alt="${TOPIC_ALT[t.k]||t.label}" loading="lazy" decoding="async" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'ovGray'}))">`:'<span class="ovGray"></span>'}</span>
+      <span class="lscThumb">${im?`<img src="${im}" alt="${TOPIC_ALT[t.k]||t.label}" loading="lazy" decoding="async" onload="this.classList.add('ld')" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'ovGray'}))">`:'<span class="ovGray"></span>'}</span>
       <span class="lscText"><span class="lscTitle">${t.label}</span><span class="lscMeta">${cnt}</span></span>
       <span class="lscSide"></span>
     </button></div>
   </section>`;}).join("");
+  markLoaded(ovsBody);
 }
 function openOverview(){
   if(typeof Tour!=="undefined"&&(Tour.active||Tour.welcomeOpen)) return;
