@@ -5,7 +5,7 @@
    Khi đổi index.html/ảnh/phông/icon: tăng VERSION. Khi tạo lại âm thanh cho cùng một tên file: tăng AUDIO_CACHE. */
 const VERSION = "reed-v3";
 const SHELL = VERSION + "-shell";
-const AUDIO_CACHE = "reed-audio-v1";
+const AUDIO_CACHE = "reed-audio-v2";
 const SHELL_FILES = [
   "./", "manifest.webmanifest", "reed-icon.svg",
   "icons/icon-192.png", "icons/icon-512.png", "icons/icon-maskable-512.png", "icons/apple-touch-icon.png",

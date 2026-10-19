@@ -67,7 +67,7 @@ const newCtx=async(opts={},init)=>{ const c=await b.newContext(opts); await c.ad
 {
   const ctx=await newCtx({viewport:{width:1280,height:720}}); const p=await ctx.newPage();
   await p.goto(base+'index.html'); await p.waitForTimeout(5000); await p.evaluate(()=>navigator.serviceWorker.ready);
-  const r=await p.evaluate(()=>new Promise(res=>{ const urls=[]; Object.values(AUDIO).slice(0,20).forEach(id=>['female','male'].forEach(v=>urls.push(new URL(`audio/${v}/${id}.mp3`,location.href).href))); const msgs=[]; navigator.serviceWorker.addEventListener('message',e=>{ msgs.push(e.data.type); if(e.data.type==='AUDIO_DONE') caches.open('reed-audio-v1').then(c=>c.keys()).then(k=>res({n:k.length,expected:urls.length,msgs:[...new Set(msgs)]})); }); navigator.serviceWorker.controller?navigator.serviceWorker.controller.postMessage({type:'PRECACHE_AUDIO',urls}):navigator.serviceWorker.ready.then(g=>g.active.postMessage({type:'PRECACHE_AUDIO',urls})); setTimeout(()=>res({timeout:true}),20000); }));
+  const r=await p.evaluate(()=>new Promise(res=>{ const urls=[]; Object.values(AUDIO).slice(0,20).forEach(id=>['female','male'].forEach(v=>urls.push(new URL(`audio/${v}/${id}.mp3`,location.href).href))); const msgs=[]; navigator.serviceWorker.addEventListener('message',e=>{ msgs.push(e.data.type); if(e.data.type==='AUDIO_DONE') caches.open('reed-audio-v2').then(c=>c.keys()).then(k=>res({n:k.length,expected:urls.length,msgs:[...new Set(msgs)]})); }); navigator.serviceWorker.controller?navigator.serviceWorker.controller.postMessage({type:'PRECACHE_AUDIO',urls}):navigator.serviceWorker.ready.then(g=>g.active.postMessage({type:'PRECACHE_AUDIO',urls})); setTimeout(()=>res({timeout:true}),20000); }));
   ok(!r.timeout&&r.n>=r.expected,'tải sẵn âm thanh: '+JSON.stringify(r));
   await ctx.close();
 }
@@ -108,8 +108,8 @@ const newCtx=async(opts={},init)=>{ const c=await b.newContext(opts); await c.ad
   const p2=await ctx2.newPage(); await p2.goto(base+'index.html'); await p2.waitForTimeout(5000);
   await p2.evaluate(()=>{ const e=new Event('beforeinstallprompt'); e.prompt=()=>{}; e.userChoice=Promise.resolve({}); window.dispatchEvent(e); }); await p2.waitForTimeout(400);
   ok(await p2.evaluate(()=>!document.querySelector('.pwaPill')),'chạy ở chế độ standalone: không hiện nút cài');
-  for(let t=0;t<60;t++){ const have=await p2.evaluate(()=>caches.open('reed-audio-v1').then(c=>c.keys()).then(k=>[k.length,new Set(Object.values(AUDIO)).size*2])); if(have[0]>=have[1]) break; await p2.waitForTimeout(1000); }
-  const n=await p2.evaluate(()=>caches.open('reed-audio-v1').then(c=>c.keys()).then(k=>[k.length,new Set(Object.values(AUDIO)).size*2]));
+  for(let t=0;t<60;t++){ const have=await p2.evaluate(()=>caches.open('reed-audio-v2').then(c=>c.keys()).then(k=>[k.length,new Set(Object.values(AUDIO)).size*2])); if(have[0]>=have[1]) break; await p2.waitForTimeout(1000); }
+  const n=await p2.evaluate(()=>caches.open('reed-audio-v2').then(c=>c.keys()).then(k=>[k.length,new Set(Object.values(AUDIO)).size*2]));
   ok(n[0]>=n[1]&&n[0]>0,'standalone: tự tải sẵn toàn bộ âm thanh ('+n[0]+'/'+n[1]+')');
   await ctx2.close();
   // iOS Safari (giả lập UA): hướng dẫn "Thêm vào MH chính"
