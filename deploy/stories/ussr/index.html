@@ -56,7 +56,7 @@ body{margin:0;background:#101012;color:#ddd;font-family:system-ui,Segoe UI,sans-
 #start h1{font:700 28px/1.2 Georgia,serif;margin:0}#start p{margin:0;color:#bbb;max-width:520px;line-height:1.5}
 #start button{font:600 17px sans-serif;padding:12px 28px;border-radius:30px;border:0;background:#ffcf6b;color:#222;cursor:pointer}
 #start .sub{font-size:13px;color:#888}
-</style></head><body>
+</style><style>html.lite #stage *{filter:none!important}html.lite #stage.e2root{box-shadow:none}</style><script>(function(){var q=new URLSearchParams(location.search),l=q.get("lite");if(l==="1"||(l!=="0"&&matchMedia("(pointer:coarse),(max-width:760px)").matches))document.documentElement.classList.add("lite")})()</script></head><body>
 <div id="start"><h1>Sự sụp đổ của Liên Xô</h1><p>Cuộn chuột (hoặc phím ↓ ↑, Space, vuốt) để xem từng bước. Mỗi lần cuộn chạy một cảnh, rồi dừng chờ bạn.</p>
 <button id="go">Bắt đầu (có âm thanh)</button><button id="go0" style="background:#333;color:#ddd;font-size:14px;padding:8px 20px">Bắt đầu không âm thanh</button>
 <div class="sub">Hình minh hoạ, không phải tư liệu · bản mix thử, chưa duyệt</div></div>
@@ -558,7 +558,7 @@ window.SCENES=SCENES;window.NOMINAL=N;window.REFS=REFS;
 </script>
 <script>
 (function(){
-const q=new URLSearchParams(location.search),SC=window.SCENES,K=SC.length,API=Engine2,SETS=window.E2_SETS;
+const q=new URLSearchParams(location.search),LITE=q.get('lite')==='1'||(q.get('lite')!=='0'&&matchMedia('(pointer:coarse),(max-width:760px)').matches),SC=window.SCENES,K=SC.length,API=Engine2,SETS=window.E2_SETS;
 const stageEl=document.getElementById('stage'),capEl=document.getElementById('cap'),hint=document.getElementById('hint');
 // ---- mốc từng bước: bước k chạy từ SC[k].t0 tới SC[k+1].t0 (cảnh cuối: tới t1)
 const T0=SC.map(s=>s.t0),T1=SC.map((s,i)=>i<K-1?SC[i+1].t0-0.001:s.t1);
@@ -569,7 +569,9 @@ const fit=()=>Math.min(innerHeight/1672,innerWidth/941)*.985;
 function build(en){const spec={scenes:SC};const root=stageEl;root.innerHTML='';root.className='';S=fit();inst=API.create(root,spec,{S});inst.spec0=spec;
   if(en){inst=API.rebuild(inst,'en')}return inst}
 const isEn=l=>SETS&&SETS[l]&&SETS[l].subs[0]&&SETS[l].subs[0].primary==='en';
-let au=null,vo=null;const setAudio=()=>{[au,vo].forEach(x=>x&&x.pause());au=vo=null;if(SETS&&lang){au=new Audio(SETS[lang].bed);au.preload='auto'}};
+const PE={},SIL='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=';const pe=(n,src)=>{let a=PE[n];if(!a){a=PE[n]=new Audio()}a.pause();a.loop=false;a.volume=1;a.muted=false;a.src=src;return a};
+const unlockAudio=()=>{['au','vo','hd'].forEach(n=>{try{let a=PE[n]||(PE[n]=new Audio());a.muted=true;a.src=SIL;const p=a.play();const un=()=>{a.pause();a.muted=false};if(p&&p.then)p.then(un,un);else un()}catch(e){}})};
+let au=null,vo=null;const setAudio=()=>{[au,vo].forEach(x=>x&&x.pause());au=vo=null;if(SETS&&lang){au=pe('au',SETS[lang].bed);au.preload='auto'}};
 // ---- UI
 const sel=document.getElementById('lang');if(SETS){Object.entries(SETS).forEach(([k,v])=>{const o=document.createElement('option');o.value=k;o.textContent=v.label;if(k===lang)o.selected=true;sel.appendChild(o)})}else sel.style.display='none';
 const showCap=()=>{if(!subsOn||step<0||!SETS){capEl.style.opacity=0;return}const c=SETS[lang].subs[step];if(!c){capEl.style.opacity=0;return}const en=c.primary==='en';
@@ -580,14 +582,14 @@ const dots=()=>{[...dotsEl.children].forEach((d,i)=>{d.className=i===step?'on':(
 let run=null;
 let hd=null,hdIv=0,haRaf=0,haT=0;
 function stopHoldAnim(){cancelAnimationFrame(haRaf);haRaf=0;API.holdT=0}
-function startHoldAnim(b){stopHoldAnim();haT=performance.now();const lp=()=>{const h=(performance.now()-haT)/1000;API.holdT=Math.min(h,40);API.frame(b);if(h<40)haRaf=requestAnimationFrame(lp);else haRaf=0};haRaf=requestAnimationFrame(lp)}
+function startHoldAnim(b){stopHoldAnim();haT=performance.now();let sk=0;const HM=LITE?12:40;const lp=()=>{const h=(performance.now()-haT)/1000;API.holdT=Math.min(h,HM);if(!LITE||(sk++%3===0))API.frame(b);if(h<HM)haRaf=requestAnimationFrame(lp);else haRaf=0};haRaf=requestAnimationFrame(lp)}
 function stopHold(){clearInterval(hdIv);if(hd){hd.pause();hd=null}}
-function startHold(i){stopHold();if(!(started&&audioOn)||i>=K-1)return;hd=new Audio('../mix/holds/hold_'+String(i+1).padStart(2,'0')+'.wav');hd.loop=true;hd.volume=0;const p=hd.play();if(p&&p.catch)p.catch(()=>{});const T=performance.now();
+function startHold(i){stopHold();if(!(started&&audioOn)||i>=K-1)return;hd=pe('hd','../mix/holds/hold_'+String(i+1).padStart(2,'0')+'.wav');hd.loop=true;hd.volume=0;const p=hd.play();if(p&&p.catch)p.catch(()=>{});const T=performance.now();
   hdIv=setInterval(()=>{if(!hd)return;const e=(performance.now()-T)/1000,v=Math.min(1,e/.5)*Math.max(.45,1-(e-.5)/12*.55)*(e<30?1:Math.max(0,1-(e-30)/6));hd.volume=Math.max(0,Math.min(1,v));if(e>36)stopHold()},50)}
 function stopRun(){stopHold();stopHoldAnim();if(run){cancelAnimationFrame(run.raf);clearInterval(run.iv);run=null}[au,vo].forEach(x=>{if(x){x.pause();x.volume=1}})}
 function play(i){stopRun();const a=T0[i],b=T1[i];const useAu=started&&audioOn&&au;
   const subs=SETS&&SETS[lang].subs,c=subs&&subs[i],cs=c?c.start:0,ce=c?c.end-.3:0,nx=subs&&subs[i+1],vEnd=Math.min(ce+.2,nx?nx.start-.05:ce+.2);
-  vo=(useAu&&c)?new Audio(SETS[lang].lines+c.id+'.wav'):null;if(vo)vo.preload='auto';
+  vo=(useAu&&c)?pe('vo',SETS[lang].lines+c.id+'.wav'):null;if(vo)vo.preload='auto';
   let vStarted=false,bedOn=false;const r={raf:0,iv:0},T=performance.now();run=r;
   const now=()=>a+(performance.now()-T)/1000;
   const tick=()=>{if(run!==r)return;const t=now();
@@ -599,7 +601,7 @@ function play(i){stopRun();const a=T0[i],b=T1[i];const useAu=started&&audioOn&&a
     const done=t>=b&&(!useAu||(((vStarted?vo.ended:t>cs+1)||t>cs+9)&&!bedOn));
     if(done){API.frame(b);if(vo)vo.pause();if(au)au.pause();stopRunQuiet(r);return true}return false};
   const stopRunQuiet=rr=>{cancelAnimationFrame(rr.raf);clearInterval(rr.iv);if(run===rr)run=null};
-  const loop=()=>{if(run!==r)return;API.frame(Math.min(now(),b));r.raf=requestAnimationFrame(loop)};
+  let sk2=0;const loop=()=>{if(run!==r)return;if(!LITE||(sk2++&1)===0)API.frame(Math.min(now(),b));r.raf=requestAnimationFrame(loop)};
   r.iv=setInterval(tick,30);r.raf=requestAnimationFrame(loop);tick()}
 function goStep(i,instant){i=Math.max(0,Math.min(K-1,i));scrollTo({top:i*innerHeight,behavior:'auto'})}
 function onStep(i){if(i===step)return;step=i;dots();showCap();hint.style.opacity=i===0?1:0;if(typeof small==='function'&&small()&&typeof showPanel==='function')showPanel(false);if(started)play(i);else API.frame(T0[i])}
@@ -623,7 +625,7 @@ if(small()){hint.textContent='Vuốt lên ↑';const sp=document.querySelector('
 const _onStep=onStep;
 build(isEn(lang));curLang=isEn(lang)?'en':'vi';setAudio();inst.ready.then(()=>{API.frame(T0[0]);document.body.dataset.ready=1});
 function begin(withAudio){started=true;setTimeout(()=>{hint.style.opacity=0;hint.style.animation='none'},4500);audioOn=withAudio;document.getElementById('mu').textContent='Âm thanh: '+(audioOn?'bật':'tắt');document.getElementById('start').style.display='none';scrollTo(0,0);step=-1;lastPos=0;onStep(0)}
-document.getElementById('go').onclick=()=>begin(true);document.getElementById('go0').onclick=()=>begin(false);
+document.getElementById('go').onclick=()=>{unlockAudio();begin(true)};document.getElementById('go0').onclick=()=>{unlockAudio();begin(false)};
 if(q.get('step')!==null){document.getElementById('start').style.display='none';const k=+q.get('step')-1;started=false;step=-1;lastPos=k;onStep(k);inst.ready.then(()=>{if(q.get('hold')){API.holdT=+q.get('hold')}API.frame(T1[k])})}
 dots();
 if(q.get('res')){setTimeout(()=>{const p=document.createElement('pre');p.id='res';p.textContent=JSON.stringify(performance.getEntriesByType('resource').map(e=>e.name.replace(location.origin,'').replace(/^file:.*lien-xo-sup-do\//,'')));document.body.appendChild(p)},3000)}

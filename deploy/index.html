@@ -2222,7 +2222,7 @@ function openStory(slug){
   document.body.classList.add("storyOpen"); view.hidden=false; $("#storyLoad").hidden=false; $("#storyLoad").textContent="Loading story…";
   fr.onload=()=>{ try{ fr.contentWindow.focus(); }catch(e){} };
   clearTimeout(storyT); storyT=setTimeout(()=>{ const l=$("#storyLoad"); if(!l.hidden) l.textContent="Couldn't load the story. Check your connection, tap ✕ and try again."; },20000);
-  fr.src=st.src+"?embed=1&lang="+(document.body.classList.contains("lang-vi")?"vi":"en_michael");
+  fr.src=st.src+"?embed=1&lang="+(document.body.classList.contains("lang-vi")?"vi":"en_michael")+(LITE?"&lite=1":"");
   setTimeout(()=>{ $("#storyClose").focus({preventScroll:true}); },50);
 }
 function closeStory(){

@@ -73,7 +73,7 @@ async function staleWhileRevalidate(req) {
 
 /* trả về một đoạn byte của file đã lưu (Safari luôn hỏi âm thanh bằng Range) */
 async function rangeFrom(resp, range) {
-  const buf = await resp.arrayBuffer(), len = buf.byteLength;
+  const buf = await resp.blob(), len = buf.size;   /* Blob: cắt đoạn không cần sao chép cả file */
   const m = /bytes=(\d*)-(\d*)/.exec(range || "");
   if (!m) return new Response(buf, { status: 200, headers: { "Content-Type": resp.headers.get("Content-Type") || "audio/mpeg", "Content-Length": String(len), "Accept-Ranges": "bytes" } });
   let s = m[1] === "" ? NaN : +m[1], e = m[2] === "" ? NaN : +m[2];

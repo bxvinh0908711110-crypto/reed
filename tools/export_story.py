@@ -8,6 +8,7 @@ SRC = r'E:\AI Editor\AI Editor\projects\lien-xo-sup-do'
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEST = os.path.join(ROOT, 'stories', 'ussr'); FILES = os.path.join(DEST, 'files')
 OUT = os.path.join(SRC, 'out')
+MAXPX = 1200   # cạnh dài tối đa của ảnh (trước 1500): giảm bộ nhớ giải mã trên điện thoại
 SETS = {'vi': '', 'en_michael': '_en_am_michael'}   # giọng Việt (Hải Đăng) + English (Michael)
 
 shutil.rmtree(DEST, ignore_errors=True); os.makedirs(FILES)
@@ -24,9 +25,9 @@ for p in imgs:
     if not os.path.isfile(f): continue
     im = Image.open(f); im.load(); st['img_raw'] += os.path.getsize(f)
     m = max(im.size)
-    if m > 1500:
-        s = 1500 / m; im = im.resize((max(1, int(im.width * s)), max(1, int(im.height * s))), Image.LANCZOS)
-    buf = io.BytesIO(); im.save(buf, 'WEBP', quality=80, method=4, exact=True); b = buf.getvalue(); st['img_out'] += len(b)
+    if m > MAXPX:
+        s = MAXPX / m; im = im.resize((max(1, int(im.width * s)), max(1, int(im.height * s))), Image.LANCZOS)
+    buf = io.BytesIO(); im.save(buf, 'WEBP', quality=78, method=4, exact=True); b = buf.getvalue(); st['img_out'] += len(b)
     key = p.lstrip('/')
     assets[key] = {'u': put(os.path.splitext(key)[0] + '.webp', b)}   # khoá giữ đuôi gốc (.png) để mã trang tra đúng
 
@@ -103,6 +104,22 @@ if(window.parent!==window){
 
 # ---- ghép HTML
 h = open(os.path.join(OUT, 'scroll.html'), encoding='utf8').read()
+def patch(a, b):
+    global h
+    if h.count(a) != 1: raise SystemExit('KHÔNG KHỚP (mã nguồn bài đã đổi?): ' + a[:90])
+    h = h.replace(a, b)
+# (a) chế độ nhẹ: bật tự động trên màn cảm ứng / nhỏ, ép bằng ?lite=1|0
+patch("const q=new URLSearchParams(location.search),SC=window.SCENES", "const q=new URLSearchParams(location.search),LITE=q.get('lite')==='1'||(q.get('lite')!=='0'&&matchMedia('(pointer:coarse),(max-width:760px)').matches),SC=window.SCENES")
+patch("function startHoldAnim(b){stopHoldAnim();haT=performance.now();const lp=()=>{const h=(performance.now()-haT)/1000;API.holdT=Math.min(h,40);API.frame(b);if(h<40)haRaf=requestAnimationFrame(lp);else haRaf=0};haRaf=requestAnimationFrame(lp)}",
+      "function startHoldAnim(b){stopHoldAnim();haT=performance.now();let sk=0;const HM=LITE?12:40;const lp=()=>{const h=(performance.now()-haT)/1000;API.holdT=Math.min(h,HM);if(!LITE||(sk++%3===0))API.frame(b);if(h<HM)haRaf=requestAnimationFrame(lp);else haRaf=0};haRaf=requestAnimationFrame(lp)}")
+patch("const loop=()=>{if(run!==r)return;API.frame(Math.min(now(),b));r.raf=requestAnimationFrame(loop)};",
+      "let sk2=0;const loop=()=>{if(run!==r)return;if(!LITE||(sk2++&1)===0)API.frame(Math.min(now(),b));r.raf=requestAnimationFrame(loop)};")
+# (b) âm thanh: 3 phần tử cố định (nền, giọng, ngân) được mở khoá khi bấm Start — iOS Safari chặn play() của phần tử mới ngoài thao tác chạm
+patch("let au=null,vo=null;const setAudio=()=>{[au,vo].forEach(x=>x&&x.pause());au=vo=null;if(SETS&&lang){au=new Audio(SETS[lang].bed);au.preload='auto'}};",
+      "const PE={},SIL='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=';const pe=(n,src)=>{let a=PE[n];if(!a){a=PE[n]=new Audio()}a.pause();a.loop=false;a.volume=1;a.muted=false;a.src=src;return a};\nconst unlockAudio=()=>{['au','vo','hd'].forEach(n=>{try{let a=PE[n]||(PE[n]=new Audio());a.muted=true;a.src=SIL;const p=a.play();const un=()=>{a.pause();a.muted=false};if(p&&p.then)p.then(un,un);else un()}catch(e){}})};\nlet au=null,vo=null;const setAudio=()=>{[au,vo].forEach(x=>x&&x.pause());au=vo=null;if(SETS&&lang){au=pe('au',SETS[lang].bed);au.preload='auto'}};")
+patch("vo=(useAu&&c)?new Audio(SETS[lang].lines+c.id+'.wav'):null;", "vo=(useAu&&c)?pe('vo',SETS[lang].lines+c.id+'.wav'):null;")
+patch("hd=new Audio('../mix/holds/hold_'+String(i+1).padStart(2,'0')+'.wav');hd.loop=true;hd.volume=0;", "hd=pe('hd','../mix/holds/hold_'+String(i+1).padStart(2,'0')+'.wav');hd.loop=true;hd.volume=0;")
+patch("document.getElementById('go').onclick=()=>begin(true);document.getElementById('go0').onclick=()=>begin(false);", "document.getElementById('go').onclick=()=>{unlockAudio();begin(true)};document.getElementById('go0').onclick=()=>{unlockAudio();begin(false)};")
 h = h.replace("join('\n')", "join('\\n')")                                  # sửa lỗi: xuống dòng thật nằm trong chuỗi JS
 h = re.sub(r'<link rel="stylesheet" href="([^"]+)">', lambda m: '<style>' + open(os.path.join(OUT, m.group(1)), encoding='utf8').read() + '</style>', h)
 def inl(m):
@@ -112,6 +129,8 @@ def inl(m):
 h = re.sub(r'<script src="([^"]+)"></script>', inl, h)
 first = h.index('<script>window.__errs')
 h = h[:first] + '<script>window.__ASSETS=' + json.dumps(assets, separators=(',', ':')) + ';</script>\n<script>' + SHIM + '</script>\n' + h[first:]
+LITECSS = '<style>html.lite #stage *{filter:none!important}html.lite #stage.e2root{box-shadow:none}</style>'
+h = h.replace('</head>', LITECSS + '<script>(function(){var q=new URLSearchParams(location.search),l=q.get("lite");if(l==="1"||(l!=="0"&&matchMedia("(pointer:coarse),(max-width:760px)").matches))document.documentElement.classList.add("lite")})()</script></head>', 1)
 h = h.replace('</body></html>', '<script>' + EXTRA + '</script></body></html>')
 open(os.path.join(DEST, 'index.html'), 'w', encoding='utf8').write(h)
 
