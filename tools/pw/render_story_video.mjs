@@ -4,7 +4,8 @@
 import { chromium } from 'playwright'; import http from 'http'; import fs from 'fs'; import path from 'path'; import { execFileSync } from 'child_process';
 const SRC='E:/AI Editor/AI Editor/projects/lien-xo-sup-do', ROOT='E:/Your English', DEST=ROOT+'/stories/ussr';
 const SETS={ vi:{suf:'', label:'Tiếng Việt'}, en_michael:{suf:'_en_am_michael', label:'English (Michael)'} };
-const wanted=process.argv.slice(2).length?process.argv.slice(2):Object.keys(SETS);
+const PAGEONLY=process.argv[2]==='--page-only';   // chỉ ghi lại v.html từ manifest + mẫu, không quay lại video
+const wanted=PAGEONLY?[]:(process.argv.slice(2).length?process.argv.slice(2):Object.keys(SETS));
 const FPS=30, VW=640, VH=1136, TMP=process.env.TEMP+'/story_frames';
 const MIME={'.html':'text/html','.js':'text/javascript','.webp':'image/webp','.mp3':'audio/mpeg','.wav':'audio/wav'};
 const srv=http.createServer((q,r)=>{let u=decodeURIComponent(q.url.split('?')[0]).replace(/^\//,'');if(u===''||u.endsWith('/'))u+='index.html';try{const b=fs.readFileSync(ROOT+'/stories/'+u.replace(/^stories\//,''));r.setHeader('Content-Type',MIME[path.extname(u)]||'application/octet-stream');r.end(b)}catch{r.statusCode=404;r.end()}}).listen(0);

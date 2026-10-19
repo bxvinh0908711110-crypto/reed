@@ -24,13 +24,12 @@ body{margin:0;background:#101012;color:#ddd;font-family:system-ui,Segoe UI,sans-
 #start h1{font:700 28px/1.2 Georgia,serif;margin:0}#start p{margin:0;color:#bbb;max-width:520px;line-height:1.5}
 #start button{font:600 17px sans-serif;padding:12px 28px;border-radius:30px;border:0;background:#ffcf6b;color:#222;cursor:pointer}
 #start .sub{font-size:13px;color:#888}
-#spin{position:fixed;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;border:3px solid #ffffff33;border-top-color:#ffcf6b;border-radius:50%;z-index:20;animation:sp .8s linear infinite;opacity:0;pointer-events:none;transition:opacity .2s}
-#spin.on{opacity:1}@keyframes sp{to{transform:rotate(360deg)}}
+#pz{position:absolute;left:50%;top:0;height:100%;transform:translateX(-50%);max-width:100vw;aspect-ratio:640/1136;object-fit:contain;background:#101012;display:none;pointer-events:none}
 </style></head><body>
 <div id="start"><h1></h1><p></p><button id="go"></button><button id="go0" style="background:#333;color:#ddd;font-size:14px;padding:8px 20px"></button><div class="sub"></div></div>
 <div id="menu"><button id="mbtn" aria-label="Menu">⋯</button><div id="panel"><select id="lang"></select><button id="mu"></button><button id="en"></button><button id="rs"></button></div></div>
 <div id="prog"></div><div id="dots"></div><div id="cap" style="opacity:0"></div><div id="hint"></div>
-<div id="vw"><video id="v" playsinline webkit-playsinline preload="auto" disablepictureinpicture></video></div><div id="spin"></div><div id="steps"></div>
+<div id="vw"><video id="v" playsinline webkit-playsinline preload="auto" disablepictureinpicture></video><img id="pz" alt=""></div><div id="steps"></div>
 <script>
 (function(){
 var M=/*__MANIFEST__*/null,q=new URLSearchParams(location.search);
@@ -38,7 +37,7 @@ if(!M){document.body.textContent='Missing video manifest';return}
 var langs=Object.keys(M),lang=M[q.get('lang')]?q.get('lang'):langs[0];
 var UI={en:{title:'The Fall of the Soviet Union',intro:'Swipe up or down to see one step at a time. Each swipe plays one scene, then waits for you. Tap ⋯ at the top right for language, sound and subtitles.',introD:'Scroll (or use ↓ ↑, Space, swipe) to see one step at a time. Each scroll plays one scene, then waits for you.',go:'Start (with sound)',go0:'Start without sound',sub:'Illustrations, not archival footage · draft audio mix',son:'Sound: on',soff:'Sound: off',pon:'Subtitles: on',poff:'Subtitles: off',rs:'Restart',hd:'Scroll down ↓',hm:'Swipe up ↑'},
 vi:{title:'Sự sụp đổ của Liên Xô',intro:'Vuốt lên/xuống để xem từng bước. Mỗi lần vuốt chạy một cảnh rồi dừng chờ bạn. Chạm nút ⋯ ở góc phải để đổi ngôn ngữ, bật/tắt tiếng và phụ đề.',introD:'Cuộn chuột (hoặc phím ↓ ↑, Space, vuốt) để xem từng bước. Mỗi lần cuộn chạy một cảnh, rồi dừng chờ bạn.',go:'Bắt đầu (có âm thanh)',go0:'Bắt đầu không âm thanh',sub:'Hình minh hoạ, không phải tư liệu · bản mix thử, chưa duyệt',son:'Âm thanh: bật',soff:'Âm thanh: tắt',pon:'Phụ đề: bật',poff:'Phụ đề: tắt',rs:'Xem lại từ đầu',hd:'Cuộn xuống ↓',hm:'Vuốt lên ↑'}};
-var $=function(i){return document.getElementById(i)},v=$('v'),capEl=$('cap'),hint=$('hint'),stepsEl=$('steps'),dotsEl=$('dots'),progEl=$('prog'),spin=$('spin');
+var $=function(i){return document.getElementById(i)},v=$('v'),capEl=$('cap'),hint=$('hint'),stepsEl=$('steps'),dotsEl=$('dots'),progEl=$('prog'),pz=$('pz');
 var small=function(){return matchMedia('(max-width:760px),(pointer:coarse)').matches};
 var K=M[lang].steps.length,step=-1,started=false,audioOn=true,subsOn=true,done=false;
 var T=function(){return UI[/^en/.test(lang)?'en':'vi']};
@@ -51,9 +50,13 @@ function showCap(){if(!subsOn||step<0){capEl.style.opacity=0;return}var c=M[lang
   capEl.innerHTML='<div>'+(en?c.en:c.vi)+'</div><div style="font-weight:500;color:#ffe9a8;margin-top:3px">'+(en?c.vi:c.en)+'</div>';capEl.style.opacity=1}
 function dots(){[].forEach.call(dotsEl.children,function(d,i){d.className=i===step?'on':(i<step?'done':'')});progEl.style.width=((Math.max(0,step)+1)/K*100)+'%'}
 var warmed={};function warm(i){if(i<0||i>=K)return;var c=navigator.connection;if(c&&(c.saveData||/(^|-)2g$/.test(c.effectiveType||'')))return;var u=M[lang].steps[i].file;if(warmed[u])return;warmed[u]=1;try{fetch(u).then(function(r){return r.blob()}).catch(function(){delete warmed[u]})}catch(e){}}
-function play(i){var S=M[lang].steps[i];v.poster=S.poster;v.muted=!audioOn;v.src=S.file;spin.classList.add('on');var p=v.play();if(p&&p.catch)p.catch(function(){});warm(i+1)}
-v.addEventListener('playing',function(){spin.classList.remove('on')});v.addEventListener('waiting',function(){spin.classList.add('on')});v.addEventListener('canplay',function(){spin.classList.remove('on')});
-function show(i){var S=M[lang].steps[i];v.pause();v.removeAttribute('src');v.load();v.poster=S.poster}
+/* Khung đầu của bước hiện NGAY (ảnh nhỏ đã tải trước) và chỉ ẩn khi video đã có hình đầu tiên: không còn màn đen hay vòng xoay lúc chờ tải */
+function hidePz(){pz.style.display='none'}
+function play(i){var S=M[lang].steps[i];pz.src=S.poster;pz.style.display='block';v.muted=!audioOn;v.src=S.file;var tok=++playTok;var p=v.play();if(p&&p.catch)p.catch(function(){});
+  if(v.requestVideoFrameCallback)v.requestVideoFrameCallback(function(){if(tok===playTok)hidePz()});warm(i+1);warm(i+2);warmPoster(i+1)}
+var playTok=0;v.addEventListener('playing',function(){var tok=playTok;setTimeout(function(){if(tok===playTok)hidePz()},120)});
+function show(i){var S=M[lang].steps[i];playTok++;v.pause();v.removeAttribute('src');v.load();pz.src=S.poster;pz.style.display='block'}
+function warmPoster(i){if(i>=0&&i<K){var im=new Image();im.src=M[lang].steps[i].poster}}
 function goStep(i){i=Math.max(0,Math.min(K-1,i));scrollTo({top:i*innerHeight,behavior:'auto'})}
 function onStep(i){if(i===step)return;step=i;dots();showCap();hint.style.opacity=i===0?1:0;if(small())showPanel(false);if(started)play(i);else show(i);post({event:'step',step:i,of:K});if(!done&&i>=K-1){done=true;post({event:'done'})}}
 function pos(){return Math.round(scrollY/Math.max(1,innerHeight))}
@@ -71,7 +74,7 @@ function begin(snd){started=true;audioOn=snd;v.muted=!snd;ui();$('start').style.
 $('go').onclick=function(){begin(true)};$('go0').onclick=function(){begin(false)};
 document.addEventListener('visibilitychange',function(){if(document.hidden)v.pause()});addEventListener('pagehide',function(){v.pause()});
 function post(o){if(window.parent===window)return;try{parent.postMessage(Object.assign({source:'reed-story',id:'ussr'},o),location.origin)}catch(e){}}
-ui();onStep(0);dots();document.body.dataset.ready='1';post({event:'ready'});warm(0);warm(1);
+ui();onStep(0);dots();document.body.dataset.ready='1';post({event:'ready'});warm(0);warm(1);warmPoster(1);
 if(q.get('step')!==null){$('start').style.display='none';var k=+q.get('step')-1;last=k;step=-1;onStep(k)}
 })();
 </script></body></html>

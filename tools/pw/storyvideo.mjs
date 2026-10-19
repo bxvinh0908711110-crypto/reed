@@ -20,7 +20,13 @@ await p.evaluate(()=>scrollTo(0,3*innerHeight)); await p.waitForTimeout(2000); s
 ok(s.src.endsWith('en_michael/b04.mp4')&&s.t>0.5&&!s.paused,'vuốt tới bước 4: phát b04 '+JSON.stringify(s));
 ok(await p.evaluate(()=>document.querySelector('#cap').textContent.includes('perestroika')),'phụ đề đúng bước 4');
 await p.screenshot({path:'tools/pw/shots/video_4.png'});
-ok(await p.evaluate(()=>document.querySelector('#spin').className===''),'không còn vòng chờ khi đã phát');
+ok(await p.evaluate(()=>!document.getElementById('spin')&&getComputedStyle(document.getElementById('pz')).display==='none'),'không có vòng xoay; ảnh khung đầu đã ẩn khi video phát');
+// khi đổi bước: khung đầu hiện ngay, không màn đen
+await p.evaluate(()=>{ window.__pzSeen=[]; const pz=document.getElementById('pz'); new MutationObserver(()=>window.__pzSeen.push(pz.style.display+'|'+pz.src.split('/').pop())).observe(pz,{attributes:true,attributeFilter:['style','src']}); });
+await p.evaluate(()=>scrollTo(0,4*innerHeight)); await p.waitForTimeout(1800);
+const pzs=await p.evaluate(()=>window.__pzSeen);
+ok(pzs.some(x=>x.startsWith('block|p05'))&&pzs[pzs.length-1].startsWith('none'),'đổi bước: ảnh khung đầu (p05) hiện ngay rồi ẩn khi video có hình '+JSON.stringify(pzs.slice(-3)));
+await p.evaluate(()=>scrollTo(0,3*innerHeight)); await p.waitForTimeout(1500);
 // tắt tiếng
 await p.evaluate(()=>document.querySelector('#mu').click()); ok((await st()).muted,'bấm Sound: tắt tiếng video');
 await p.evaluate(()=>document.querySelector('#mu').click());
