@@ -2222,7 +2222,10 @@ function openStory(slug){
   document.body.classList.add("storyOpen"); view.hidden=false; $("#storyLoad").hidden=false; $("#storyLoad").textContent="Loading story…";
   fr.onload=()=>{ try{ fr.contentWindow.focus(); }catch(e){} };
   clearTimeout(storyT); storyT=setTimeout(()=>{ const l=$("#storyLoad"); if(!l.hidden) l.textContent="Couldn't load the story. Check your connection, tap ✕ and try again."; },20000);
-  fr.src=st.src+"?embed=1&lang="+(document.body.classList.contains("lang-vi")?"vi":"en_michael")+(LITE?"&lite=1":"");
+  /* điện thoại / máy yếu: bản VIDEO quay sẵn (giải mã bằng phần cứng, nhẹ và mát máy); máy tính: bản hoạt hình chạy trực tiếp. Ép bằng ?story=video|live */
+  let mode=""; try{ mode=new URLSearchParams(location.search).get("story")||""; }catch(e){}
+  const useVideo=st.vsrc&&(mode==="video"||(mode!=="live"&&(LITE||matchMedia("(pointer: coarse)").matches||innerWidth<=820)));
+  fr.src=(useVideo?st.vsrc:st.src)+"?embed=1&lang="+(document.body.classList.contains("lang-vi")?"vi":"en_michael")+(LITE?"&lite=1":"");
   setTimeout(()=>{ $("#storyClose").focus({preventScroll:true}); },50);
 }
 function closeStory(){
@@ -2702,7 +2705,7 @@ const Rec=(function(){
   setInterval(()=>{ w.classList.add("out"); setTimeout(()=>{ i=(i+1)%words.length; w.textContent=words[i]; w.classList.remove("out"); },280); },2400);
 })();
 /* Stories: bài đặc biệt có hoạt hình tương tác, mở bằng trang riêng (iframe) thay vì engine đọc từng câu */
-const STORIES=[{id:"story-ussr",slug:"ussr",title:"The Fall of the Soviet Union",level:"B1",dur:"1:13",cover:"img/topic-stories.webp",src:"stories/ussr/"}];   /* địa chỉ thư mục: Cloudflare tự chuyển /index.html → / bằng 307, mà Service Worker không được trả lời chuyển hướng cho trang con */
+const STORIES=[{id:"story-ussr",slug:"ussr",title:"The Fall of the Soviet Union",level:"B1",dur:"1:13",cover:"img/topic-stories.webp",src:"stories/ussr/",vsrc:"stories/ussr/v.html"}];   /* địa chỉ thư mục: Cloudflare tự chuyển /index.html → / bằng 307, mà Service Worker không được trả lời chuyển hướng cho trang con */
 let storiesView=false;   /* true: danh sách bài đang hiển thị là danh sách Stories (chủ đề đọc hiện tại vẫn giữ nguyên) */
 const hasLessons=k=>k==="stories"?STORIES.length>0:ALL.some(p=>p.cat===k);
 /* ---------- Màn hình danh sách bài (nút Start Reading) ----------

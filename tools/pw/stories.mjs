@@ -28,7 +28,7 @@ for(const [name,opts] of [['mobile',devices['iPhone 13']],['desktop',{viewport:{
   await p.evaluate(()=>Bgm.on()); await p.waitForTimeout(500);
   ok(await p.evaluate(()=>Bgm.playing),'nhạc nền đang phát trước khi mở bài');
   await p.evaluate(()=>document.querySelector('#lscGrid .lscCard.story').click()); await p.waitForTimeout(500);
-  ok(await p.evaluate(()=>!document.querySelector('#storyView').hidden&&document.body.classList.contains('storyOpen')&&document.querySelector('#storyFrame').src.includes('stories/ussr/?embed=1&lang=en_michael')),'mở bài: overlay + iframe (embed, giọng English)');
+  ok(await p.evaluate(w=>!document.querySelector('#storyView').hidden&&document.body.classList.contains('storyOpen')&&document.querySelector('#storyFrame').src.includes(w),name==='mobile'?'stories/ussr/v.html?embed=1&lang=en_michael':'stories/ussr/?embed=1&lang=en_michael'),'mở bài: overlay + iframe ('+(name==='mobile'?'bản VIDEO cho điện thoại':'bản chạy trực tiếp cho máy tính')+', giọng English)');
   ok(!(await p.evaluate(()=>Bgm.playing)),'mở bài: nhạc nền của Reed tạm dừng');
   const fr=p.frames().find(f=>f.url().includes('/stories/ussr/'));
   await fr.waitForSelector('body[data-ready="1"]',{timeout:60000}); await p.waitForTimeout(500);

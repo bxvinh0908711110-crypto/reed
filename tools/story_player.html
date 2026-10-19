@@ -1,0 +1,77 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>The Fall of the Soviet Union</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#101012">
+<style>
+/* Trang phát video của bài Stories (điện thoại): mỗi bước = một video đã quay sẵn; do tools/render_story_video.mjs ghi manifest vào */
+html{scroll-snap-type:y mandatory;overflow-y:scroll;background:#101012}
+body{margin:0;background:#101012;color:#ddd;font-family:system-ui,Segoe UI,sans-serif}
+.step{height:100vh;height:100dvh;scroll-snap-align:start;scroll-snap-stop:always}
+#vw{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:1;background:#101012}
+#v{display:block;max-width:100vw;max-height:100vh;max-height:100dvh;width:auto;height:100%;aspect-ratio:640/1136;object-fit:contain;background:#101012}
+#menu{position:fixed;right:max(10px,env(safe-area-inset-right));top:max(10px,env(safe-area-inset-top));z-index:40;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+#menu button,#menu select{background:#000b;color:#fff;border:1px solid #666;border-radius:10px;padding:8px 12px;font:inherit;font-size:14px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+#mbtn{width:42px;height:42px;padding:0!important;font-size:20px!important;line-height:1;border-radius:50%!important}
+#panel{display:flex;flex-direction:column;gap:8px;align-items:stretch;min-width:170px;transition:opacity .2s,transform .2s}
+#panel.hide{opacity:0;pointer-events:none;transform:translateY(-6px)}
+#dots{position:fixed;left:12px;top:50%;transform:translateY(-50%);z-index:30;display:flex;flex-direction:column;gap:7px}
+#dots i{width:9px;height:9px;border-radius:50%;background:#555;display:block;cursor:pointer;transition:.2s}
+#dots i.on{background:#ffcf6b;transform:scale(1.5)}#dots i.done{background:#9a8650}
+#prog{position:fixed;left:0;top:0;height:3px;background:#ffcf6b;z-index:45;width:0;transition:width .3s;display:none}
+#cap{position:fixed;left:50%;transform:translateX(-50%);bottom:max(14px,env(safe-area-inset-bottom));z-index:30;max-width:min(94vw,720px);padding:8px 14px;border-radius:8px;background:rgba(0,0,0,.72);color:#fff;font:600 18px/1.35 sans-serif;text-align:center;transition:opacity .25s}
+#hint{position:fixed;left:50%;bottom:112px;transform:translateX(-50%);z-index:31;color:#ffe9a8;font-size:14px;letter-spacing:.5px;animation:b 1.4s infinite;pointer-events:none;text-shadow:0 1px 4px #000}
+@keyframes b{50%{transform:translate(-50%,6px)}}
+@media (max-width:760px),(pointer:coarse){#dots{display:none}#prog{display:block}#cap{font-size:15px;padding:6px 10px;max-width:96vw}#hint{bottom:150px;font-size:13px}#start h1{font-size:23px}}
+#start{position:fixed;inset:0;z-index:50;background:#101012ee;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#fff;text-align:center;padding:20px}
+#start h1{font:700 28px/1.2 Georgia,serif;margin:0}#start p{margin:0;color:#bbb;max-width:520px;line-height:1.5}
+#start button{font:600 17px sans-serif;padding:12px 28px;border-radius:30px;border:0;background:#ffcf6b;color:#222;cursor:pointer}
+#start .sub{font-size:13px;color:#888}
+#spin{position:fixed;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;border:3px solid #ffffff33;border-top-color:#ffcf6b;border-radius:50%;z-index:20;animation:sp .8s linear infinite;opacity:0;pointer-events:none;transition:opacity .2s}
+#spin.on{opacity:1}@keyframes sp{to{transform:rotate(360deg)}}
+</style></head><body>
+<div id="start"><h1></h1><p></p><button id="go"></button><button id="go0" style="background:#333;color:#ddd;font-size:14px;padding:8px 20px"></button><div class="sub"></div></div>
+<div id="menu"><button id="mbtn" aria-label="Menu">⋯</button><div id="panel"><select id="lang"></select><button id="mu"></button><button id="en"></button><button id="rs"></button></div></div>
+<div id="prog"></div><div id="dots"></div><div id="cap" style="opacity:0"></div><div id="hint"></div>
+<div id="vw"><video id="v" playsinline webkit-playsinline preload="auto" disablepictureinpicture></video></div><div id="spin"></div><div id="steps"></div>
+<script>
+(function(){
+var M=/*__MANIFEST__*/null,q=new URLSearchParams(location.search);
+if(!M){document.body.textContent='Missing video manifest';return}
+var langs=Object.keys(M),lang=M[q.get('lang')]?q.get('lang'):langs[0];
+var UI={en:{title:'The Fall of the Soviet Union',intro:'Swipe up or down to see one step at a time. Each swipe plays one scene, then waits for you. Tap ⋯ at the top right for language, sound and subtitles.',introD:'Scroll (or use ↓ ↑, Space, swipe) to see one step at a time. Each scroll plays one scene, then waits for you.',go:'Start (with sound)',go0:'Start without sound',sub:'Illustrations, not archival footage · draft audio mix',son:'Sound: on',soff:'Sound: off',pon:'Subtitles: on',poff:'Subtitles: off',rs:'Restart',hd:'Scroll down ↓',hm:'Swipe up ↑'},
+vi:{title:'Sự sụp đổ của Liên Xô',intro:'Vuốt lên/xuống để xem từng bước. Mỗi lần vuốt chạy một cảnh rồi dừng chờ bạn. Chạm nút ⋯ ở góc phải để đổi ngôn ngữ, bật/tắt tiếng và phụ đề.',introD:'Cuộn chuột (hoặc phím ↓ ↑, Space, vuốt) để xem từng bước. Mỗi lần cuộn chạy một cảnh, rồi dừng chờ bạn.',go:'Bắt đầu (có âm thanh)',go0:'Bắt đầu không âm thanh',sub:'Hình minh hoạ, không phải tư liệu · bản mix thử, chưa duyệt',son:'Âm thanh: bật',soff:'Âm thanh: tắt',pon:'Phụ đề: bật',poff:'Phụ đề: tắt',rs:'Xem lại từ đầu',hd:'Cuộn xuống ↓',hm:'Vuốt lên ↑'}};
+var $=function(i){return document.getElementById(i)},v=$('v'),capEl=$('cap'),hint=$('hint'),stepsEl=$('steps'),dotsEl=$('dots'),progEl=$('prog'),spin=$('spin');
+var small=function(){return matchMedia('(max-width:760px),(pointer:coarse)').matches};
+var K=M[lang].steps.length,step=-1,started=false,audioOn=true,subsOn=true,done=false;
+var T=function(){return UI[/^en/.test(lang)?'en':'vi']};
+for(var i=0;i<K;i++){(function(i){var d=document.createElement('div');d.className='step';stepsEl.appendChild(d);var dt=document.createElement('i');dt.onclick=function(){goStep(i)};dotsEl.appendChild(dt)})(i)}
+var sel=$('lang');langs.forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=M[k].label;if(k===lang)o.selected=true;sel.appendChild(o)});if(langs.length<2)sel.style.display='none';
+function ui(){var t=T();document.documentElement.lang=/^en/.test(lang)?'en':'vi';document.title=t.title;
+  document.querySelector('#start h1').textContent=t.title;document.querySelector('#start p').textContent=small()?t.intro:t.introD;$('go').textContent=t.go;$('go0').textContent=t.go0;document.querySelector('#start .sub').textContent=t.sub;
+  $('mu').textContent=audioOn?t.son:t.soff;$('en').textContent=subsOn?t.pon:t.poff;$('rs').textContent=t.rs;hint.textContent=small()?t.hm:t.hd}
+function showCap(){if(!subsOn||step<0){capEl.style.opacity=0;return}var c=M[lang].subs[step];if(!c){capEl.style.opacity=0;return}var en=c.primary==='en';
+  capEl.innerHTML='<div>'+(en?c.en:c.vi)+'</div><div style="font-weight:500;color:#ffe9a8;margin-top:3px">'+(en?c.vi:c.en)+'</div>';capEl.style.opacity=1}
+function dots(){[].forEach.call(dotsEl.children,function(d,i){d.className=i===step?'on':(i<step?'done':'')});progEl.style.width=((Math.max(0,step)+1)/K*100)+'%'}
+var warmed={};function warm(i){if(i<0||i>=K)return;var c=navigator.connection;if(c&&(c.saveData||/(^|-)2g$/.test(c.effectiveType||'')))return;var u=M[lang].steps[i].file;if(warmed[u])return;warmed[u]=1;try{fetch(u).then(function(r){return r.blob()}).catch(function(){delete warmed[u]})}catch(e){}}
+function play(i){var S=M[lang].steps[i];v.poster=S.poster;v.muted=!audioOn;v.src=S.file;spin.classList.add('on');var p=v.play();if(p&&p.catch)p.catch(function(){});warm(i+1)}
+v.addEventListener('playing',function(){spin.classList.remove('on')});v.addEventListener('waiting',function(){spin.classList.add('on')});v.addEventListener('canplay',function(){spin.classList.remove('on')});
+function show(i){var S=M[lang].steps[i];v.pause();v.removeAttribute('src');v.load();v.poster=S.poster}
+function goStep(i){i=Math.max(0,Math.min(K-1,i));scrollTo({top:i*innerHeight,behavior:'auto'})}
+function onStep(i){if(i===step)return;step=i;dots();showCap();hint.style.opacity=i===0?1:0;if(small())showPanel(false);if(started)play(i);else show(i);post({event:'step',step:i,of:K});if(!done&&i>=K-1){done=true;post({event:'done'})}}
+function pos(){return Math.round(scrollY/Math.max(1,innerHeight))}
+var last=-1;addEventListener('scroll',function(){var p=pos();if(p!==last){last=p;onStep(p)}},{passive:true});
+addEventListener('keydown',function(e){if(e.key==='Escape'){post({event:'close'});return}if(!started)return;if(['ArrowDown','PageDown',' ','ArrowRight'].indexOf(e.key)>=0){e.preventDefault();goStep(pos()+1)}else if(['ArrowUp','PageUp','ArrowLeft'].indexOf(e.key)>=0){e.preventDefault();goStep(pos()-1)}});
+function setH(){[].forEach.call(document.querySelectorAll('.step'),function(s){s.style.height=innerHeight+'px'})}setH();addEventListener('resize',function(){var k=Math.max(0,step);setH();if(started)scrollTo(0,k*innerHeight);ui()});
+var panel=$('panel'),mbtn=$('mbtn'),menuT=0;
+function showPanel(on){clearTimeout(menuT);panel.classList.toggle('hide',!on);if(on&&small())menuT=setTimeout(function(){panel.classList.add('hide')},6000)}
+showPanel(!small());mbtn.onclick=function(){showPanel(panel.classList.contains('hide'))};panel.addEventListener('click',function(){if(small())showPanel(true)});
+$('mu').onclick=function(){audioOn=!audioOn;v.muted=!audioOn;ui()};
+$('en').onclick=function(){subsOn=!subsOn;ui();showCap()};capEl.onclick=function(){subsOn=!subsOn;ui();showCap()};
+$('rs').onclick=function(){goStep(0);if(small())showPanel(false)};
+sel.onchange=function(){lang=sel.value;warmed={};ui();showCap();if(step>=0){if(started)play(step);else show(step)}};
+function begin(snd){started=true;audioOn=snd;v.muted=!snd;ui();$('start').style.display='none';setTimeout(function(){hint.style.opacity=0;hint.style.animation='none'},4500);play(Math.max(0,step));post({event:'begun'})}
+$('go').onclick=function(){begin(true)};$('go0').onclick=function(){begin(false)};
+document.addEventListener('visibilitychange',function(){if(document.hidden)v.pause()});addEventListener('pagehide',function(){v.pause()});
+function post(o){if(window.parent===window)return;try{parent.postMessage(Object.assign({source:'reed-story',id:'ussr'},o),location.origin)}catch(e){}}
+ui();onStep(0);dots();document.body.dataset.ready='1';post({event:'ready'});warm(0);warm(1);
+if(q.get('step')!==null){$('start').style.display='none';var k=+q.get('step')-1;last=k;step=-1;onStep(k)}
+})();
+</script></body></html>

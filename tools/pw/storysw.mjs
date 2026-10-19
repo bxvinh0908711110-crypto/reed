@@ -15,9 +15,9 @@ ok(await p.evaluate(()=>!!navigator.serviceWorker.controller),'service worker đ
 const open=async()=>{ await p.evaluate(()=>{ document.querySelector('#startBtn').click(); }); await p.waitForTimeout(800); await p.evaluate(()=>document.querySelector('.ovTopic[data-k="stories"]').click()); await p.waitForTimeout(800); await p.evaluate(()=>document.querySelector('#lscGrid .lscCard.story').click()); await p.waitForTimeout(500); const fr=p.frames().find(f=>f.url().includes('/stories/ussr/')); await fr.waitForSelector('body[data-ready="1"]',{timeout:60000}); return fr; };
 let fr=await open();
 await fr.evaluate(()=>document.querySelector('#go').click()); await p.waitForTimeout(500);
-await fr.evaluate(()=>scrollTo(0,innerHeight)); await p.waitForTimeout(4000);   // phát câu 1 để lưu file giọng
-const c=await p.evaluate(async()=>{ const s=await caches.open('reed-stories-v1'); const k=(await s.keys()).map(r=>new URL(r.url).pathname); const sh=await caches.open('reed-v4-shell'); const home=await sh.match('index.html'); const t=home?await home.text():''; return {n:k.length,hasPage:k.some(x=>x.endsWith('/stories/ussr/')),hasImg:k.some(x=>/\.webp$/.test(x)),hasAudio:k.some(x=>/\.(mp3|wav)$/.test(x)),homeIsReed:t.includes('id="startBtn"')&&!t.includes('The Fall of the Soviet Union</title>')}; });
-ok(c.hasPage&&c.hasImg&&c.hasAudio&&c.n>=20,'đã lưu trang, ảnh và âm thanh của Stories sau lần xem đầu '+JSON.stringify({n:c.n}));
+await fr.evaluate(()=>scrollTo(0,innerHeight)); await p.waitForTimeout(4000);   // phát bước 2 để lưu file
+const c=await p.evaluate(async()=>{ const s=await caches.open('reed-stories-v1'); const k=(await s.keys()).map(r=>new URL(r.url).pathname); const sh=await caches.open('reed-v4-shell'); const home=await sh.match('index.html'); const t=home?await home.text():''; return {n:k.length,hasPage:k.some(x=>/\/stories\/ussr\/(v\.html)?$/.test(x)),hasImg:k.some(x=>/\.(webp|jpg)$/.test(x)),hasAudio:k.some(x=>/\.(mp3|wav|mp4)$/.test(x)),homeIsReed:t.includes('id="startBtn"')&&!t.includes('The Fall of the Soviet Union</title>')}; });
+ok(c.hasPage&&c.hasImg&&c.hasAudio&&c.n>=3,'đã lưu trang, ảnh bìa và video/âm thanh của Stories sau lần xem đầu '+JSON.stringify({n:c.n}));
 ok(c.homeIsReed,'bản lưu trang chủ vẫn là trang Reed (iframe không ghi đè)');
 await p.evaluate(()=>document.querySelector('#storyClose').click()); await p.waitForTimeout(400);
 // offline
@@ -25,7 +25,7 @@ await ctx.setOffline(true); await p.reload(); await p.waitForTimeout(4500);
 ok(await p.evaluate(()=>!!document.querySelector('.hero h1')&&!!document.querySelector('#startBtn')),'offline: tải lại vẫn ra trang Reed');
 fr=await open();
 ok(await fr.evaluate(()=>document.body.dataset.ready==='1'&&document.querySelectorAll('#stage img').length>=0),'offline: bài Stories mở được từ bản đã lưu');
-const imgs=await fr.evaluate(()=>[...document.images].filter(i=>i.complete&&i.naturalWidth>0).length);
-ok(imgs>=3,'offline: ảnh của bài hiển thị ('+imgs+' ảnh)');
+const imgs=await fr.evaluate(()=>{ const v=document.getElementById('v'); if(v) return v.poster?1:0; return [...document.images].filter(i=>i.complete&&i.naturalWidth>0).length; });
+ok(imgs>=1,'offline: bài hiển thị (poster/ảnh: '+imgs+')');
 ok(errs.length===0,'không lỗi JS'+(errs.length?': '+errs[0]:''));
 await b.close(); srv.close(); console.log(fails?`\n${fails} rớt`:'\nTất cả đạt'); process.exit(fails?1:0);
