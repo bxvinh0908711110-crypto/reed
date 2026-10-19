@@ -1,0 +1,661 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>Liên Xô sụp đổ — cuộn để xem từng bước</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#101012">
+<style>/* engine2 — stage 941x1672, mọi thứ do Engine2.frame(t) đặt; không CSS animation */
+.e2root{position:relative;overflow:hidden;background:#1b1c1f;font-family:"Times New Roman",Cambria,serif}
+.e2stage{position:absolute;left:0;top:0;width:941px;height:1672px;transform-origin:0 0;overflow:hidden;background:#2b2d31}
+.e2sc,.e2cam{position:absolute;left:0;top:0;width:941px;height:1672px}
+.e2sc{overflow:hidden}
+.e2bg{position:absolute;left:0;top:0;width:941px;height:1672px;display:block}
+.e2lyr{position:absolute}
+.e2lyr .in,.e2lyr .idle{position:absolute;left:0;top:0;width:100%;height:100%}
+.e2lyr img.e2im{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
+.e2lyr.sh img{filter:drop-shadow(0 14px 16px rgba(0,0,0,.45))}
+.e2k{position:absolute;left:0;top:0}
+.e2k img{display:block;width:100%;height:100%}
+.e2tx{position:absolute;left:40px;width:861px;text-align:center;font-weight:700;font-size:150px;line-height:1.05;white-space:nowrap;color:#f4ead0;text-shadow:0 4px 0 rgba(0,0,0,.55),0 0 22px rgba(0,0,0,.7);z-index:30}
+.e2tx.dark{color:#7a1f24;text-shadow:0 2px 0 rgba(255,255,255,.5)}
+.e2tx .ch{display:inline-block;white-space:pre}
+.e2ov{position:absolute;left:0;top:0;width:941px;height:1672px;pointer-events:none;opacity:0;z-index:60}
+.e2bar{position:fixed;left:0;right:0;bottom:0;z-index:999;background:#000d;color:#ddd;font:13px sans-serif;padding:6px 10px;display:flex;gap:10px;align-items:center}
+.e2bar input[type=range]{flex:1}
+</style><style>/* chữ của 19 beat: nhân lớp CSS của layout đã duyệt (out/layout/index.html) */
+.e2tx.t{font-weight:700;line-height:1.05}
+.e2tx.big{font-size:150px;letter-spacing:2px}
+.e2tx.sub{font-size:48px;white-space:nowrap;left:50%;width:auto;transform:translateX(-50%);padding:4px 26px;border-radius:14px}
+.e2tx.t.light{color:#f4ead0;text-shadow:0 4px 0 rgba(0,0,0,.55),0 0 22px rgba(0,0,0,.7)}
+.e2tx.t.dark{color:#2b2d31;text-shadow:0 2px 0 rgba(255,255,255,.5)}
+.e2tx.sub.light{background:rgba(30,20,20,.7)}
+.e2tx.sub.dark{background:rgba(233,223,198,.88)}
+.e2tx.chip{left:50%;transform:translateX(-50%);width:auto;font:600 36px "Times New Roman",Cambria,serif;padding:6px 22px;border-radius:30px;white-space:nowrap}
+.e2tx.chip.light{color:#f4ead0;text-shadow:0 4px 0 rgba(0,0,0,.55),0 0 22px rgba(0,0,0,.7);background:rgba(30,20,20,.72)}
+.e2tx.chip.dark{color:#2b2d31;text-shadow:0 2px 0 rgba(255,255,255,.5);background:rgba(233,223,198,.85)}
+.e2tx.ban{left:40px;width:861px;font:700 96px "Times New Roman",Cambria,serif;color:#7a1f24;letter-spacing:6px;text-shadow:none;z-index:20;line-height:1.05}
+.e2tx.ink{width:auto;font-size:0;text-shadow:none;z-index:21}
+</style>
+<style>
+html{scroll-snap-type:y mandatory;overflow-y:scroll;background:#101012}
+body{margin:0;background:#101012;color:#ddd;font-family:system-ui,Segoe UI,sans-serif}
+.step{height:100vh;height:100dvh;scroll-snap-align:start;scroll-snap-stop:always}
+#stage{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:1}
+#stage.e2root{box-shadow:0 0 60px #000a}
+#menu{position:fixed;right:max(10px,env(safe-area-inset-right));top:max(10px,env(safe-area-inset-top));z-index:40;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+#menu button,#menu select{background:#000b;color:#fff;border:1px solid #666;border-radius:10px;padding:8px 12px;font:inherit;font-size:14px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+#mbtn{width:42px;height:42px;padding:0!important;font-size:20px!important;line-height:1;border-radius:50%!important}
+#panel{display:flex;flex-direction:column;gap:8px;align-items:stretch;min-width:170px;transition:opacity .2s,transform .2s}
+#panel.hide{opacity:0;pointer-events:none;transform:translateY(-6px)}
+#dots{position:fixed;left:12px;top:50%;transform:translateY(-50%);z-index:30;display:flex;flex-direction:column;gap:7px}
+#dots i{width:9px;height:9px;border-radius:50%;background:#555;display:block;cursor:pointer;transition:.2s}
+#dots i.on{background:#ffcf6b;transform:scale(1.5)}#dots i.done{background:#9a8650}
+#prog{position:fixed;left:0;top:0;height:3px;background:#ffcf6b;z-index:45;width:0;transition:width .3s;display:none}
+#cap{position:fixed;left:50%;transform:translateX(-50%);bottom:max(14px,env(safe-area-inset-bottom));z-index:30;max-width:min(94vw,720px);padding:8px 14px;border-radius:8px;background:rgba(0,0,0,.72);color:#fff;font:600 18px/1.35 sans-serif;text-align:center;transition:opacity .2s;cursor:pointer}
+#hint{position:fixed;left:50%;bottom:112px;transform:translateX(-50%);z-index:31;color:#ffe9a8;font-size:14px;letter-spacing:.5px;animation:b 1.4s infinite;pointer-events:none;text-shadow:0 1px 4px #000}
+@keyframes b{50%{transform:translate(-50%,6px)}}
+@media (max-width:760px),(pointer:coarse){#dots{display:none}#prog{display:block}#cap{font-size:15px;padding:6px 10px;max-width:96vw}#hint{bottom:150px;font-size:13px}#start h1{font-size:23px}}
+@media (max-width:760px) and (orientation:landscape){#cap{font-size:13px}}
+#start{position:fixed;inset:0;z-index:50;background:#101012ee;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#fff;text-align:center;padding:20px}
+#start h1{font:700 28px/1.2 Georgia,serif;margin:0}#start p{margin:0;color:#bbb;max-width:520px;line-height:1.5}
+#start button{font:600 17px sans-serif;padding:12px 28px;border-radius:30px;border:0;background:#ffcf6b;color:#222;cursor:pointer}
+#start .sub{font-size:13px;color:#888}
+</style></head><body>
+<div id="start"><h1>Sự sụp đổ của Liên Xô</h1><p>Cuộn chuột (hoặc phím ↓ ↑, Space, vuốt) để xem từng bước. Mỗi lần cuộn chạy một cảnh, rồi dừng chờ bạn.</p>
+<button id="go">Bắt đầu (có âm thanh)</button><button id="go0" style="background:#333;color:#ddd;font-size:14px;padding:8px 20px">Bắt đầu không âm thanh</button>
+<div class="sub">Hình minh hoạ, không phải tư liệu · bản mix thử, chưa duyệt</div></div>
+<div id="menu"><button id="mbtn" aria-label="Menu">⋯</button><div id="panel"><select id="lang"></select><button id="mu">Âm thanh: bật</button><button id="en">Phụ đề: bật</button><button id="rs">Xem lại từ đầu</button></div></div><div id="prog"></div>
+<div id="dots"></div><div id="cap" style="opacity:0"></div><div id="hint">Cuộn xuống ↓</div>
+<div id="stage"></div><div id="steps"></div>
+<script>window.__ASSETS={"assets/chain/card15_00.png":{"u":"files/assets/chain/card15_00.webp"},"assets/chain/card15_01.png":{"u":"files/assets/chain/card15_01.webp"},"assets/chain/card15_02.png":{"u":"files/assets/chain/card15_02.webp"},"assets/chain/card15_03.png":{"u":"files/assets/chain/card15_03.webp"},"assets/chain/card15_04.png":{"u":"files/assets/chain/card15_04.webp"},"assets/chain/card15_05.png":{"u":"files/assets/chain/card15_05.webp"},"assets/chain/card15_06.png":{"u":"files/assets/chain/card15_06.webp"},"assets/chain/card15_07.png":{"u":"files/assets/chain/card15_07.webp"},"assets/chain/card15_08.png":{"u":"files/assets/chain/card15_08.webp"},"assets/chain/card15_09.png":{"u":"files/assets/chain/card15_09.webp"},"assets/chain/card15_10.png":{"u":"files/assets/chain/card15_10.webp"},"assets/chain/card15_11.png":{"u":"files/assets/chain/card15_11.webp"},"assets/chain/card15_12.png":{"u":"files/assets/chain/card15_12.webp"},"assets/chain/card15_13.png":{"u":"files/assets/chain/card15_13.webp"},"assets/chain/card15_14.png":{"u":"files/assets/chain/card15_14.webp"},"assets/chain/piece_00.png":{"u":"files/assets/chain/piece_00.webp"},"assets/chain/piece_01.png":{"u":"files/assets/chain/piece_01.webp"},"assets/chain/piece_02.png":{"u":"files/assets/chain/piece_02.webp"},"assets/chain/piece_03.png":{"u":"files/assets/chain/piece_03.webp"},"assets/chain/piece_04.png":{"u":"files/assets/chain/piece_04.webp"},"assets/chain/piece_05.png":{"u":"files/assets/chain/piece_05.webp"},"assets/chain/piece_06.png":{"u":"files/assets/chain/piece_06.webp"},"assets/chain/piece_07.png":{"u":"files/assets/chain/piece_07.webp"},"assets/chain/piece_10.png":{"u":"files/assets/chain/piece_10.webp"},"assets/chain/piece_11.png":{"u":"files/assets/chain/piece_11.webp"},"assets/chain/piece_12.png":{"u":"files/assets/chain/piece_12.webp"},"assets/chain/piece_13.png":{"u":"files/assets/chain/piece_13.webp"},"assets/chain/piece_14.png":{"u":"files/assets/chain/piece_14.webp"},"assets/chain/piece_15.png":{"u":"files/assets/chain/piece_15.webp"},"assets/chain/piece_16.png":{"u":"files/assets/chain/piece_16.webp"},"assets/chain/piece_20.png":{"u":"files/assets/chain/piece_20.webp"},"assets/chain/piece_21.png":{"u":"files/assets/chain/piece_21.webp"},"assets/chain/piece_22.png":{"u":"files/assets/chain/piece_22.webp"},"assets/chain/piece_23.png":{"u":"files/assets/chain/piece_23.webp"},"assets/chain/piece_24.png":{"u":"files/assets/chain/piece_24.webp"},"assets/chain/piece_25.png":{"u":"files/assets/chain/piece_25.webp"},"assets/chain/piece_26.png":{"u":"files/assets/chain/piece_26.webp"},"assets/chain/stack15_00.png":{"u":"files/assets/chain/stack15_00.webp"},"assets/chain/stack15_01.png":{"u":"files/assets/chain/stack15_01.webp"},"assets/chain/stack15_02.png":{"u":"files/assets/chain/stack15_02.webp"},"assets/chain/stack15_03.png":{"u":"files/assets/chain/stack15_03.webp"},"assets/chain/stack15_04.png":{"u":"files/assets/chain/stack15_04.webp"},"assets/chain/stack15_05.png":{"u":"files/assets/chain/stack15_05.webp"},"assets/chain/stack15_06.png":{"u":"files/assets/chain/stack15_06.webp"},"assets/chain/stack15_07.png":{"u":"files/assets/chain/stack15_07.webp"},"assets/chain/stack15_08.png":{"u":"files/assets/chain/stack15_08.webp"},"assets/chain/stack15_09.png":{"u":"files/assets/chain/stack15_09.webp"},"assets/chain/stack15_10.png":{"u":"files/assets/chain/stack15_10.webp"},"assets/chain/stack15_11.png":{"u":"files/assets/chain/stack15_11.webp"},"assets/chain/stack15_12.png":{"u":"files/assets/chain/stack15_12.webp"},"assets/chain/stack15_13.png":{"u":"files/assets/chain/stack15_13.webp"},"assets/chain/stack15_14.png":{"u":"files/assets/chain/stack15_14.webp"},"assets/char_dealer_base.png":{"u":"files/assets/char_dealer_base.webp"},"assets/char_dealer_point.png":{"u":"files/assets/char_dealer_point.webp"},"assets/char_sheet/pose_7.png":{"u":"files/assets/char_sheet/pose_7.webp"},"assets/char_sheet/pose_8.png":{"u":"files/assets/char_sheet/pose_8.webp"},"assets/layers/B01-P.png":{"u":"files/assets/layers/B01-P.webp"},"assets/layers/B01-card.png":{"u":"files/assets/layers/B01-card.webp"},"assets/layers/B02-P.png":{"u":"files/assets/layers/B02-P.webp"},"assets/layers/B03-P.png":{"u":"files/assets/layers/B03-P.webp"},"assets/layers/B03-curtain.png":{"u":"files/assets/layers/B03-curtain.webp"},"assets/layers/B03-desk.png":{"u":"files/assets/layers/B03-desk.webp"},"assets/layers/B04-P.png":{"u":"files/assets/layers/B04-P.webp"},"assets/layers/B04-banner-bottom.png":{"u":"files/assets/layers/B04-banner-bottom.webp"},"assets/layers/B04-banner-top.png":{"u":"files/assets/layers/B04-banner-top.webp"},"assets/layers/B04-oval.png":{"u":"files/assets/layers/B04-oval.webp"},"assets/layers/B05-P.png":{"u":"files/assets/layers/B05-P.webp"},"assets/layers/B05-clock.png":{"u":"files/assets/layers/B05-clock.webp"},"assets/layers/B05-paper.png":{"u":"files/assets/layers/B05-paper.webp"},"assets/layers/B06-P.png":{"u":"files/assets/layers/B06-P.webp"},"assets/layers/B06-barrel.png":{"u":"files/assets/layers/B06-barrel.webp"},"assets/layers/B07-P.png":{"u":"files/assets/layers/B07-P.webp"},"assets/layers/B07-calendar.png":{"u":"files/assets/layers/B07-calendar.webp"},"assets/layers/B08-P.png":{"u":"files/assets/layers/B08-P.webp"},"assets/layers/B09-P.png":{"u":"files/assets/layers/B09-P.webp"},"assets/layers/B09-card.png":{"u":"files/assets/layers/B09-card.webp"},"assets/layers/B09-card_f1.png":{"u":"files/assets/layers/B09-card_f1.webp"},"assets/layers/B09-card_f2.png":{"u":"files/assets/layers/B09-card_f2.webp"},"assets/layers/B09-card_f3.png":{"u":"files/assets/layers/B09-card_f3.webp"},"assets/layers/B09-card_f4.png":{"u":"files/assets/layers/B09-card_f4.webp"},"assets/layers/B09-open.png":{"u":"files/assets/layers/B09-open.webp"},"assets/layers/B10-P.png":{"u":"files/assets/layers/B10-P.webp"},"assets/layers/B10-card.png":{"u":"files/assets/layers/B10-card.webp"},"assets/layers/B10-deck.png":{"u":"files/assets/layers/B10-deck.webp"},"assets/layers/B11-P.png":{"u":"files/assets/layers/B11-P.webp"},"assets/layers/B11-box.png":{"u":"files/assets/layers/B11-box.webp"},"assets/layers/B11-hand.png":{"u":"files/assets/layers/B11-hand.webp"},"assets/layers/B12-P.png":{"u":"files/assets/layers/B12-P.webp"},"assets/layers/B12-tower.png":{"u":"files/assets/layers/B12-tower.webp"},"assets/layers/B13-P.png":{"u":"files/assets/layers/B13-P.webp"},"assets/layers/B13-stack.png":{"u":"files/assets/layers/B13-stack.webp"},"assets/layers/B14-P.png":{"u":"files/assets/layers/B14-P.webp"},"assets/layers/B14-pen.png":{"u":"files/assets/layers/B14-pen.webp"},"assets/layers/B15-P.png":{"u":"files/assets/layers/B15-P.webp"},"assets/layers/B16-P.png":{"u":"files/assets/layers/B16-P.webp"},"assets/layers/B17-P.png":{"u":"files/assets/layers/B17-P.webp"},"assets/layers/B17-stamp.png":{"u":"files/assets/layers/B17-stamp.webp"},"assets/layers/B18-P.png":{"u":"files/assets/layers/B18-P.webp"},"mix/bed.wav":{"u":"files/mix/bed.mp3"},"mix/lines/vi/b01.wav":{"u":"files/mix/lines/vi/b01.mp3"},"mix/lines/vi/b02.wav":{"u":"files/mix/lines/vi/b02.mp3"},"mix/lines/vi/b03.wav":{"u":"files/mix/lines/vi/b03.mp3"},"mix/lines/vi/b04.wav":{"u":"files/mix/lines/vi/b04.mp3"},"mix/lines/vi/b05.wav":{"u":"files/mix/lines/vi/b05.mp3"},"mix/lines/vi/b06.wav":{"u":"files/mix/lines/vi/b06.mp3"},"mix/lines/vi/b07.wav":{"u":"files/mix/lines/vi/b07.mp3"},"mix/lines/vi/b08.wav":{"u":"files/mix/lines/vi/b08.mp3"},"mix/lines/vi/b09.wav":{"u":"files/mix/lines/vi/b09.mp3"},"mix/lines/vi/b10.wav":{"u":"files/mix/lines/vi/b10.mp3"},"mix/lines/vi/b11.wav":{"u":"files/mix/lines/vi/b11.mp3"},"mix/lines/vi/b12.wav":{"u":"files/mix/lines/vi/b12.mp3"},"mix/lines/vi/b13.wav":{"u":"files/mix/lines/vi/b13.mp3"},"mix/lines/vi/b14.wav":{"u":"files/mix/lines/vi/b14.mp3"},"mix/lines/vi/b15.wav":{"u":"files/mix/lines/vi/b15.mp3"},"mix/lines/vi/b16.wav":{"u":"files/mix/lines/vi/b16.mp3"},"mix/lines/vi/b17.wav":{"u":"files/mix/lines/vi/b17.mp3"},"mix/lines/vi/b18.wav":{"u":"files/mix/lines/vi/b18.mp3"},"mix/bed_en_am_michael.wav":{"u":"files/mix/bed_en_am_michael.mp3"},"mix/lines/en_michael/b01.wav":{"u":"files/mix/lines/en_michael/b01.mp3"},"mix/lines/en_michael/b02.wav":{"u":"files/mix/lines/en_michael/b02.mp3"},"mix/lines/en_michael/b03.wav":{"u":"files/mix/lines/en_michael/b03.mp3"},"mix/lines/en_michael/b04.wav":{"u":"files/mix/lines/en_michael/b04.mp3"},"mix/lines/en_michael/b05.wav":{"u":"files/mix/lines/en_michael/b05.mp3"},"mix/lines/en_michael/b06.wav":{"u":"files/mix/lines/en_michael/b06.mp3"},"mix/lines/en_michael/b07.wav":{"u":"files/mix/lines/en_michael/b07.mp3"},"mix/lines/en_michael/b08.wav":{"u":"files/mix/lines/en_michael/b08.mp3"},"mix/lines/en_michael/b09.wav":{"u":"files/mix/lines/en_michael/b09.mp3"},"mix/lines/en_michael/b10.wav":{"u":"files/mix/lines/en_michael/b10.mp3"},"mix/lines/en_michael/b11.wav":{"u":"files/mix/lines/en_michael/b11.mp3"},"mix/lines/en_michael/b12.wav":{"u":"files/mix/lines/en_michael/b12.mp3"},"mix/lines/en_michael/b13.wav":{"u":"files/mix/lines/en_michael/b13.mp3"},"mix/lines/en_michael/b14.wav":{"u":"files/mix/lines/en_michael/b14.mp3"},"mix/lines/en_michael/b15.wav":{"u":"files/mix/lines/en_michael/b15.mp3"},"mix/lines/en_michael/b16.wav":{"u":"files/mix/lines/en_michael/b16.mp3"},"mix/lines/en_michael/b17.wav":{"u":"files/mix/lines/en_michael/b17.mp3"},"mix/lines/en_michael/b18.wav":{"u":"files/mix/lines/en_michael/b18.mp3"},"mix/holds/hold_01.wav":{"u":"files/mix/holds/hold_01.wav"},"mix/holds/hold_02.wav":{"u":"files/mix/holds/hold_02.wav"},"mix/holds/hold_03.wav":{"u":"files/mix/holds/hold_03.wav"},"mix/holds/hold_04.wav":{"u":"files/mix/holds/hold_04.wav"},"mix/holds/hold_05.wav":{"u":"files/mix/holds/hold_05.wav"},"mix/holds/hold_06.wav":{"u":"files/mix/holds/hold_06.wav"},"mix/holds/hold_07.wav":{"u":"files/mix/holds/hold_07.wav"},"mix/holds/hold_08.wav":{"u":"files/mix/holds/hold_08.wav"},"mix/holds/hold_09.wav":{"u":"files/mix/holds/hold_09.wav"},"mix/holds/hold_10.wav":{"u":"files/mix/holds/hold_10.wav"},"mix/holds/hold_11.wav":{"u":"files/mix/holds/hold_11.wav"},"mix/holds/hold_12.wav":{"u":"files/mix/holds/hold_12.wav"},"mix/holds/hold_13.wav":{"u":"files/mix/holds/hold_13.wav"},"mix/holds/hold_14.wav":{"u":"files/mix/holds/hold_14.wav"},"mix/holds/hold_15.wav":{"u":"files/mix/holds/hold_15.wav"},"mix/holds/hold_16.wav":{"u":"files/mix/holds/hold_16.wav"},"mix/holds/hold_17.wav":{"u":"files/mix/holds/hold_17.wav"},"mix/holds/hold_18.wav":{"u":"files/mix/holds/hold_18.wav"},"mix/holds/hold_19.wav":{"u":"files/mix/holds/hold_19.wav"}};</script>
+<script>(function(){
+var D=window.__ASSETS||{};
+function norm(u){u=String(u).split('?')[0].split('#')[0];u=u.replace(/^(https?:)?\/\/[^\/]+\//,'').replace(/^file:\/\/\/?.*?lien-xo-sup-do\//,'');while(/^(\.\.\/|\.\/)/.test(u))u=u.replace(/^(\.\.\/|\.\/)/,'');return u.replace(/^out\//,'').replace(/^dist\//,'')}
+function res(v){if(!v||/^(data|blob):/.test(v))return v;var a=D[norm(v)];return a?a.u:v}
+window.__res=res;
+var d=Object.getOwnPropertyDescriptor(HTMLImageElement.prototype,'src');Object.defineProperty(HTMLImageElement.prototype,'src',{get:function(){return d.get.call(this)},set:function(v){d.set.call(this,res(v))},configurable:true});
+var m=Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype,'src');Object.defineProperty(HTMLMediaElement.prototype,'src',{get:function(){return m.get.call(this)},set:function(v){m.set.call(this,res(v))},configurable:true});
+var A0=window.Audio;window.Audio=function(u){var a=new A0();if(u)a.src=u;return a};window.Audio.prototype=A0.prototype;
+var sa=Element.prototype.setAttribute;Element.prototype.setAttribute=function(n,v){if(n==='src'&&(this instanceof HTMLImageElement||this instanceof HTMLMediaElement))v=res(v);return sa.call(this,n,v)};
+var ih=Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML');Object.defineProperty(Element.prototype,'innerHTML',{get:function(){return ih.get.call(this)},set:function(v){if(typeof v==='string'&&v.indexOf('<img')>=0)v=v.replace(/(<img[^>]*?\ssrc=)(["'])([^"']+)\2/g,function(_,a,q,u){return a+q+res(u)+q});ih.set.call(this,v)},configurable:true});
+})();</script>
+<script>window.__errs=[];addEventListener('error',e=>{__errs.push(String(e.message)+' @'+e.lineno+':'+e.colno);var p=document.createElement('pre');p.id='errs';p.textContent=__errs.join('\n');document.documentElement.appendChild(p)});</script>
+<script>/* engine2 — thư viện hiệu ứng cho video Liên Xô. Thuần: frame(t) đặt style từ t, không CSS animation/setTimeout/random. */
+(function(){
+'use strict';
+const W=941,H=1672;
+const clamp=(x,a=0,b=1)=>x<a?a:x>b?b:x, lerp=(a,b,u)=>a+(b-a)*u, seg=(p,a,b)=>clamp((p-a)/(b-a));
+const E={lin:x=>x,inQ:x=>x*x,inC:x=>x*x*x,outC:x=>1-Math.pow(1-x,3),inOutC:x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2,
+  inOutS:x=>.5-.5*Math.cos(Math.PI*x),outBack:(x,s=1.70158)=>1+(s+1)*Math.pow(x-1,3)+s*Math.pow(x-1,2),
+  outBounce:x=>{const n=7.5625,d=2.75;if(x<1/d)return n*x*x;if(x<2/d)return n*(x-=1.5/d)*x+.75;if(x<2.5/d)return n*(x-=2.25/d)*x+.9375;return n*(x-=2.625/d)*x+.984375}};
+const hash=i=>{const s=Math.sin(i*127.1+311.7)*43758.5453;return s-Math.floor(s)};
+const registry={};
+function register(name,def){def.name=name;registry[name]=def;return def}
+const px=v=>v.toFixed(2)+'px';
+function mk(cls,tag,css){const d=document.createElement(tag||'div');if(cls)d.className=cls;if(css)d.style.cssText=css;return d}
+function im(src,cls){const i=new Image();i.src=src;i.className=cls||'';i.draggable=false;return i}
+function kid(host,src,w,h){const k=mk('e2k');k.style.width=w+'px';k.style.height=h+'px';k.appendChild(im(src));host.appendChild(k);return k}
+const rep=(s,k)=>s.split('{k}').join(k);
+function body(P,L){if(L.html){const d=mk('','div','position:absolute;left:0;top:0;width:100%;height:100%');d.innerHTML=L.html;return d}return im(P.src||L.src,'e2im')}
+
+/* ===================== ENTRANCE (16) — apply(el,p,P,st): p 0→1, p=0 trạng thái đầu, p=1 đứng yên ===================== */
+register('cardFly3D',{kind:'in',apply(el,p,P){const e=E.outC(p);
+  el.style.opacity=seg(p,0,.15);
+  el.style.transform=`perspective(1600px) translate3d(${px(lerp(P.dx||0,0,e))},${px(lerp(P.dy||-120,0,e))},0) rotateY(${lerp(P.ry||-160,0,e).toFixed(2)}deg) rotateX(${lerp(P.rx||14,0,e).toFixed(2)}deg) scale(${lerp(P.s0||3.2,1,e).toFixed(4)})`}});
+
+register('fanEdges',{kind:'in',build(host,P,L){const n=P.n||15,cw=P.cw||273,ch=P.ch||351,st={kids:[],cw,ch};
+  const cx0=P.cx0??252.7,cx1=P.cx1??705,ym=P.ymid??775.9,y0=P.y0??838,y1=P.y1??878,a0=P.a0??-41.8,a1=P.a1??23.4,g=P.g??.98;
+  for(let k=0;k<n;k++){const u=k/(n-1),cx=cx0+(cx1-cx0)*Math.pow(u,g),m=(k-(n-1)/2)/((n-1)/2),cy=ym+((k<(n-1)/2?y0:y1)-ym)*m*m,rot=a0+(a1-a0)*u;
+    const side=k%4,far=420;let sx=cx,sy=cy;
+    if(side===0)sx=-far;else if(side===1)sx=W+far;else if(side===2)sy=-far;else sy=H+far;
+    st.kids.push({el:kid(host,window.CARD15?'../assets/chain/'+window.CARD15[(k*7)%15]:(P.src||L.src),cw,ch),cx,cy,rot,sx,sy,sr:rot+(hash(k)-.5)*140})}
+  return st},
+  apply(el,p,P,st){const n=st.kids.length;st.kids.forEach((o,k)=>{const s0=k/n*.45,q=seg(p,s0,s0+.5),e=E.outBack(q,1.25);
+    o.el.style.opacity=q>0?1:0;
+    o.el.style.transform=`translate(${px(lerp(o.sx,o.cx,e)-st.cw/2)},${px(lerp(o.sy,o.cy,e)-st.ch/2)}) rotate(${lerp(o.sr,o.rot,e).toFixed(2)}deg)`})}});
+
+register('curtainOpen',{kind:'in',build(host,P,L){const a=mk('e2k'),b=mk('e2k');
+  [a,b].forEach((d,i)=>{d.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;clip-path:'+(i?'inset(0 0 0 50%)':'inset(0 50% 0 0)');d.appendChild(im(P.src||L.src,'e2im'));d.firstChild.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%';host.appendChild(d)});
+  return{a,b,w:L.w}},
+  /* p=0: hai nửa kéo vào giữa (rèm khép), p=1: ảnh đứng yên đúng chỗ layout (rèm mở) */
+  apply(el,p,P,st){const e=E.inOutC(seg(p,.1,1)),c=(1-e)*(P.close??.22)*st.w;st.a.style.transform=`translateX(${px(c)})`;st.b.style.transform=`translateX(${px(-c)})`}});
+
+register('slideInRot',{kind:'in',apply(el,p,P){const e=E.outBack(p,.7),f=P.from||[-760,-520],r0=P.r0??28;
+  el.style.opacity=seg(p,0,.08);el.style.transform=`translate(${px(f[0]*(1-e))},${px(f[1]*(1-e))}) rotate(${(r0*(1-e)).toFixed(2)}deg)`}});
+
+register('dropBounce',{kind:'in',apply(el,p,P,st){const from=P.from||(st.t+st.h+120),e=E.outBounce(p),sq=Math.exp(-Math.pow((p-.3636)/.035,2));
+  el.style.opacity=p>0?1:0;el.style.transformOrigin='50% 100%';
+  el.style.transform=`translateY(${px(-from*(1-e))}) scale(${(1+.07*sq).toFixed(3)},${(1-.1*sq).toFixed(3)})`}});
+
+register('pageFlip',{kind:'in',build(host,P,L){const src=P.src||L.src,lab=(t,c)=>{const d=mk('','div',`position:absolute;left:0;top:${P.ly??30}%;width:100%;text-align:center;font:700 ${P.fs||110}px Times New Roman,serif;color:${c||'#7a1f24'};opacity:.78`);d.textContent=t;return d};
+  const base=im(src,'e2im');base.style.filter=P.tint||'hue-rotate(-10deg) brightness(.94)';host.appendChild(base);if(P.to)host.appendChild(lab(P.to));
+  const flip=mk('','div','position:absolute;left:0;top:0;width:100%;height:100%;transform-origin:50% 0;backface-visibility:hidden');flip.appendChild(im(src,'e2im'));if(P.from)flip.appendChild(lab(P.from));host.appendChild(flip);
+  const sh=mk('','div','position:absolute;left:0;top:0;width:100%;height:100%;background:linear-gradient(#000,transparent);opacity:0;pointer-events:none');host.insertBefore(sh,flip);
+  return{flip,sh}},
+  apply(el,p,P,st){el.style.opacity=seg(p,0,.12);const q=E.inOutC(seg(p,.22,.85));
+    st.flip.style.transform=`perspective(2200px) rotateX(${(-180*q).toFixed(2)}deg)`;st.sh.style.opacity=(.55*Math.sin(Math.PI*q)).toFixed(3)}});
+
+const CHAIN=[[-10,1325],[130,1300],[260,1265],[400,1215],[520,1160],[640,1110],[760,1050],[850,990],[905,920],[900,850],[850,770],[760,710],[680,685],[650,640],[580,590],[520,560],[440,525],[420,510]];
+register('pathDraw',{kind:'in',build(host,P){const PC=P.pieces||window.CHAIN_LAYOUT;if(PC&&PC.length){const base=P.base||'../assets/chain/',n=PC.length,els=PC.map(d=>{const i=im(base+d.src);i.style.cssText=`position:absolute;left:${d.x-d.w/2}px;top:${d.y-d.h}px;width:${d.w}px;height:${d.h}px;transform-origin:50% 100%;opacity:0;z-index:${Math.round(d.y)};filter:drop-shadow(3px 5px 4px rgba(0,0,0,.45))`;host.appendChild(i);return{i,idx:d.idx}});return{img:true,els,n}}const Pt=P.pts||CHAIN,cols=P.cols||['#e9dfc6','#a82a30','#5d6b4a','#b8964a','#8c8a84'],y0=P.yFar??505,y1=P.yNear??1330;
+  const cum=[0];for(let i=1;i<Pt.length;i++)cum.push(cum[i-1]+Math.hypot(Pt[i][0]-Pt[i-1][0],Pt[i][1]-Pt[i-1][1]));const tot=cum[cum.length-1];
+  const at=s=>{let i=1;while(i<cum.length-1&&cum[i]<s)i++;const u=(s-cum[i-1])/(cum[i]-cum[i-1]);return[Pt[i-1][0]+(Pt[i][0]-Pt[i-1][0])*u,Pt[i-1][1]+(Pt[i][1]-Pt[i-1][1])*u]};
+  const fig=[];let s=14,k=0;while(s<tot-6){const[x,y]=at(s),f=(y-y0)/(y1-y0),sc=.34+.66*clamp(f),h=118*sc;fig.push({x,y,h,c:cols[k%cols.length],idx:k});s+=h*.62;k++}
+  const NS='http://www.w3.org/2000/svg',svg=document.createElementNS(NS,'svg');svg.setAttribute('width',W);svg.setAttribute('height',H);svg.style.cssText='position:absolute;left:0;top:0;overflow:visible;filter:drop-shadow(3px 5px 4px rgba(0,0,0,.45))';
+  const mkS=(t,a)=>{const e=document.createElementNS(NS,t);for(const q in a)e.setAttribute(q,a[q]);return e};
+  const lines=[];for(let i=1;i<fig.length;i++){const a=fig[i-1],b=fig[i],l=mkS('line',{x1:a.x,y1:a.y-a.h*.5,x2:b.x,y2:b.y-b.h*.5,stroke:'#2b2d31','stroke-width':Math.max(2,b.h*.045)});svg.appendChild(l);lines.push({l,idx:i})}
+  const gs=[...fig].sort((a,b)=>a.y-b.y).map(f=>{const w=f.h*.46,sw=Math.max(1.5,f.h*.03),g=mkS('g',{});
+    g.appendChild(mkS('path',{d:`M${-w/2},0 L${-w*.32},${-f.h*.62} L${w*.32},${-f.h*.62} L${w/2},0 Z`,fill:f.c,stroke:'#2b2d31','stroke-width':sw}));
+    g.appendChild(mkS('circle',{cx:0,cy:-f.h*.8,r:f.h*.18,fill:f.c,stroke:'#2b2d31','stroke-width':sw}));svg.appendChild(g);return{g,f}});
+  host.appendChild(svg);return{gs,lines,n:fig.length}},
+  apply(el,p,P,st){const n=st.n;if(st.img){st.els.forEach(({i,idx})=>{const q=seg(p,idx/n*.8,idx/n*.8+.2),k=E.outBack(q,1.6);i.style.opacity=q>0?1:0;i.style.transform=`scale(${Math.max(.001,.4+.6*k).toFixed(3)})`});return}st.gs.forEach(({g,f})=>{const q=seg(p,f.idx/n*.8,f.idx/n*.8+.2),s=E.outBack(q,1.6);
+    g.setAttribute('opacity',q>0?1:0);g.setAttribute('transform',`translate(${f.x.toFixed(1)} ${f.y.toFixed(1)}) scale(${Math.max(.001,.4+.6*s).toFixed(3)})`)});
+    st.lines.forEach(({l,idx})=>l.setAttribute('opacity',seg(p,idx/n*.8+.05,idx/n*.8+.2)>0?1:0))}});
+
+register('domino',{kind:'in',build(host,P,L){let items=P.items;
+  if(!items){items=[[-60,886,354,443],[173,700,236,414],[351,629,179,400],[444,564,165,407],[516,514,128,429]];let[x,y,w,h]=items[4];for(let k=0;k<14;k++){x+=10+(14-k)*3.5;w=Math.max(14,w*.9);const hh=h*Math.pow(.89,k+1);items.push([x,y+(h-hh)*.8-k*3,w,hh])}}
+  const ORD=[2,0,3,1,4],kids=items.map((b,bi)=>{const k=kid(host,window.CARD9?'../assets/layers/'+window.CARD9[ORD[bi%5]]:(P.src||L.src),b[2],b[3]);k.style.left=b[0]+'px';k.style.top=b[1]+'px';k.style.transformOrigin='100% 100%';k.style.zIndex=items.indexOf(b)<5?5:4;k.firstChild.style.filter='drop-shadow(0 8px 8px rgba(0,0,0,.4))';return k});
+  return{kids}},
+  apply(el,p,P,st){const n=st.kids.length,ang=P.ang||50;st.kids.forEach((k,i)=>{const s=.18+i/n*.62,q=seg(p,s,s+.2);k.style.opacity=seg(p,0,.1);
+    k.style.transform=`rotate(${(-ang*(1-E.inQ(q))).toFixed(2)}deg)`})}});
+
+register('maskReveal',{kind:'in',apply(el,p,P){const q=E.inOutC(p),rx=Math.max(1,(P.rx||420)*q),ry=Math.max(1,(P.ry||520)*q),f=P.feather??.72,m=`radial-gradient(ellipse ${rx.toFixed(1)}px ${ry.toFixed(1)}px at ${P.cx||660}px ${P.cy||330}px,#000 ${Math.round(f*100)}%,transparent 100%)`;
+  el.style.webkitMaskImage=m;el.style.maskImage=m;el.style.opacity=p>0?1:0}});
+
+register('vault',{kind:'in',apply(el,p,P){const e=E.outC(p),hump=Math.sin(Math.PI*p);
+  el.style.opacity=seg(p,0,.08);
+  el.style.filter=`drop-shadow(0 0 ${(34*hump).toFixed(1)}px rgba(255,205,110,.95))`;
+  el.style.transform=`perspective(1500px) translateY(${px(lerp(P.dy||520,0,e)-(P.lift||260)*hump)}) rotateY(${(720*e).toFixed(1)}deg) rotateZ(${(-12*(1-e)).toFixed(1)}deg) scale(${(lerp(.55,1,e)+.12*hump).toFixed(4)})`}});
+
+register('handRise',{kind:'in',apply(el,p,P){const e=E.outBack(p,.9);
+  el.style.opacity=seg(p,0,.08);el.style.transform=`translateY(${px(lerp(P.dy||800,0,e))}) rotate(${(-10*(1-e)).toFixed(2)}deg)`}});
+
+register('towerClock',{kind:'in',build(host,P,L){const w=L.w,h=L.h,cx=(P.faceX??.436)*w,cy=(P.faceY??.405)*h,r=(P.fr??.19)*w;
+  host.appendChild(im(P.src||L.src,'e2im'));
+  host.appendChild(mk('','div',`position:absolute;left:${cx-r}px;top:${cy-r}px;width:${2*r}px;height:${2*r}px;border-radius:50%;background:#2a2e33;box-shadow:inset 0 0 0 3px #c9962e`));
+  const hand=(len,wd,col)=>{const d=mk('','div',`position:absolute;left:${cx-wd/2}px;top:${cy-len}px;width:${wd}px;height:${len}px;background:${col};border-radius:${wd}px;transform-origin:50% 100%`);host.appendChild(d);return d};
+  const hm=hand(r*.88,Math.max(4,w*.016),'#e8b84a'),hh=hand(r*.58,Math.max(5,w*.022),'#e8b84a');
+  host.appendChild(mk('','div',`position:absolute;left:${cx-6}px;top:${cy-6}px;width:12px;height:12px;border-radius:50%;background:#e8b84a`));
+  return{hm,hh}},
+  apply(el,p,P,st){el.style.opacity=seg(p,0,.15);el.style.transform=`translateY(${px((1-E.outC(seg(p,0,.35)))*120)})`;
+    const run1=E.inOutS(seg(p,.08,.4)),hold=Math.sin(p*90)*.8*(p>.4&&p<.62?1:0),run2=E.inQ(seg(p,.62,1)),m=540*run1+hold+900*run2;
+    st.hm.style.transform=`rotate(${m.toFixed(2)}deg)`;st.hh.style.transform=`rotate(${(90+m/12).toFixed(2)}deg)`}});
+
+register('flagLower',{kind:'in',build(host,P,L){const fl=mk('','div','position:absolute;left:0;top:0;width:100%;height:100%;transform-origin:50% 0');fl.appendChild(body(P,L));if(fl.firstChild.tagName==='IMG')fl.firstChild.style.filter='drop-shadow(5px 8px 8px rgba(0,0,0,.45))';host.appendChild(fl);
+  if(P.pole)host.appendChild(mk('','div','position:absolute;left:0;top:-30px;width:10px;height:calc(100% + 400px);background:linear-gradient(90deg,#6c6a64,#c8c4b6,#6c6a64);border-radius:5px'));
+  return{fl}},
+  /* cờ bắt đầu ở vị trí cao (rise px phía trên) và hạ từng nấc về đúng chỗ layout; dim = mức tối đi cuối cùng */
+  apply(el,p,P,st){const n=P.steps||5,u=Math.min(p,.99999)*n,f=Math.floor(u),q=(f+E.inOutS(u-f))/n,qq=p>=1?1:q;
+    st.fl.style.transform=`translateY(${px(-(P.rise??380)*(1-qq))}) rotate(${(2.5*Math.sin(p*20)*(1-p)).toFixed(2)}deg)`;
+    el.style.opacity=seg(p,0,.05);el.style.filter=`brightness(${(1-(P.dim??.4)*p).toFixed(3)})`}});
+
+register('stampSlam',{kind:'in',build(host,P,L){const w=L.w,h=L.h,iw=(P.iw||.95)*w,ink=mk('','div',`position:absolute;left:${(P.ix??.5)*w-iw/2}px;top:${(P.iy??.9)*h-iw*.22}px;width:${iw}px;height:${iw*.44}px;border-radius:50%;background:radial-gradient(ellipse at center,#8f1d22 0,#8f1d22 55%,rgba(143,29,34,0) 72%);opacity:0`);
+  host.appendChild(ink);const o=mk('','div','position:absolute;left:0;top:0;width:100%;height:100%;transform-origin:50% 100%');o.appendChild(im(P.src||L.src,'e2im'));host.appendChild(o);return{ink,o}},
+  apply(el,p,P,st){const q=seg(p,0,.28),b=seg(p,.28,.65),hit=p>.28?1:0;
+    const y=lerp(-300,0,E.inQ(q))-40*Math.sin(Math.PI*b)*(1-b),s=lerp(2.2,1,E.inQ(q)),sq=hit*.06*Math.max(0,1-b*3);
+    st.o.style.opacity=seg(p,0,.08);st.o.style.transform=`translate(${px(hit*5*Math.sin(b*40)*(1-b))},${px(y)}) scale(${(s*(1+sq)).toFixed(4)},${(s*(1-sq)).toFixed(4)})`;
+    st.ink.style.opacity=(.88*seg(p,.28,.34)).toFixed(3);st.ink.style.transform=`scale(${(.15+.95*E.outC(seg(p,.28,.8))).toFixed(3)})`}});
+
+/* slideOff: lá nghiêng (đa giác P.card, % ảnh) trượt khỏi cỗ; phần cỗ còn lại bị khoét đúng hình lá nên không nhân đôi */
+register('slideOff',{kind:'in',build(host,P,L){const poly=P.card||[[33.6,19.5],[78,9.1],[100,82.8],[57.1,99.5]],w=L.w,h=L.h;
+  const cx=poly.reduce((a,q)=>a+q[0],0)/poly.length*w/100,cy=poly.reduce((a,q)=>a+q[1],0)/poly.length*h/100;
+  const pts=poly.map(q=>{let x=q[0]*w/100,y=q[1]*h/100;const dx=cx-x,dy=cy-y,d=Math.hypot(dx,dy);return[x+dx/d*2,y+dy/d*2]});
+  const base=mk('','div','position:absolute;left:0;top:0;width:100%;height:100%');base.appendChild(im(P.src||L.src,'e2im'));
+  base.style.clipPath=`path(evenodd,'M0 0H${w}V${h}H0Z M${pts.map(q=>q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' L')}Z')`;host.appendChild(base);
+  const top=mk('','div','position:absolute;left:0;top:0;width:100%;height:100%;filter:drop-shadow(0 12px 12px rgba(0,0,0,.45));transform-origin:70% 60%');
+  const ti=mk('','div','position:absolute;left:0;top:0;width:100%;height:100%;clip-path:polygon('+poly.map(q=>q[0]+'% '+q[1]+'%').join(',')+')');ti.appendChild(im(P.src||L.src,'e2im'));top.appendChild(ti);host.appendChild(top);
+  return{base,top,w,h}},
+  apply(el,p,P,st){const a=seg(p,0,.2);st.base.style.opacity=a;st.base.style.transform=`scale(${lerp(.9,1,E.outC(seg(p,0,.25))).toFixed(3)})`;
+    const q=E.inOutC(seg(p,.25,.8));st.top.style.opacity=a;
+    st.top.style.transform=`translate(${px((1-q)*(P.dx??-.34)*st.w)},${px((1-q)*(P.dy??-.1)*st.h)}) rotate(${((1-q)*(P.rot??-7)).toFixed(2)}deg) scale(${lerp(.9,1,E.outC(seg(p,0,.25))).toFixed(3)})`}});
+
+/* paperRain: các phiếu (P.rest=[cx,cy,w,h,rot], toạ độ layer) rơi xuống rồi nằm yên tại chỗ */
+register('paperRain',{kind:'in',build(host,P,L){const ks=(P.rest||[]).map((r,i)=>{const d=mk('e2k','div',`width:${r[2]}px;height:${r[3]}px;left:${r[0]-r[2]/2}px;top:${r[1]-r[3]/2}px;background:#e4d7b8;border-radius:3px;box-shadow:6px 12px 14px rgba(0,0,0,.35)`);host.appendChild(d);return{d,r,i}});return{ks}},
+  apply(el,p,P,st){const n=st.ks.length;st.ks.forEach(({d,r,i})=>{const s0=((i*7)%n)/n*.5,q=seg(p,s0,s0+.45),e=E.outBounce(q);d.style.opacity=q>0?1:0;
+    d.style.transform=`translate(0px,${px(-(r[1]+r[3]+60)*(1-e))}) rotate(${(r[4]*e+(1-e)*(hash(i)-.5)*260).toFixed(2)}deg)`})}});
+
+register('slideUp',{kind:'in',apply(el,p,P){const e=E.outC(p);el.style.opacity=seg(p,0,.12);el.style.transform=`translateY(${px((1-e)*(P.dy||700))})`}});
+register('popIn',{kind:'in',apply(el,p,P){const e=E.outBack(p,1.5);el.style.opacity=seg(p,0,.2);el.style.transformOrigin='50% 100%';el.style.transform=`scale(${lerp(.25,1,e).toFixed(4)})`}});
+register('walkIn',{kind:'in',apply(el,p,P){const e=E.outC(p),bob=Math.abs(Math.sin(p*Math.PI*(P.steps||5)))*12*(1-p);el.style.opacity=seg(p,0,.1);el.style.transform=`translate(${px((P.dx??-420)*(1-e))},${px(-bob)})`}});
+register('peek',{kind:'in',apply(el,p,P){const e=E.outC(p);el.style.opacity=seg(p,0,.05);
+  el.style.clipPath=P.dir==='down'?`inset(0 0 ${((1-e)*100).toFixed(2)}% 0)`:`inset(${((1-e)*100).toFixed(2)}% 0 0 0)`;
+  if(P.dir!=='down')el.style.transform=`translateY(${px((1-e)*(P.dy??40))})`}});
+/* sweep: đặt --a (deg) cho phần tử con dùng mask conic-gradient (biểu đồ tròn vẽ ra) */
+register('sweep',{kind:'in',apply(el,p,P){el.style.setProperty('--a',((P.deg||275)*E.outC(p)).toFixed(2)+'deg');el.style.opacity=seg(p,0,.05)}});
+
+register('gather',{kind:'in',build(host,P,L){const n=P.n||11,cw=P.cw||150,ch=P.ch||208,R=P.R||350,ky=P.ky||.82,g=mk('','div',`position:absolute;left:${L.w/2}px;top:${L.h/2}px;width:0;height:0;transform:scaleY(${ky})`);host.appendChild(g);
+  const kids=[];for(let k=0;k<n;k++){const d=mk('','div',`position:absolute;width:${cw}px;height:${ch}px;left:${-cw/2}px;top:${-ch/2}px`);d.appendChild(im(window.CARD15?'../assets/chain/'+window.CARD15[(k*7+3)%15]:(P.src||L.src),'e2im'));d.firstChild.style.filter='drop-shadow(0 12px 10px rgba(0,0,0,.45))';g.appendChild(d);kids.push(d)}
+  return{kids,R,n}},
+  apply(el,p,P,st){st.kids.forEach((d,k)=>{const s=k/st.n*.5,q=seg(p,s,s+.5),e=E.outC(q),th=k*360/st.n;
+    d.style.opacity=q>0?1:0;d.style.transform=`rotate(${(th+lerp(110+hash(k)*80,0,e)).toFixed(2)}deg) translateY(${px(-lerp(st.R*3.2,st.R,e))}) scale(${lerp(.5,1,e).toFixed(3)})`})}});
+
+const G18=[[189,183],[470,1330],[783,190],[261,482],[564,521],[814,536],[136,771],[421,846],[726,874],[143,1097],[389,1143],[671,1164],[139,1436],[383,1471],[589,1490]];
+register('split15',{kind:'in',build(host,P,L){const pts=P.pts||G18,cw=P.cw||220,ch=P.ch||260,cx=P.cx??L.w/2,cy=P.cy??L.h/2;
+  const SR=P.srcs||window.STACK15&&window.STACK15.map(n=>(P.base||'../assets/chain/')+n),kids=pts.map((p,i)=>({el:kid(host,SR?SR[i%SR.length]:(P.src||L.src),cw,ch),x:p[0],y:p[1],r:((i*37)%21)-10,d:Math.hypot(p[0]-cx,p[1]-cy)}));
+  const mx=Math.max(...kids.map(k=>k.d));kids.forEach(k=>k.el.firstChild.style.filter='drop-shadow(0 10px 10px rgba(0,0,0,.4))');
+  return{kids,cw,ch,cx,cy,mx}},
+  apply(el,p,P,st){st.kids.forEach((o,i)=>{const s=.15+.3*o.d/st.mx,q=seg(p,s,s+.5),e=E.outBack(q,1.1);
+    o.el.style.opacity=seg(p,0,.1);
+    o.el.style.transform=`translate(${px(lerp(st.cx+(i%3-1)*5,o.x,e)-st.cw/2)},${px(lerp(st.cy+(i%3-1)*5-i*2,o.y,e)-st.ch/2)}) rotate(${(o.r*e).toFixed(2)}deg) scale(${lerp(.85,1,e).toFixed(3)})`})}});
+
+/* ===================== IDLE (4) — apply(el,time,P): time = giây từ at ===================== */
+const ph=P=>(P.phase||0)*Math.PI*2;
+register('sway',{kind:'idle',apply(el,t,P){el.style.transformOrigin=P.origin||'50% 0%';el.style.transform=`rotate(${((P.amp??3)*Math.sin(2*Math.PI*t/(P.period||2.4)+ph(P))).toFixed(3)}deg)`}});
+register('breathe',{kind:'idle',apply(el,t,P){const s=1+(P.amp??.025)*Math.sin(2*Math.PI*t/(P.period||2.4)+ph(P));el.style.transformOrigin=P.origin||'50% 50%';el.style.transform=`scale(${s.toFixed(4)})`}});
+register('float',{kind:'idle',apply(el,t,P){const a=2*Math.PI*t/(P.period||2.4)+ph(P);el.style.transform=`translateY(${px((P.amp??14)*Math.sin(a))}) rotate(${(1.2*Math.sin(a*.5)).toFixed(3)}deg)`}});
+register('tick',{kind:'idle',apply(el,t,P){const f=t%(P.period||1),k=Math.exp(-f*9)*Math.sin(f*34);el.style.transformOrigin=P.origin||'50% 100%';el.style.transform=`rotate(${((P.amp??1.1)*k).toFixed(3)}deg)`}});
+register('ringSpin',{kind:'idle',apply(el,t,P,st){if(!st.kids)return;st.kids.forEach((d,k)=>{d.style.transform=`rotate(${(k*360/st.n+t*(P.speed||5)).toFixed(2)}deg) translateY(${px(-st.R)})`})}});
+register('drift',{kind:'idle',apply(el,t,P){const a=2*Math.PI*t/(P.period||5)+ph(P);el.style.transform=`translate(${px((P.amp??40)*Math.sin(a))},${px((P.ampY??6)*Math.sin(a*.5))})`}});
+
+/* ===================== OUT / CHUYỂN CẢNH (9) — apply(ctx,p,P): ctx={A,B,flash,black,whip(σ),S} p=0: A trọn, p=1: B trọn ===================== */
+const vis=(e,v)=>{e.style.display=v?'':'none'};
+register('portalCenter',{kind:'out',apply(c,p){const a=seg(p,0,.5),b=E.outC(seg(p,.35,1));
+  c.A.style.transform=`perspective(1200px) rotateY(${(90*E.inQ(a)).toFixed(2)}deg)`;vis(c.A,a<1);
+  c.B.style.clipPath=`circle(${(150*b).toFixed(2)}% at 50% 50%)`;c.B.style.transform=`scale(${lerp(.55,1,b).toFixed(4)})`;
+  c.flash.style.opacity=(.3*Math.pow(Math.sin(Math.PI*seg(p,.3,1)),2)).toFixed(3)}});
+register('nestFrame',{kind:'out',apply(c,p,P){const a=E.inOutC(seg(p,0,.6));c.A.style.zIndex=5;
+  c.A.style.transform=`translateY(${px(lerp(0,P.ty??-300,a))}) scale(${lerp(1,.42,a).toFixed(4)}) rotate(${(-3*a).toFixed(2)}deg)`;
+  c.A.style.boxShadow=`0 0 0 ${(14*a).toFixed(1)}px #e9dfc6,0 ${(24*a).toFixed(1)}px ${(40*a).toFixed(1)}px rgba(0,0,0,.5)`;
+  c.A.style.opacity=(1-seg(p,.8,1)).toFixed(3);vis(c.A,p<1);c.B.style.transform=`scale(${lerp(1.35,1,E.outC(p)).toFixed(4)})`}});
+register('zoomThrough',{kind:'out',apply(c,p){const a=E.inC(seg(p,0,.8)),b=seg(p,.2,1);
+  c.A.style.transform=`scale(${lerp(1,2.8,a).toFixed(4)})`;c.A.style.filter=`blur(${(7*a).toFixed(1)}px)`;c.A.style.opacity=(1-seg(p,.5,.9)).toFixed(3);vis(c.A,p<.9);
+  c.B.style.transform=`scale(${lerp(.6,1,E.outC(b)).toFixed(4)})`;c.B.style.filter=`blur(${(8*(1-b)).toFixed(1)}px)`;c.B.style.opacity=seg(p,.3,.8).toFixed(3)}});
+register('focusPull',{kind:'out',apply(c,p){const a=seg(p,.2,.7),b=E.outC(seg(p,.2,1));
+  c.A.style.filter=`blur(${(18*a).toFixed(1)}px)`;c.A.style.opacity=(1-seg(p,.3,.7)).toFixed(3);vis(c.A,p<.7);
+  c.B.style.filter=`blur(${lerp(18,0,b).toFixed(1)}px)`;c.B.style.opacity=seg(p,0,.5).toFixed(3)}});
+register('sliceCut',{kind:'out',apply(c,p,P){const n=P.n||8,w=W/n;let d='';
+  for(let i=0;i<n;i++){const q=E.inOutC(seg(p,i*.06,i*.06+.5)),x=i*w;let y0=0,y1=H;if(i%2===0)y0=q*H;else y1=H*(1-q);if(y1-y0>.5)d+=`M${(x).toFixed(1)} ${y0.toFixed(1)}H${(x+w).toFixed(1)}V${y1.toFixed(1)}H${x.toFixed(1)}Z`}
+  c.A.style.zIndex=5;c.A.style.clipPath=`path('${d||'M0 0'}')`;vis(c.A,p<1)}});
+register('whipPan',{kind:'out',apply(c,p){const e=E.inOutC(p),s=Math.sin(Math.PI*e);
+  c.A.style.transform=`translateX(${px(-W*e)}) skewX(${(-10*s).toFixed(2)}deg)`;c.B.style.transform=`translateX(${px(W*(1-e))}) skewX(${(-10*s).toFixed(2)}deg)`;
+  c.A.style.filter=c.B.style.filter=`url(#${c.whipId})`;c.whip(60*s)}});
+register('flashDissolve',{kind:'out',apply(c,p){const f=1-Math.abs(p-.5)/.5;vis(c.A,p<.5);vis(c.B,p>=.5);c.flash.style.opacity=Math.min(1,Math.pow(f,.7)*1.15).toFixed(3)}});
+register('hardCut',{kind:'out',apply(c,p){vis(c.A,p<.5);vis(c.B,p>=.5)}});
+register('fadeBlack',{kind:'out',apply(c,p){vis(c.A,p<.5);vis(c.B,p>=.5);c.black.style.opacity=(p<.5?E.inOutS(p*2):1-E.inOutS((p-.5)*2)).toFixed(3)}});
+
+/* ===================== CHỮ (7) — build(el,T) tạo nội dung từ T.text; apply(el,p,T,st) ===================== */
+const chars=(el,text,cls)=>[...text].map(c=>{const s=mk(cls||'ch','span');s.textContent=c;el.appendChild(s);return s});
+register('fadeUp',{kind:'text',apply(el,p,T){const e=E.outC(p);el.style.opacity=seg(p,0,.6);el.style.translate=`0 ${((1-e)*(T.dy??18)).toFixed(2)}px`}});
+register('charScatter',{kind:'text',build(el,T){return{cs:chars(el,T.text)}},
+  apply(el,p,T,st){el.style.opacity=seg(p,0,.05);const n=st.cs.length;st.cs.forEach((s,k)=>{const s0=k/n*.45,q=seg(p,s0,s0+.55),e=E.outBack(q,1.1),i=1-e;
+    s.style.opacity=seg(q,0,.3);s.style.transform=`translate(${px((hash(k)-.5)*220*i)},${px((hash(k+9)-.5)*260*i)}) rotate(${((hash(k+3)-.5)*90*i).toFixed(1)}deg) scale(${lerp(.3,1,e).toFixed(3)})`})}});
+register('typeOn',{kind:'text',build(el,T){const cs=chars(el,T.text),c=mk('ch','span');c.textContent='|';c.style.cssText='display:inline-block;width:0;overflow:visible;font-weight:400;position:relative;left:3px';el.appendChild(c);return{cs,c}},
+  apply(el,p,T,st){const n=st.cs.length,k=p>=1?n:Math.floor(p*n);st.cs.forEach((s,i)=>s.style.visibility=i<k?'visible':'hidden');el.insertBefore(st.c,st.cs[k]||null);st.c.style.visibility=p<1&&p>0?'visible':'hidden'}});
+register('sliceIn',{kind:'text',build(el,T){const sz=mk('','span');sz.textContent=T.text;sz.style.visibility='hidden';el.style.position='absolute';el.appendChild(sz);
+  const mkh=cl=>{const d=mk('','div','position:absolute;left:0;top:0;width:100%;text-align:inherit;clip-path:'+cl);d.textContent=T.text;el.appendChild(d);return d};
+  return{a:mkh('inset(-40% 0 50% 0)'),b:mkh('inset(50% 0 -40% 0)')}},
+  apply(el,p,T,st){const e=E.outC(p),d=(T.dist||900)*(1-e);st.a.style.transform=`translateX(${px(-d)})`;st.b.style.transform=`translateX(${px(d)})`;st.a.style.opacity=st.b.style.opacity=seg(p,0,.1)}});
+register('inkCircle',{kind:'text',build(el,T){const w=T.w||520,h=T.h||200,NS='http://www.w3.org/2000/svg',svg=document.createElementNS(NS,'svg');svg.setAttribute('width',w);svg.setAttribute('height',h);svg.style.cssText='position:absolute;left:0;top:0;overflow:visible';
+  const e=document.createElementNS(NS,'ellipse');for(const [k,v] of Object.entries({cx:w/2,cy:h/2,rx:w/2-8,ry:h/2-8,fill:'none',stroke:T.color||'#a8282e','stroke-width':T.sw||11,'stroke-linecap':'round',pathLength:1,transform:`rotate(-4 ${w/2} ${h/2})`}))e.setAttribute(k,v);
+  svg.appendChild(e);el.appendChild(svg);return{e}},
+  apply(el,p,T,st){const q=E.inOutC(p)*1.03;st.e.setAttribute('stroke-dasharray',`${Math.min(1.03,q).toFixed(4)} 2`);st.e.setAttribute('stroke-dashoffset','0');st.e.setAttribute('opacity',p>0?1:0)}});
+register('odometer',{kind:'text',build(el,T){const to=String(T.text),fr=String(T.from??to),cols=[];el.style.lineHeight='1.05em';
+  [...to].forEach((c,i)=>{const f=fr[i];if(/\d/.test(c)&&f!==undefined&&/\d/.test(f)){const steps=(T.down?((+f-+c+10)%10):((+c-+f+10)%10))+10*(T.rolls??1),sg=T.down?-1:1;
+      const w=mk('','span','display:inline-block;height:1.05em;overflow:hidden;vertical-align:top'),s=mk('','span','display:block');
+      for(let k=0;k<=steps;k++){const d=mk('','span','display:block;height:1.05em');d.textContent=((+f+sg*k)%10+10)%10;s.appendChild(d)}w.appendChild(s);el.appendChild(w);cols.push({s,steps})}
+    else{const x=mk('','span','display:inline-block;white-space:pre;vertical-align:top');x.textContent=c;el.appendChild(x)}});return{cols}},
+  apply(el,p,T,st){el.style.opacity=seg(p,0,.15);const e=p>=1?1:E.outC(p);st.cols.forEach(c=>c.s.style.transform=`translateY(${(-c.steps*e*1.05).toFixed(4)}em)`)}});
+register('countUp',{kind:'text',build(el,T){el.style.fontVariantNumeric='tabular-nums';return{}},
+  apply(el,p,T){el.style.opacity=seg(p,0,.15);const v=Math.round(lerp(T.from??0,T.to??+T.text,p>=1?1:E.outC(p)));el.textContent=(T.prefix||'')+v+(T.suffix||'')}});
+register('stampText',{kind:'text',build(el,T){const s=mk('','span','display:inline-block;transform-origin:50% 60%'+(T.box===false?'':';border:8px solid currentColor;padding:0 26px;border-radius:12px'));s.textContent=T.text;el.appendChild(s);return{s}},
+  apply(el,p,T,st){const q=seg(p,0,.3),b=seg(p,.3,1),s=lerp(3,1,E.inQ(q))+.08*Math.sin(b*Math.PI*3)*(1-b);
+    st.s.style.opacity=seg(p,0,.1);st.s.style.transform=`scale(${s.toFixed(4)}) rotate(${lerp(-14,T.rot??-4,q).toFixed(2)}deg)`}});
+
+/* ===================== INSTANCE ===================== */
+const insts=[];let uid=0;
+function buildScene(sc){const root=mk('e2sc'),cam=mk('e2cam');root.appendChild(cam);
+  let bgw=null;if(sc.bg){const b=im(sc.bg,'e2bg');bgw=mk('e2bgw','div','position:absolute;left:0;top:0;width:941px;height:1672px');bgw.appendChild(b);cam.appendChild(bgw)}else if(sc.color)cam.style.background=sc.color;
+  const o={sc,root,cam,bgw,layers:[],texts:[]};
+  (sc.layers||[]).forEach(L=>{const lyr=mk('e2lyr'+(L.shadow?' sh':'')),inn=mk('in'),idle=mk('idle');
+    lyr.style.cssText=`left:${L.l||0}px;top:${L.t||0}px;width:${L.w}px;height:${L.h}px;z-index:${L.z||1}`;if(L.rot)lyr.style.rotate=L.rot+'deg';
+    lyr.appendChild(inn);inn.appendChild(idle);
+    const def=L.in&&registry[L.in.fx];let st={};
+    if(def&&def.build)st=def.build(idle,L.in,L)||{};else idle.appendChild(body({},L));
+    st.w=L.w;st.h=L.h;st.t=L.t||0;cam.appendChild(lyr);o.layers.push({L,inn,idle,st,def,idef:L.idle&&registry[L.idle.fx],odef:L.out&&registry[L.out.fx||(L.in&&L.in.fx)]})});
+  (sc.text||[]).forEach(T=>{const el=mk('e2tx'+(T.cls?' '+T.cls:''));if(T.css)el.style.cssText+=';'+T.css;const def=registry[T.fx];let st={};
+    if(def&&def.build)st=def.build(el,T)||{};else el.textContent=T.text;root.appendChild(el);o.texts.push({T,el,st,def})});
+  return o}
+function camT(sc,lt){const k=sc.cam,sh=sc.shake;let sx=0,sy=0;const hz=1+.045*(1-Math.exp(-(API.holdT||0)/8));
+  if(sh&&!API.noIdle&&lt>=(sh.at||0)){const q=sh.dur?clamp((lt-sh.at)/sh.dur):0,m=(sh.amp||2)*(1-q),f=sh.freq||7;sx=m*Math.sin(lt*f*6.2832+1);sy=m*Math.sin(lt*f*6.2832*1.37+2)}
+  if(!k||!k.length)return (sx||sy||hz>1)?`translate(${(W/2+sx).toFixed(2)}px,${(H/2+sy).toFixed(2)}px) scale(${hz.toFixed(5)}) translate(${-W/2}px,${-H/2}px)`:'';let a=k[0],b=k[k.length-1];
+  if(lt<=k[0][0])b=a;else if(lt>=b[0])a=b;else{for(let i=1;i<k.length;i++)if(lt<=k[i][0]){a=k[i-1];b=k[i];break}}
+  const u=a===b?0:E.inOutS((lt-a[0])/(b[0]-a[0])),cx=lerp(a[1],b[1],u),cy=lerp(a[2],b[2],u),z=lerp(a[3],b[3],u),r=lerp(a[4]||0,b[4]||0,u);
+  return `translate(${(W/2+sx).toFixed(2)}px,${(H/2+sy).toFixed(2)}px) rotate(${r.toFixed(3)}deg) scale(${(z*hz).toFixed(5)}) translate(${-cx.toFixed(2)}px,${-cy.toFixed(2)}px)`}
+function create(root,spec,o={}){const S=o.S||.45,id='e2w'+(uid++);root.classList.add('e2root');root.style.width=W*S+'px';root.style.height=H*S+'px';
+  const stage=mk('e2stage');stage.style.transform=`scale(${S})`;root.appendChild(stage);
+  const svgNS='http://www.w3.org/2000/svg',svg=document.createElementNS(svgNS,'svg');svg.setAttribute('width',0);svg.setAttribute('height',0);svg.style.position='absolute';
+  svg.innerHTML=`<filter id="${id}" x="-20%" y="-5%" width="140%" height="110%"><feGaussianBlur stdDeviation="0 0"/></filter>`;stage.appendChild(svg);const blur=svg.querySelector('feGaussianBlur');
+  const scs=spec.scenes.map(buildScene);scs.forEach(s=>stage.appendChild(s.root));
+  const flash=mk('e2ov'),black=mk('e2ov');flash.style.background='#fff';black.style.background='#000';stage.appendChild(flash);stage.appendChild(black);
+  const ctxBase={flash,black,whipId:id,whip:s=>blur.setAttribute('stdDeviation',s.toFixed(2)+' 0')};
+  const inst={root,stage,scenes:scs,spec,S,duration:Math.max(...spec.scenes.map(s=>s.t1)),
+    setScale(s){inst.S=s;root.style.width=W*s+'px';root.style.height=H*s+'px';stage.style.transform=`scale(${s})`},
+    frame(t){inst.t=t;flash.style.opacity=0;black.style.opacity=0;blur.setAttribute('stdDeviation','0 0');
+      scs.forEach((s,i)=>{const r=s.root;r.style.cssText='';const last=i===scs.length-1;r.style.display=(t>=s.sc.t0&&(t<s.sc.t1||last))?'':'none'});
+      scs.forEach((s,i)=>{const nx=scs[i+1],ex=s.sc.exit;if(!nx||!ex)return;const a=nx.sc.t0,b=s.sc.t1;
+        if(t>=a&&t<=b){const p=b>a?(t-a)/(b-a):1,def=registry[ex.type];s.root.style.display='';nx.root.style.display='';if(def)def.apply(Object.assign({A:s.root,B:nx.root},ctxBase),p,ex)}});
+      scs.forEach(s=>{const lt=t-s.sc.t0;if(s.root.style.display==='none')return;s.cam.style.transform=camT(s.sc,lt);
+        if(s.bgw){const bi=s.sc.bgIdle,d=bi&&registry[bi.fx];s.bgw.style.transform='';if(d&&!API.noIdle&&lt>=(bi.at||0)){d.apply(s.bgw,lt-(bi.at||0)+(API.holdT||0),bi);const m=/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(s.bgw.style.transform)||[0,0,0];s.bgw.style.transform+=` scale(${(1+2*Math.abs(+m[1])/W+2*Math.abs(+m[2])/H).toFixed(4)})`}}
+        s.layers.forEach(l=>{const L=l.L;l.inn.style.cssText='';l.idle.style.cssText='';
+          if(l.def&&L.in){const P=L.in,p=P.off?1:clamp((lt-(P.at||0))/(P.dur||1));l.def.apply(l.inn,p,P,l.st)}
+          if(L.out&&l.odef&&!(L.in&&L.in.off)){const q=clamp((lt-(L.out.at||0))/(L.out.dur||1));if(q>0)l.odef.apply(l.inn,1-q,L.out.fx?L.out:L.in,l.st);if(q>=1)l.inn.style.opacity=0}
+          if(l.idef&&L.idle&&!L.idle.off&&!API.noIdle&&lt>=(L.idle.at||0))l.idef.apply(l.idle,lt-(L.idle.at||0)+(API.holdT||0),L.idle,l.st)});
+        s.texts.forEach(x=>{const T=x.T;if(x.def){const p=T.off?1:clamp((lt-(T.at||0))/(T.dur||1));x.def.apply(x.el,p,T,x.st)}})})},
+    ready:Promise.all([...root.querySelectorAll('img')].map(i=>i.complete?1:new Promise(r=>{i.onload=i.onerror=r})))};
+  insts.push(inst);return inst}
+
+/* ===================== Thanh thời gian + khởi động trang ===================== */
+function player(inst,o={}){const dur=o.duration||inst.duration,bar=mk('e2bar'),btn=mk('','button'),rg=mk('','input'),lb=mk('','span'),mu=mk('','button');
+  const q0=new URLSearchParams(location.search),SETS=window.E2_SETS,lang0=(SETS&&SETS[q0.get('lang')])?q0.get('lang'):(SETS?Object.keys(SETS)[0]:null),asrc=SETS&&q0.get('audio')!=='0'?SETS[lang0].audio:(window.E2_AUDIO&&q0.get('audio')!=='0'?window.E2_AUDIO:null),au=asrc?new Audio(asrc):null;if(au)au.preload='auto';let curSubs=SETS?SETS[lang0].subs:window.E2_SUBS;
+  const wantPlay=o.play&&!au;btn.textContent=wantPlay?'Pause':'Play';rg.type='range';rg.min=0;rg.max=dur;rg.step=.01;rg.value=0;
+  bar.append(btn,rg,lb);if(au){mu.textContent='Tắt tiếng';mu.onclick=()=>{au.muted=!au.muted;mu.textContent=au.muted?'Bật tiếng':'Tắt tiếng'};bar.append(mu)}
+  const SB=curSubs?mk('','div','position:fixed;left:50%;transform:translateX(-50%);bottom:46px;max-width:min(92vw,720px);padding:8px 16px;border-radius:8px;background:rgba(0,0,0,.72);color:#fff;font:600 18px/1.35 sans-serif;text-align:center;z-index:50;pointer-events:none;opacity:0;transition:opacity .15s'):null;let showEn=true;
+  if(SB){const eb=mk('','button');eb.textContent='EN: bật';eb.onclick=()=>{showEn=!showEn;eb.textContent=showEn?'EN: bật':'EN: tắt';if(!showEn)SB.style.opacity=0};bar.append(eb);document.body.appendChild(SB)}
+  const subAt=t=>{if(!SB||!showEn)return;const c=curSubs.find(x=>t>=x.start&&t<x.end);if(c){const en=c.primary==='en';SB.innerHTML='<div>'+(en?c.en:c.vi)+'</div><div style="font-weight:500;color:#ffe9a8;margin-top:3px">'+(en?c.vi:c.en)+'</div>';SB.style.opacity=1}else SB.style.opacity=0};
+  let cur=inst,curLang=inst.lang||'vi';const setLang=l=>{if(l===curLang)return;curLang=l;cur=API.rebuild(cur,l);cur.ready.then(()=>API.frame(+rg.value))};
+  if(SETS&&curSubs[0]&&curSubs[0].primary==='en')setLang('en');
+  if(SETS&&au){const sel=mk('','select');Object.entries(SETS).forEach(([k,v])=>{const o=document.createElement('option');o.value=k;o.textContent=v.label;if(k===lang0)o.selected=true;sel.appendChild(o)});sel.onchange=()=>{const was=!au.paused,t=au.currentTime||+rg.value;au.pause();au.src=SETS[sel.value].audio;curSubs=SETS[sel.value].subs;setLang(curSubs[0]&&curSubs[0].primary==='en'?'en':'vi');au.currentTime=t;if(was||playing)startAudio(t);show(t)};bar.append(sel)}
+  document.body.appendChild(bar);let playing=!!wantPlay,t0=0,off=o.t0||0;
+  const show=t=>{rg.value=t;lb.textContent=t.toFixed(2)+' / '+dur.toFixed(2)+' s'+(au?(au.paused&&playing?' (đang nạp âm thanh…)':''):'');API.frame(t);subAt(t)};
+  const startAudio=t=>{if(!au)return;au.currentTime=t;const p=au.play();if(p&&p.catch)p.catch(()=>{playing=false;btn.textContent='Play'})};
+  const loop=ts=>{if(playing){let t;if(au){t=au.currentTime;if(au.ended||t>dur){t=0;startAudio(0)}}else{if(!t0)t0=ts-off*1000;t=(ts-t0)/1000;if(t>dur){t0=ts;t=0}}show(t)}requestAnimationFrame(loop)};
+  btn.onclick=()=>{playing=!playing;btn.textContent=playing?'Pause':'Play';t0=0;off=+rg.value;if(au){if(playing)startAudio(off);else au.pause()}};
+  rg.oninput=()=>{playing=false;btn.textContent='Play';off=+rg.value;if(au)au.pause();show(off)};
+  show(off);requestAnimationFrame(loop);return bar}
+function boot(spec,o={}){const q=new URLSearchParams(location.search),S=+(q.get('S')||o.S||.45);spec=spec||window.SCENES&&{scenes:window.SCENES};
+  if(!spec){document.body.textContent='Engine2.boot: thiếu spec/SCENES';return}
+  let off=0;if(q.get('b')){const sc=spec.scenes[+q.get('b')-1];off=sc.t0;spec={scenes:[sc]}}
+  const root=mk('','div','margin:0 auto');document.body.appendChild(root);let inst=create(root,spec,{S});const lg=q.get('lang');if(window.E2_SETS&&lg&&E2_SETS[lg]&&E2_SETS[lg].subs[0]&&E2_SETS[lg].subs[0].primary==='en')inst=API.rebuild(inst,'en');
+  const hasT=q.get('t')!==null,t=hasT?+q.get('t'):0;if(q.get('idle')==='0')API.noIdle=true;
+  inst.ready.then(()=>{API.frame(off+t);document.body.dataset.ready=1});
+  if(q.get('ui')!=='0')player(inst,{play:!hasT,t0:off+t,duration:inst.duration});else API.frame(off+t);return inst}
+function xlate(o,D){if(typeof o==='string'){if(D.exact[o]!==undefined)return D.exact[o];let r=o;if(r.length>20)D.sub.forEach(p=>{r=r.split(p[0]).join(p[1])});return r}
+  if(Array.isArray(o))return o.map(x=>xlate(x,D));if(o&&Object.getPrototypeOf(o)===Object.prototype){const n={};for(const k in o)n[k]=(k==='src'||k==='bg'||k==='cls'||k==='css'||k==='fx'||k==='type')?o[k]:xlate(o[k],D);if(o.cls==='ban')n.css=(o.css||'')+';font-size:62px;letter-spacing:2px';return n}return o}
+function rebuild(inst,lang){const D=window.E2_EN;if(!D)return inst;const spec=lang==='en'?{scenes:xlate((inst.spec0||inst.spec).scenes,D)}:(inst.spec0||inst.spec);const S=inst.S,root=inst.root,spec0=inst.spec0||inst.spec;
+  const k=insts.indexOf(inst);if(k>=0)insts.splice(k,1);root.innerHTML='';const ni=create(root,spec,{S});ni.spec0=spec0;ni.lang=lang;return ni}
+const API={registry,register,create,boot,player,rebuild,xlate,E,hash,clamp,lerp,seg,W,H,insts,frame(t){insts.forEach(i=>i.frame(t))},
+  list(kind){return Object.values(registry).filter(d=>!kind||d.kind===kind).map(d=>d.name)}};
+window.Engine2=API;
+})();
+</script><script>// Dữ liệu layout tĩnh 19 beat. Stage 941x1672 (= kích thước keyframe). Toạ độ px stage.
+// it: {id,src,l,t,w,h,rot,z,ncc} — l/t/w/h là giá trị thực đặt; ncc = độ khớp mẫu với keyframe (T09 match.py)
+const L='../../assets/layers/', C='../../assets/';
+const CH={ // nhân vật chuẩn hoá: chiều cao 556 px (đầu ~150 px) cho mọi pose
+  base:{src:C+'char_dealer_base.png',w:542,h:1432}, point:{src:C+'char_dealer_point.png',w:757,h:1429},
+  p7:{src:C+'char_sheet/pose_7.png',w:200,h:472}, p8:{src:C+'char_sheet/pose_8.png',w:201,h:471}
+};
+const CH_H=556;
+const BEATS={
+1:{bg:'B01-P',it:[{id:'card',src:'B01-card',l:216,t:402,w:517,h:738,ncc:.88}],
+  txt:{big:'1922',sub:'Liên Xô ra đời',chip:null,bigY:170,subY:1230,tone:'light'}},
+2:{bg:'B02-P',gen:'fan2',it:[],txt:{big:'15',sub:'mười lăm nước cộng hòa',chip:null,bigY:170,subY:1235,tone:'light'}},
+3:{bg:'B03-P',it:[{id:'curtain',src:'B03-curtain',l:50,t:-4,w:844,h:1399,ncc:.39,z:1},{id:'desk',src:'B03-desk',l:18,t:740,w:821,h:624,ncc:.71,z:2}],
+  ch:{pose:'base',l:690,feet:1340,z:4},
+  txt:{big:'3/1985',sub:'Gorbachev lên Tổng bí thư',subX:'left',chip:'theo bản ghi Bộ Chính trị',chipX:'left',bigY:170,subY:1180,chipY:1250,tone:'light'}},
+4:{bg:'B04-P',it:[{id:'oval',src:'B04-oval',l:18,t:358,w:904,h:883,ncc:.94},{id:'banner-top',src:'B04-banner-top',l:8,t:130,w:924,h:331,ncc:.88},{id:'banner-bottom',src:'B04-banner-bottom',l:30,t:1204,w:880,h:302,ncc:.81}],
+  gen:'banners',txt:{big:null,sub:'Từ 1986, hai khẩu hiệu mới',chip:'theo Đại hội 27 ĐCS Liên Xô',subX:'oval',subY:677,chipY:908,tone:'dark',subColor:'#7a1f24',subCss:'left:260px;width:420px;transform:none;font-size:52px;line-height:1.15;white-space:normal;background:none;text-align:center;padding:0',chipCss:'left:470px;transform:translateX(-50%);font-size:31px;padding:5px 18px;background:rgba(122,31,36,.1)'}},
+5:{bg:'B05-P',it:[{id:'paper',src:'B05-paper',l:56,t:684,w:881,h:958,ncc:.55},{id:'clock',src:'B05-clock',l:640,t:40,w:329,h:715,ncc:.5}],
+  txt:{big:'2 ngày',sub:'Chernobyl, 4/1986',subX:'left',chip:'theo RFE/RL',chipX:'left',bigY:170,bigX:'left',subY:330,chipY:395,tone:'light'}},
+6:{bg:'B06-P',gen:'arrow6',it:[{id:'barrel',src:'B06-barrel',l:116,t:458,w:425,h:672,ncc:.6}],
+  txt:{big:'30 → 10',sub:'đô la một thùng dầu (khoảng)',chip:'theo RFE/RL',bigY:170,subY:1215,chipY:1275,tone:'light'}},
+7:{bg:'B07-P',it:[{id:'calendar',src:'B07-calendar',l:198,t:322,w:632,h:873,ncc:.96}],
+  ch:{pose:'point',l:-45,feet:1560,z:4},
+  txt:{big:'15/2/1989',sub:'Rút quân khỏi Afghanistan',subX:'right',chip:'theo NSA',bigY:170,subY:1215,chipY:1275,tone:'light'}},
+8:{bg:'B08-P',gen:'chain8',it:[],
+  txt:{big:'650 km',sub:'gần hai triệu người nắm tay',chip:'theo LRT / Atlantic Council',bigY:170,subY:310,chipY:378,tone:'light'}},
+9:{bg:'B09-P',gen:'domino',it:[],txt:{big:'9/11/1989',sub:'Bức tường Berlin mở',subX:'right',subCss:'right:70px',chip:null,bigY:170,subY:1235,tone:'light'}},
+10:{bg:'B10-P',it:[{id:'deck',src:'B10-deck',l:90,t:915,w:540,h:353,ncc:.56},{id:'card',src:'B10-card',l:366,t:206,w:412,h:623,ncc:.71,z:3}],
+  txt:{big:'1/15',sub:'Litva, 11/3/1990',subX:'left',chip:'theo Wikipedia / LRT',chipX:'left',bigY:170,bigX:'left',subY:320,chipY:385,tone:'light'}},
+11:{bg:'B11-P',gen:'pie11',it:[{id:'box',src:'B11-box',l:150,t:792,w:680,h:461,ncc:.46},{id:'hand',src:'B11-hand',l:402,t:366,w:555,h:483,ncc:.95,z:3}],
+  txt:{big:'76%',sub:'ủng hộ giữ liên bang',chip:'theo kết quả công bố',bigY:170,bigX:'right',subY:1236,chipY:1282,tone:'light'}},
+12:{bg:'B12-P',it:[{id:'tower',src:'B12-tower',l:452,t:-38,w:336,h:1396,ncc:.67}],
+  txt:{big:'18–22/8',sub:'đảo chính thất bại',subX:'left',chip:'theo Wikipedia',chipX:'left',bigY:170,bigX:'left',subY:1215,chipY:1275,tone:'light'}},
+13:{bg:'B13-P',gen:'paper13',it:[{id:'stack',src:'B13-stack',l:116,t:700,w:726,h:540,ncc:.6,z:3}],
+  txt:{big:'92%',sub:'Ukraina, trưng cầu 1/12/1991',chip:'theo Wikipedia',bigY:170,subY:1222,chipY:1282,tone:'light'}},
+14:{bg:'B14-P',gen:'cards14',it:[{id:'pen',src:'B14-pen',l:693,t:1236,w:250,h:107,z:5,ncc:.7}],
+  ch:{pose:'p7',l:560,feet:1010,z:2},
+  txt:{big:'8/12',sub:'Nga · Ukraina · Belarus',subX:'left',chip:'theo Meduza / Wikipedia',bigY:170,subY:1226,chipY:1282,chipX:'left',tone:'light'}},
+15:{bg:'B15-P',gen:'ring15',it:[],txt:{big:'11',sub:'nước ký nghị định thư Alma-Ata',chip:'theo Wikipedia',bigY:690,subY:1215,chipY:1275,tone:'light'}},
+16:{bg:'B16-P',gen:'flag16',it:[],txt:{big:'25/12',sub:'cờ Liên Xô hạ ở Điện Kremlin',chip:'theo Wikipedia',bigY:170,bigX:'left',subY:1215,chipY:1275,tone:'light'}},
+17:{bg:'B17-P',gen:'ink17',it:[{id:'stamp',src:'B17-stamp',l:214,t:-56,w:675,h:1107,ncc:.82,z:3}],
+  txt:{big:'26/12/1991',sub:'chính thức chấm dứt Liên Xô',chip:'theo Wikipedia',bigY:1060,subY:1222,chipY:1282,tone:'dark'}},
+18:{bg:'B18-P',gen:'stacks18',it:[],ch:{pose:'p8',l:696,feet:1625,z:6},txt:{big:'15',sub:'nhiều yếu tố góp phần',subX:'left',chip:null,bigY:170,subY:1265,tone:'dark'}},
+19:{gen:'sources19',it:[],txt:{}}
+};
+// vị trí vật nhân bản trong keyframe, đo bằng mắt trên lưới 100 px
+const FAN2={n:15,cx0:252.7,cx1:705,y0:838,y1:878,ymid:775.9,a0:-41.8,a1:23.4,h:350.8,w:272.6,g:.98}; // tối ưu IoU silhouette với B02-fan khớp keyframe (0.946)
+const DOM=[[-60,886,354,443],[173,700,236,414],[351,629,179,400],[444,564,165,407],[516,514,128,429]];
+const RING={cx:474,cy:826,R:350,ky:.82,w:150,h:208,n:11,skip:-1};
+const CARDS14=[[64,1014,272,200],[347,1011,246,203],[604,1011,275,203]];
+const STACKS18=[[96,482],[294,496],[473,493],[652,490],[831,487],[128,784],[307,798],[486,795],[665,792],[822,789],[113,1086],[292,1083],[471,1097],[650,1094],[829,1091]];
+const PAPER13=[[130,114,170,150,-12],[401,57,150,130,20],[401,264,200,150,-28],[223,414,190,170,30],[609,579,180,170,-35],[651,100,130,150,25],[830,514,150,140,-30],[59,600,160,120,18],[44,971,170,110,-8],[700,1330,230,150,-15],[500,1480,260,160,12],[80,1400,230,140,-20]];
+const SOURCES=['S1 Dissolution of the Soviet Union; Alma-Ata Protocol (Wikipedia); Meduza 27/5/2025','S2 1991 Soviet Union referendum (Wikipedia); UPI 17/3/1991; The Moscow Times','S3 1991 Soviet coup attempt; 1991 Ukrainian independence referendum (Wikipedia)','S4 RFE/RL (giá dầu 1985–86; Chornobyl); NSA/GWU (Afghanistan); RFE/RL Gandhara','S5 NSA/GWU bản ghi Bộ Chính trị 11/3/1985; History.com; RAND "27th Congress"','S6 history.co.uk; Wikipedia "Republics of the Soviet Union"','S7 Atlantic Council; lithuania.lt; LRT (Baltic Way); Act of Re-Establishment of Lithuania'];
+</script><script>window.CHAIN_LAYOUT=[{"src": "piece_10.png", "x": 29.4, "y": 1318.0, "w": 80.9, "h": 148.6, "idx": 0}, {"src": "piece_15.png", "x": 103.5, "y": 1304.7, "w": 79.2, "h": 147.1, "idx": 1}, {"src": "piece_24.png", "x": 175.1, "y": 1287.9, "w": 78.4, "h": 145.1, "idx": 2}, {"src": "piece_16.png", "x": 245.5, "y": 1268.9, "w": 79.9, "h": 142.9, "idx": 3}, {"src": "piece_12.png", "x": 315.8, "y": 1245.1, "w": 72.6, "h": 140.1, "idx": 4}, {"src": "piece_13.png", "x": 379.4, "y": 1222.4, "w": 70.8, "h": 137.5, "idx": 5}, {"src": "piece_00.png", "x": 439.9, "y": 1196.7, "w": 76.5, "h": 134.5, "idx": 6}, {"src": "piece_22.png", "x": 504.6, "y": 1167.1, "w": 64.3, "h": 131.0, "idx": 7}, {"src": "piece_21.png", "x": 559.5, "y": 1143.5, "w": 61.7, "h": 128.3, "idx": 8}, {"src": "piece_07.png", "x": 612.4, "y": 1121.5, "w": 79.9, "h": 125.7, "idx": 9}, {"src": "piece_03.png", "x": 679.7, "y": 1090.1, "w": 61.2, "h": 122.1, "idx": 10}, {"src": "piece_11.png", "x": 730.7, "y": 1064.7, "w": 61.6, "h": 119.1, "idx": 11}, {"src": "piece_04.png", "x": 780.4, "y": 1036.4, "w": 59.3, "h": 115.8, "idx": 12}, {"src": "piece_26.png", "x": 826.3, "y": 1005.8, "w": 59.5, "h": 112.3, "idx": 13}, {"src": "piece_20.png", "x": 866.6, "y": 968.9, "w": 60.2, "h": 108.0, "idx": 14}, {"src": "piece_23.png", "x": 901.2, "y": 924.9, "w": 48.2, "h": 102.9, "idx": 15}, {"src": "piece_14.png", "x": 902.2, "y": 881.4, "w": 50.6, "h": 97.8, "idx": 16}, {"src": "piece_01.png", "x": 891.8, "y": 836.8, "w": 48.2, "h": 92.6, "idx": 17}, {"src": "piece_06.png", "x": 868.0, "y": 798.8, "w": 44.9, "h": 88.2, "idx": 18}, {"src": "piece_05.png", "x": 843.5, "y": 765.7, "w": 48.1, "h": 84.3, "idx": 19}, {"src": "piece_02.png", "x": 806.3, "y": 740.9, "w": 46.5, "h": 81.4, "idx": 20}, {"src": "piece_25.png", "x": 770.3, "y": 716.9, "w": 37.0, "h": 78.7, "idx": 21}, {"src": "piece_10.png", "x": 739.0, "y": 703.4, "w": 42.0, "h": 77.1, "idx": 22}, {"src": "piece_15.png", "x": 701.7, "y": 691.8, "w": 40.8, "h": 75.7, "idx": 23}, {"src": "piece_24.png", "x": 671.6, "y": 672.4, "w": 39.7, "h": 73.5, "idx": 24}, {"src": "piece_16.png", "x": 651.1, "y": 641.6, "w": 39.1, "h": 69.9, "idx": 25}, {"src": "piece_12.png", "x": 622.0, "y": 620.0, "w": 34.9, "h": 67.4, "idx": 26}, {"src": "piece_13.png", "x": 595.6, "y": 601.2, "w": 33.6, "h": 65.2, "idx": 27}, {"src": "piece_00.png", "x": 569.2, "y": 584.6, "w": 36.0, "h": 63.3, "idx": 28}, {"src": "piece_22.png", "x": 539.3, "y": 569.7, "w": 30.2, "h": 61.5, "idx": 29}, {"src": "piece_21.png", "x": 514.1, "y": 557.4, "w": 28.9, "h": 60.1, "idx": 30}, {"src": "piece_07.png", "x": 489.5, "y": 546.6, "w": 37.4, "h": 58.8, "idx": 31}, {"src": "piece_03.png", "x": 457.6, "y": 532.7, "w": 28.7, "h": 57.2, "idx": 32}, {"src": "piece_11.png", "x": 434.0, "y": 520.5, "w": 28.9, "h": 55.8, "idx": 33}];
+</script><script>window.STACK15=["stack15_00.png", "stack15_01.png", "stack15_02.png", "stack15_03.png", "stack15_04.png", "stack15_05.png", "stack15_06.png", "stack15_07.png", "stack15_08.png", "stack15_09.png", "stack15_10.png", "stack15_11.png", "stack15_12.png", "stack15_13.png", "stack15_14.png"];
+</script><script>window.CARD15=["card15_00.png", "card15_01.png", "card15_02.png", "card15_03.png", "card15_04.png", "card15_05.png", "card15_06.png", "card15_07.png", "card15_08.png", "card15_09.png", "card15_10.png", "card15_11.png", "card15_12.png", "card15_13.png", "card15_14.png"];
+</script><script>window.CARD9=["B09-card.png", "B09-card_f1.png", "B09-card_f2.png", "B09-card_f3.png", "B09-card_f4.png"];
+</script><script>window.E2_SETS={"vi": {"label": "Tiếng Việt", "subs": [{"id": "b01", "start": 0.3, "end": 2.92, "vi": "Năm 1922, Liên Xô ra đời.", "en": "In 1922, the Soviet Union was born.", "primary": "vi"}, {"id": "b02", "start": 3.8, "end": 6.1, "vi": "Về sau, gồm mười lăm nước cộng hòa.", "en": "Later, it comprised fifteen republics.", "primary": "vi"}, {"id": "b03", "start": 7.3, "end": 10.64, "vi": "Năm 1985, ông Gorbachev làm Tổng bí thư.", "en": "In 1985, Mr. Gorbachev became General Secretary.", "primary": "vi"}, {"id": "b04", "start": 10.8, "end": 13.66, "vi": "Từ 1986: cải tổ và công khai.", "en": "From 1986: perestroika and glasnost.", "primary": "vi"}, {"id": "b05", "start": 14.3, "end": 17.8, "vi": "Tháng 4/1986, Chernobyl; tin báo sau hai ngày.", "en": "April 1986, Chernobyl; the news came two days later.", "primary": "vi"}, {"id": "b06", "start": 18.3, "end": 20.76, "vi": "Giá dầu giảm từ khoảng 30 xuống 10 đô la.", "en": "Oil fell from about 30 to 10 dollars a barrel.", "primary": "vi"}, {"id": "b07", "start": 22.3, "end": 26.12, "vi": "Ngày 15/2/1989, rút quân khỏi Afghanistan.", "en": "On 15 February 1989, the Afghanistan withdrawal.", "primary": "vi"}, {"id": "b08", "start": 26.3, "end": 29.64, "vi": "Gần hai triệu người nắm tay, dài khoảng 650 km.", "en": "Nearly two million people joined hands, about 650 km.", "primary": "vi"}, {"id": "b09", "start": 30.3, "end": 32.92, "vi": "Ngày 9/11/1989, bức tường Berlin mở.", "en": "On 9 November, the Berlin Wall opened.", "primary": "vi"}, {"id": "b10", "start": 33.8, "end": 36.9, "vi": "Tháng 3/1990, Litva tuyên bố độc lập đầu tiên.", "en": "March 1990: Lithuania declares independence first.", "primary": "vi"}, {"id": "b11", "start": 37.3, "end": 41.12, "vi": "Năm 1991, khoảng 76% phiếu ủng hộ giữ liên bang.", "en": "In 1991, about 76% voted to keep the union.", "primary": "vi"}, {"id": "b12", "start": 41.8, "end": 45.14, "vi": "Tháng 8/1991, đảo chính thất bại sau vài ngày.", "en": "August 1991: the coup fails within days.", "primary": "vi"}, {"id": "b13", "start": 46.3, "end": 49.88, "vi": "Ukraina tuyên bố độc lập; hơn 92% phiếu ủng hộ.", "en": "Ukraine declares independence; over 92% vote yes.", "primary": "vi"}, {"id": "b14", "start": 50.3, "end": 53.48, "vi": "Ngày 8/12, ba nước tuyên bố Liên Xô chấm dứt.", "en": "On 8 December, three states declare the USSR ended.", "primary": "vi"}, {"id": "b15", "start": 54.3, "end": 57.4, "vi": "Ngày 21/12, mười một nước ký Alma-Ata.", "en": "On 21 December, eleven states sign the Alma-Ata protocol.", "primary": "vi"}, {"id": "b16", "start": 57.8, "end": 60.74, "vi": "Ngày 25/12, ông Gorbachev từ chức.", "en": "On 25 December, Mr. Gorbachev resigns.", "primary": "vi"}, {"id": "b17", "start": 61.8, "end": 65.22, "vi": "Ngày 26/12, Liên Xô chính thức chấm dứt.", "en": "On 26 December, the Soviet Union officially ends.", "primary": "vi"}, {"id": "b18", "start": 65.3, "end": 68.88, "vi": "Theo các nguồn, nhiều yếu tố cùng góp phần; không có một lý do duy nhất.", "en": "According to the sources, many factors contributed. There is no single reason.", "primary": "vi"}], "bed": "../mix/bed.wav", "lines": "../mix/lines/vi/"}, "en_michael": {"label": "English (Michael)", "subs": [{"id": "b01", "start": 0.3, "end": 3.84, "vi": "Năm 1922, Liên Xô ra đời.", "en": "In 1922, the Soviet Union was born.", "primary": "en"}, {"id": "b02", "start": 3.8, "end": 6.72, "vi": "Về sau, gồm mười lăm nước cộng hòa.", "en": "Later, it comprised fifteen republics.", "primary": "en"}, {"id": "b03", "start": 7.3, "end": 11.55, "vi": "Năm 1985, ông Gorbachev làm Tổng bí thư.", "en": "In 1985, Mr. Gorbachev became General Secretary.", "primary": "en"}, {"id": "b04", "start": 10.8, "end": 14.36, "vi": "Từ 1986: cải tổ và công khai.", "en": "From 1986: perestroika and glasnost.", "primary": "en"}, {"id": "b05", "start": 14.3, "end": 18.29, "vi": "Tháng 4/1986, Chernobyl; tin báo sau hai ngày.", "en": "April 1986, Chernobyl; the news came two days later.", "primary": "en"}, {"id": "b06", "start": 18.3, "end": 21.82, "vi": "Giá dầu giảm từ khoảng 30 xuống 10 đô la.", "en": "Oil fell from about 30 to 10 dollars a barrel.", "primary": "en"}, {"id": "b07", "start": 22.3, "end": 26.59, "vi": "Ngày 15/2/1989, rút quân khỏi Afghanistan.", "en": "On 15 February 1989, the Afghanistan withdrawal.", "primary": "en"}, {"id": "b08", "start": 26.3, "end": 30.78, "vi": "Gần hai triệu người nắm tay, dài khoảng 650 km.", "en": "Nearly two million people joined hands, about 650 km.", "primary": "en"}, {"id": "b09", "start": 30.3, "end": 33.89, "vi": "Ngày 9/11/1989, bức tường Berlin mở.", "en": "On 9 November, the Berlin Wall opened.", "primary": "en"}, {"id": "b10", "start": 33.8, "end": 37.68, "vi": "Tháng 3/1990, Litva tuyên bố độc lập đầu tiên.", "en": "March 1990: Lithuania declares independence first.", "primary": "en"}, {"id": "b11", "start": 37.3, "end": 41.85, "vi": "Năm 1991, khoảng 76% phiếu ủng hộ giữ liên bang.", "en": "In 1991, about 76% voted to keep the union.", "primary": "en"}, {"id": "b12", "start": 41.8, "end": 45.98, "vi": "Tháng 8/1991, đảo chính thất bại sau vài ngày.", "en": "August 1991: the coup fails within days.", "primary": "en"}, {"id": "b13", "start": 46.3, "end": 50.25, "vi": "Ukraina tuyên bố độc lập; hơn 92% phiếu ủng hộ.", "en": "Ukraine declares independence; over 92% vote yes.", "primary": "en"}, {"id": "b14", "start": 50.3, "end": 54.29, "vi": "Ngày 8/12, ba nước tuyên bố Liên Xô chấm dứt.", "en": "On 8 December, three states declare the USSR ended.", "primary": "en"}, {"id": "b15", "start": 54.3, "end": 57.91, "vi": "Ngày 21/12, mười một nước ký Alma-Ata.", "en": "On 21 December, eleven states sign the Alma-Ata protocol.", "primary": "en"}, {"id": "b16", "start": 57.8, "end": 61.79, "vi": "Ngày 25/12, ông Gorbachev từ chức.", "en": "On 25 December, Mr. Gorbachev resigns.", "primary": "en"}, {"id": "b17", "start": 61.8, "end": 65.39, "vi": "Ngày 26/12, Liên Xô chính thức chấm dứt.", "en": "On 26 December, the Soviet Union officially ends.", "primary": "en"}, {"id": "b18", "start": 65.3, "end": 70.29, "vi": "Theo các nguồn, nhiều yếu tố cùng góp phần; không có một lý do duy nhất.", "en": "According to the sources, many factors contributed. There is no single reason.", "primary": "en"}], "bed": "../mix/bed_en_am_michael.wav", "lines": "../mix/lines/en_michael/"}};</script><script>window.E2_EN={"exact": {"2 ngày": "2 days", "3/1985": "Mar 1985", "15/2/1989": "15 Feb 1989", "9/11/1989": "9 Nov 1989", "18–22/8": "18–22 Aug", "8/12": "8 Dec", "25/12": "25 Dec", "26/12/1991": "26 Dec 1991", "Liên Xô ra đời": "The Soviet Union is born", "mười lăm nước cộng hòa": "fifteen republics", "Gorbachev lên Tổng bí thư": "Gorbachev becomes General Secretary", "theo bản ghi Bộ Chính trị": "per Politburo records", "CẢI TỔ": "PERESTROIKA", "CÔNG KHAI": "GLASNOST", "Từ 1986, hai khẩu hiệu mới": "From 1986, two new slogans", "theo Đại hội 27 ĐCS Liên Xô": "per the 27th CPSU Congress", "Chernobyl, 4/1986": "Chernobyl, April 1986", "theo RFE/RL": "per RFE/RL", "đô la một thùng dầu (khoảng)": "dollars a barrel of oil (approx.)", "Rút quân khỏi Afghanistan": "Withdrawal from Afghanistan", "theo NSA": "per NSA", "gần hai triệu người nắm tay": "nearly two million people holding hands", "theo LRT / Atlantic Council": "per LRT / Atlantic Council", "Bức tường Berlin mở": "The Berlin Wall opens", "Litva, 11/3/1990": "Lithuania, 11 March 1990", "theo Wikipedia / LRT": "per Wikipedia / LRT", "ủng hộ giữ liên bang": "for keeping the union", "theo kết quả công bố": "per published results", "đảo chính thất bại": "the coup fails", "theo Wikipedia": "per Wikipedia", "Ukraina, trưng cầu 1/12/1991": "Ukraine, referendum 1 December 1991", "Nga · Ukraina · Belarus": "Russia · Ukraine · Belarus", "theo Meduza / Wikipedia": "per Meduza / Wikipedia", "nước ký nghị định thư Alma-Ata": "states sign the Alma-Ata protocol", "cờ Liên Xô hạ ở Điện Kremlin": "Soviet flag lowered at the Kremlin", "chính thức chấm dứt Liên Xô": "the Soviet Union officially ends", "nhiều yếu tố góp phần": "many contributing factors"}, "sub": [["Nguồn", "Sources"], ["Hình minh hoạ, không phải tư liệu", "Illustration, not archival footage"], ["giá dầu 1985–86; Chornobyl", "oil price 1985–86; Chornobyl"], ["(Afghanistan)", "(Afghanistan)"], ["bản ghi Bộ Chính trị 11/3/1985", "Politburo transcript 11 Mar 1985"]]};
+</script><script>/* anim.js — 19 beat "Liên Xô sụp đổ" bằng engine2. Cần nạp SAU engine2.js và ../layout/beats.js (hằng số hình học đã duyệt: BEATS, FAN2, DOM, RING, CARDS14, STACKS18, PAPER13, SOURCES, CH, CH_H).
+   Thời gian: N[k-1]..N[k] = mốc danh nghĩa của beat k (tổng 73 s). Scene k bắt đầu sớm hơn N[k-1] đúng bằng thời lượng chuyển cảnh trước đó (engine: B.t0 = A.t1 - dur);
+   mọi 'at' trong mỗi beat viết theo u = giây tính từ mốc danh nghĩa, cộng pre = thời lượng chuyển cảnh vào. */
+(function(){
+'use strict';
+const A='../assets/layers/',AS='../assets/',fix=s=>s.replace('../../assets/','../assets/');
+const N=[0,3.5,7,10.5,14,18,22,26,30,33.5,37,41.5,46,50,54,57.5,61.5,65,70,73];
+const EX={1:{type:'portalCenter'},2:{type:'nestFrame',ty:-300},3:{type:'hardCut'},4:{type:'zoomThrough'},5:{type:'focusPull'},6:{type:'hardCut'},7:{type:'sliceCut',n:8},8:{type:'whipPan'},9:{type:'flashDissolve'},10:{type:'focusPull'},11:{type:'nestFrame',ty:-300},12:{type:'flashDissolve'},13:{type:'sliceCut',n:6},14:{type:'hardCut'},15:{type:'whipPan'},16:{type:'flashDissolve'},17:{type:'hardCut'},18:{type:'fadeBlack'}};
+const EXD={1:.9,2:.9,3:.04,4:.7,5:.7,6:.04,7:.8,8:.6,9:.35,10:.6,11:.9,12:.35,13:.8,14:.04,15:.6,16:.5,17:.04,18:1.0};
+Object.keys(EX).forEach(k=>EX[k].dur=EXD[k]);
+const CX=470.5,CY=836;
+const it=(k,id)=>BEATS[k].it.find(o=>o.id===id);
+const lay=(k,id,o)=>{const d=it(k,id);return Object.assign({src:A+d.src+'.png',l:d.l,t:d.t,w:d.w,h:d.h,z:d.z,shadow:1},o)};
+const K=(p,a)=>a.map(q=>[q[0]+p].concat(q.slice(1)));
+// ---- chữ: nhân đúng lớp CSS/vị trí của layout đã duyệt
+function bigT(k,fx,at,dur,x){const T=BEATS[k].txt;if(!T.big)return null;const css=`top:${T.bigY||170}px;`+(T.bigX==='left'?'left:30px;width:560px;text-align:left;':T.bigX==='right'?'left:350px;width:560px;text-align:right;':'');
+  return Object.assign({fx,text:T.big,cls:'t big '+T.tone,css,at,dur,key:'big'},x||{})}
+function subT(k,at,dur,fx,x){const T=BEATS[k].txt;if(!T.sub)return null;let css=`top:${T.subY}px;`;
+  if(T.subX==='left')css+='left:30px;transform:none;width:auto;background:none;text-align:left;';else if(T.subX==='right')css+='left:auto;right:31px;transform:none;width:auto;background:none;';else if(T.subX==='oval')css+='left:470px;width:440px;white-space:normal;background:none;';
+  if(T.subColor)css+='color:'+T.subColor+';';
+  if(T.subCss)css+=T.subCss+';';
+  return Object.assign({fx:fx||'fadeUp',text:T.sub,cls:'t sub '+T.tone,css,at,dur,key:'sub'},x||{})}
+function chipT(k,at,dur){const T=BEATS[k].txt;if(!T.chip)return null;return{fx:'fadeUp',text:T.chip,cls:'chip '+T.tone,css:`top:${T.chipY||1275}px;`+(T.chipX==='left'?'left:30px;transform:none;':'')+(T.chipCss?T.chipCss+';':''),at,dur,key:'chip'}}
+const charLayer=(c,o)=>{const d=CH[c.pose],s=CH_H/d.h,w=d.w*s;
+  return Object.assign({l:c.l,t:c.feet-CH_H,w,h:CH_H,z:c.z||4,html:`<div style="position:absolute;left:${w*.05}px;bottom:-10px;width:${w*.9}px;height:34px;border-radius:50%;background:rgba(0,0,0,.45);filter:blur(10px)"></div><img src="${fix(d.src)}" style="position:absolute;left:0;top:0;width:${w}px;height:${CH_H}px;filter:drop-shadow(8px 10px 12px rgba(0,0,0,.45))">`,char:1},o)};
+const bg=k=>A+BEATS[k].bg+'.png';
+const SFX={1:'whoosh + thud giấy',2:'tiếng chia bài',3:'cót ngân, ghế kéo',4:'bút vẽ, whoosh',5:'điện báo, tick đồng hồ',6:'nước chảy, nhịp trầm',7:'lật giấy',8:'đám đông xa',9:'domino đổ',10:'whoosh nhẹ',11:'bút, giấy',12:'còi khẽ, tick',13:'(không)',14:'bút, giấy',15:'(không)',16:'im lặng 0,5 s, tiếng dây',17:'dập con dấu',18:'im lặng, nhạc nền thấp dần',19:'(không)'};
+
+const B={};
+B[1]=p=>({bg:bg(1),bgIdle:{fx:'drift',amp:14,ampY:0,period:6},ref:2.3,
+  layers:[lay(1,'card',{in:{fx:'cardFly3D',at:p+.1,dur:1.3}})],
+  text:[bigT(1,'charScatter',p+.8,1.0),subT(1,p+1.7,.5)],
+  cam:K(p,[[0,CX,CY,1],[2.3,CX,CY,1],[3.5,CX,CY,1.06]])});
+B[2]=p=>({bg:bg(2),ref:2.5,
+  layers:[{src:A+'B02-card.png',l:0,t:0,w:941,h:1672,z:3,shadow:1,in:{fx:'fanEdges',at:p+.1,dur:1.9,n:15,cw:FAN2.w,ch:FAN2.h,cx0:FAN2.cx0,cx1:FAN2.cx1,ymid:FAN2.ymid,y0:FAN2.y0,y1:FAN2.y1,a0:FAN2.a0,a1:FAN2.a1,g:FAN2.g},idle:{fx:'sway',at:p+2.1,amp:1,period:3,origin:'50% 100%'}}],
+  text:[bigT(2,'countUp',p+.7,1.4,{from:1,to:15}),subT(2,p+2.0,.5)],
+  cam:K(p,[[0,CX,CY,1.07],[2.5,CX,CY,1]])});
+B[3]=p=>({bg:bg(3),ref:2.95,
+  layers:[lay(3,'curtain',{shadow:0,in:{fx:'curtainOpen',at:p+.1,dur:1.5},idle:{fx:'sway',at:p+1.7,amp:.3,period:3.2,origin:'50% 0%'}}),
+    lay(3,'desk',{in:{fx:'slideUp',at:p+1.0,dur:.8,dy:560}}),
+    charLayer(BEATS[3].ch,{in:{fx:'popIn',at:p+1.7,dur:.6},out:{fx:'walkIn',dx:380,at:p+3.1,dur:.35}})],
+  text:[bigT(3,'typeOn',p+1.4,.9),subT(3,p+2.3,.4),chipT(3,p+2.55,.4)],
+  cam:K(p,[[0,CX,CY,1],[2.95,CX,CY,1],[3.5,CX,CY,1.05]])});
+B[4]=p=>({bg:bg(4),ref:2.7,
+  layers:[lay(4,'oval',{idle:{fx:'breathe',at:p+2.0,amp:.01,period:3}}),lay(4,'banner-top'),lay(4,'banner-bottom')],
+  text:[{fx:'sliceIn',text:'CẢI TỔ',cls:'ban',css:'top:225px',at:p+.1,dur:1.0,dist:900,key:'ban'},{fx:'sliceIn',text:'CÔNG KHAI',cls:'ban',css:'top:1290px',at:p+.4,dur:1.0,dist:900,key:'ban'},
+    {fx:'inkCircle',text:'',cls:'ink',css:'left:220px;top:590px;width:500px;height:290px',w:500,h:290,color:'#a8282e',sw:7,at:p+1.1,dur:1.0,key:'ink'},
+    subT(4,p+1.8,.5),chipT(4,p+2.1,.5)],
+  cam:[]});
+B[5]=p=>({bg:bg(5),ref:2.7,
+  layers:[lay(5,'paper',{in:{fx:'slideInRot',at:p+.1,dur:1.2,from:[-900,-700],r0:-30}}),lay(5,'clock',{idle:{fx:'tick',at:p+.4,amp:1.1,period:1,origin:'50% 100%'}})],
+  text:[bigT(5,'stampText',p+1.0,.8,{box:false,rot:-3}),subT(5,p+1.8,.5),chipT(5,p+2.1,.5)],
+  cam:K(p,[[0,CX,CY,1],[2.7,CX,CY,1],[4,CX,CY,1.05]])});
+const ARROW='<svg width="941" height="1672" style="position:absolute;left:0;top:0;filter:drop-shadow(0 10px 10px rgba(0,0,0,.4))"><path d="M430,-10 L585,330 L690,300 L830,740" fill="none" stroke="#b8282e" stroke-width="92" stroke-linejoin="miter"/><polygon points="760,790 930,720 880,940" fill="#b8282e"/></svg>';
+B[6]=p=>({bg:bg(6),bgIdle:{fx:'drift',amp:16,ampY:4,period:4},ref:3.0,
+  layers:[lay(6,'barrel',{in:{fx:'dropBounce',at:p+.1,dur:1.2}}),{l:0,t:0,w:941,h:1672,z:1,html:ARROW,in:{fx:'peek',dir:'down',at:p+1.1,dur:.9}}],
+  text:[bigT(6,'odometer',p+1.0,1.3,{from:'30 → 30',down:true,rolls:1}),subT(6,p+2.2,.5),chipT(6,p+2.5,.5)],
+  cam:K(p,[[0,CX,776,1.08],[3.0,CX,CY,1]])});
+B[7]=p=>({bg:bg(7),ref:3.1,
+  layers:[lay(7,'calendar',{in:{fx:'pageFlip',at:p+.2,dur:1.6},idle:{fx:'sway',at:p+2.0,amp:.5,period:1.4,origin:'50% 0%'}}),
+    charLayer(BEATS[7].ch,{in:{fx:'walkIn',dx:-520,at:p+.1,dur:.9},out:{fx:'popIn',at:p+3.15,dur:.5}})],
+  text:[bigT(7,'typeOn',p+1.3,1.0),subT(7,p+2.3,.5),chipT(7,p+2.6,.5)],
+  cam:[]});
+B[8]=p=>({bg:bg(8),ref:3.2,
+  layers:[{l:0,t:0,w:941,h:1672,z:3,in:{fx:'pathDraw',at:p+.2,dur:2.0},idle:{fx:'sway',at:p+2.4,amp:.5,period:2.6,origin:'50% 100%'}}],
+  text:[bigT(8,'typeOn',p+1.4,1.0),subT(8,p+2.4,.5),chipT(8,p+2.7,.5)],
+  cam:K(p,[[0,505,CY,1.08],[3.2,CX,CY,1]])});
+B[9]=p=>({bg:bg(9),ref:2.9,shake:{amp:3,freq:6,at:p+.4,dur:2.4},
+  layers:[{src:A+'B09-open.png',l:0,t:0,w:941,h:1672,z:2,in:{fx:'maskReveal',at:p+1.5,dur:1.4,cx:660,cy:330,rx:460,ry:600,feather:.72}},
+    {src:A+'B09-card.png',l:0,t:0,w:941,h:1672,z:3,in:{fx:'domino',at:p+.2,dur:2.0}}],
+  text:[bigT(9,'typeOn',p+1.3,1.0),subT(9,p+2.3,.5)],cam:[]});
+B[10]=p=>({bg:bg(10),ref:2.85,
+  layers:[lay(10,'deck'),lay(10,'card',{in:{fx:'vault',at:p+.2,dur:1.6},idle:{fx:'float',at:p+1.8,amp:8,period:2.6}})],
+  text:[bigT(10,'charScatter',p+1.2,1.0),subT(10,p+2.2,.4),chipT(10,p+2.5,.4)],
+  cam:K(p,[[0,CX,CY,1.07],[2.8,CX,CY,1]])});
+const PIE='<div style="position:absolute;left:98px;top:157px;width:471px;height:510px;background:#e9dfc6;border-radius:10px;box-shadow:0 14px 18px rgba(0,0,0,.4)"></div><svg style="position:absolute;left:150px;top:210px" width="370" height="370" viewBox="-1 -1 2 2"><circle r=".95" fill="#e9dfc6" stroke="#b8964a" stroke-width=".02"/></svg><div style="position:absolute;left:159.25px;top:219.25px;width:351.5px;height:351.5px;border-radius:50%;background:#a82a30;-webkit-mask-image:conic-gradient(from 90deg,#000 var(--a,0deg),transparent 0);mask-image:conic-gradient(from 90deg,#000 var(--a,0deg),transparent 0)"></div>';
+const BALLOTS=['0','8','16','24'].map((v,i)=>`<div style="position:absolute;left:${680+i*3}px;top:${1130-i*6}px;width:250px;height:120px;background:#ece3cc;border-radius:3px;box-shadow:0 5px 8px rgba(0,0,0,.35);transform:rotate(-4deg)"></div>`).join('');
+B[11]=p=>({bg:bg(11),ref:2.6,
+  layers:[lay(11,'box',{in:{fx:'slideUp',at:p+.1,dur:.9,dy:700}}),lay(11,'hand',{in:{fx:'handRise',at:p+.8,dur:1.0,dy:800}}),
+    {l:0,t:0,w:941,h:1672,z:2,html:BALLOTS},{l:0,t:0,w:941,h:1672,z:1,html:PIE,in:{fx:'sweep',at:p+1.0,dur:1.1,deg:275}}],
+  text:[bigT(11,'countUp',p+1.3,.9,{to:76,from:0,suffix:'%'}),subT(11,p+1.9,.35),chipT(11,p+2.2,.35)],
+  cam:K(p,[[0,CX,CY,1],[2.6,CX,CY,1],[4.0,365,660,1.3]])});
+B[12]=p=>({bg:bg(12),bgIdle:{fx:'drift',amp:12,ampY:0,period:7},ref:3.6,
+  layers:[lay(12,'tower',{in:{fx:'towerClock',at:p+.2,dur:2.4,faceX:.436,faceY:.405,fr:.17}})],
+  text:[bigT(12,'stampText',p+2.0,.8,{box:false,rot:-3}),subT(12,p+2.8,.4),chipT(12,p+3.1,.4)],
+  cam:K(p,[[0,CX,896,1.08],[3.5,CX,CY,1]])});
+B[13]=p=>({bg:bg(13),ref:3.1,
+  layers:[lay(13,'stack',{in:{fx:'slideOff',at:p+.1,dur:1.6}}),{l:0,t:0,w:941,h:1672,z:5,in:{fx:'paperRain',at:p+.9,dur:1.7,rest:PAPER13},idle:{fx:'drift',at:p+2.7,amp:8,ampY:10,period:4}}],
+  text:[bigT(13,'countUp',p+1.6,1.0,{to:92,from:0,suffix:'%'}),subT(13,p+2.4,.4),chipT(13,p+2.65,.4)],
+  cam:K(p,[[0,CX,CY,1.07],[3.0,CX,CY,1]])});
+const card14=(c,i,from,at)=>({l:c[0],t:c[1],w:c[2],h:c[3],z:3,html:`<img src="${window.CARD15?'../assets/chain/'+window.CARD15[[2,0,5][i]]:A+'B02-card.png'}" style="position:absolute;left:${(c[2]-c[3])/2}px;top:${(c[3]-c[2])/2}px;width:${c[3]}px;height:${c[2]}px;transform:rotate(90deg);filter:drop-shadow(0 14px 16px rgba(0,0,0,.45))">`,in:{fx:'slideInRot',at,dur:.9,from,r0:i===1?20:-30}});
+B[14]=p=>({bg:bg(14),ref:3.0,
+  layers:[charLayer(BEATS[14].ch,{in:{fx:'peek',at:p+.2,dur:.8},out:{fx:'slideInRot',from:[420,0],r0:15,at:p+3.45,dur:.45}}),
+    card14(CARDS14[0],0,[-700,0],p+.3),card14(CARDS14[1],1,[0,600],p+.55),card14(CARDS14[2],2,[700,0],p+.8),
+    lay(14,'pen',{in:{fx:'slideInRot',at:p+1.4,dur:.7,from:[300,100],r0:-40},idle:{fx:'sway',at:p+2.1,amp:2,period:1.8,origin:'0% 50%'}})],
+  text:[bigT(14,'typeOn',p+1.4,.8),subT(14,p+2.2,.4),chipT(14,p+2.5,.4)],
+  cam:K(p,[[0,CX,CY,1.06,-1.5],[2.9,CX,CY,1,0]])});
+B[15]=p=>({bg:bg(15),ref:2.75,
+  layers:[{src:A+'B02-card.png',l:RING.cx-470.5,t:RING.cy-836,w:941,h:1672,z:3,in:{fx:'gather',at:p+.1,dur:1.8,n:RING.n,cw:RING.w,ch:RING.h,R:RING.R,ky:RING.ky},idle:{fx:'ringSpin',at:p+1.9,speed:5}}],
+  text:[bigT(15,'countUp',p+1.1,.9,{from:0,to:11}),subT(15,p+2.0,.4),chipT(15,p+2.3,.4)],
+  cam:K(p,[[0,CX,CY,1],[2.75,CX,CY,1],[3.5,CX,CY,1.04]])});
+const FLAG='<div style="width:112px;height:300px;filter:drop-shadow(5px 8px 8px rgba(0,0,0,.45))"><svg width="112" height="300" viewBox="0 0 112 300"><path d="M0,6 C30,-6 70,18 100,4 L110,150 L98,296 C68,306 32,280 0,292 Z" fill="#b8282e" stroke="#5a1015" stroke-width="3"/><path d="M0,6 C30,-6 70,18 100,4" fill="none" stroke="#7a1a20" stroke-width="2"/><polygon points="52,52 58,70 77,70 62,81 68,100 52,89 36,100 42,81 27,70 46,70" fill="#e9c35a"/></svg></div>';
+B[16]=p=>({bg:bg(16),ref:3.1,
+  layers:[{l:832,t:506,w:112,h:300,z:5,html:FLAG,in:{fx:'flagLower',at:p+.4,dur:2.2,rise:380,steps:5,dim:.3},idle:{fx:'sway',at:p+2.6,amp:2.5,period:1.6,origin:'0% 0%'}}],
+  text:[bigT(16,'typeOn',p+1.2,.8),subT(16,p+2.3,.4),chipT(16,p+2.6,.4)],
+  cam:K(p,[[0,CX,776,1.08],[3.0,CX,CY,1]])});
+B[17]=p=>({bg:bg(17),ref:2.9,shake:{amp:4,freq:9,at:p+.45,dur:.9},
+  layers:[lay(17,'stamp',{in:{fx:'stampSlam',at:p+.1,dur:1.5,ix:.268,iy:.913,iw:.489}})],
+  text:[bigT(17,'stampText',p+1.3,.8,{box:false,rot:-3}),subT(17,p+2.1,.4),chipT(17,p+2.4,.4)],
+  cam:K(p,[[0,CX,CY,1],[2.9,CX,CY,1],[3.5,CX,CY,1.05]])});
+B[18]=p=>({bg:bg(18),ref:3.3,
+  layers:[{src:A+'B18-stack.png',l:0,t:0,w:941,h:1672,z:3,in:{fx:'split15',at:p+.2,dur:1.9,cw:205,ch:242,pts:STACKS18},idle:{fx:'breathe',at:p+2.4,amp:.015,period:2.6}},
+    charLayer(BEATS[18].ch,{in:{fx:'handRise',dy:380,at:p+1.2,dur:.8},out:{fx:'walkIn',dx:380,at:p+3.6,dur:.4}})],
+  text:[bigT(18,'fadeUp',p+1.8,.5),subT(18,p+2.2,1.0,'charScatter')],
+  cam:K(p,[[0,CX,CY,1.1],[3.3,CX,CY,1]])});
+const SRC='<div style="font:700 70px Times New Roman,serif;color:#7a1f24;text-align:center;margin-bottom:30px">Nguồn</div>'+SOURCES.map(s=>`<div style="font:500 36px/1.25 Times New Roman,serif;color:#2b2d31;margin:0 0 18px;padding-left:10px;border-left:8px solid #7a1f24">${s}</div>`).join('')+'<div style="font:italic 700 40px Times New Roman,serif;color:#7a1f24;margin-top:30px;text-align:center">Hình minh hoạ, không phải tư liệu</div>';
+B[19]=p=>({color:'#e9dfc6',ref:1.6,
+  layers:[{l:60,t:190,w:821,h:1100,z:3,html:SRC,in:{fx:'slideUp',at:p+.1,dur:1.2,dy:1300}}],text:[],cam:[]});
+
+const SCENES=[],REFS={};
+for(let k=1;k<=19;k++){const pre=k>1?EX[k-1].dur:0,o=B[k](pre);
+  const sc={k,t0:(k>1?N[k-1]-pre:0),t1:N[k],bg:o.bg,color:o.color,layers:o.layers,text:o.text.filter(Boolean),cam:o.cam,bgIdle:o.bgIdle,shake:o.shake,exit:EX[k],sfx:SFX[k],pre,ref:o.ref};
+  SCENES.push(sc);REFS[k]=N[k-1]+o.ref}
+window.SCENES=SCENES;window.NOMINAL=N;window.REFS=REFS;
+})();
+</script>
+<script>
+(function(){
+const q=new URLSearchParams(location.search),SC=window.SCENES,K=SC.length,API=Engine2,SETS=window.E2_SETS;
+const stageEl=document.getElementById('stage'),capEl=document.getElementById('cap'),hint=document.getElementById('hint');
+// ---- mốc từng bước: bước k chạy từ SC[k].t0 tới SC[k+1].t0 (cảnh cuối: tới t1)
+const T0=SC.map(s=>s.t0),T1=SC.map((s,i)=>i<K-1?SC[i+1].t0-0.001:s.t1);
+const stepsEl=document.getElementById('steps'),dotsEl=document.getElementById('dots');
+for(let i=0;i<K;i++){const d=document.createElement('div');d.className='step';stepsEl.appendChild(d);const dt=document.createElement('i');dt.onclick=()=>goStep(i);dotsEl.appendChild(dt)}
+let S=1,inst=null,curLang='vi',lang=SETS&&SETS[q.get('lang')]?q.get('lang'):(SETS?Object.keys(SETS)[0]:null),audioOn=true,subsOn=true,started=false,step=-1;
+const fit=()=>Math.min(innerHeight/1672,innerWidth/941)*.985;
+function build(en){const spec={scenes:SC};const root=stageEl;root.innerHTML='';root.className='';S=fit();inst=API.create(root,spec,{S});inst.spec0=spec;
+  if(en){inst=API.rebuild(inst,'en')}return inst}
+const isEn=l=>SETS&&SETS[l]&&SETS[l].subs[0]&&SETS[l].subs[0].primary==='en';
+let au=null,vo=null;const setAudio=()=>{[au,vo].forEach(x=>x&&x.pause());au=vo=null;if(SETS&&lang){au=new Audio(SETS[lang].bed);au.preload='auto'}};
+// ---- UI
+const sel=document.getElementById('lang');if(SETS){Object.entries(SETS).forEach(([k,v])=>{const o=document.createElement('option');o.value=k;o.textContent=v.label;if(k===lang)o.selected=true;sel.appendChild(o)})}else sel.style.display='none';
+const showCap=()=>{if(!subsOn||step<0||!SETS){capEl.style.opacity=0;return}const c=SETS[lang].subs[step];if(!c){capEl.style.opacity=0;return}const en=c.primary==='en';
+  capEl.innerHTML='<div>'+(en?c.en:c.vi)+'</div><div style="font-weight:500;color:#ffe9a8;margin-top:3px">'+(en?c.vi:c.en)+'</div>';capEl.style.opacity=1};
+const progEl=document.getElementById('prog');
+const dots=()=>{[...dotsEl.children].forEach((d,i)=>{d.className=i===step?'on':(i<step?'done':'')});progEl.style.width=((Math.max(0,step)+1)/K*100)+'%'};
+// ---- phát một bước
+let run=null;
+let hd=null,hdIv=0,haRaf=0,haT=0;
+function stopHoldAnim(){cancelAnimationFrame(haRaf);haRaf=0;API.holdT=0}
+function startHoldAnim(b){stopHoldAnim();haT=performance.now();const lp=()=>{const h=(performance.now()-haT)/1000;API.holdT=Math.min(h,40);API.frame(b);if(h<40)haRaf=requestAnimationFrame(lp);else haRaf=0};haRaf=requestAnimationFrame(lp)}
+function stopHold(){clearInterval(hdIv);if(hd){hd.pause();hd=null}}
+function startHold(i){stopHold();if(!(started&&audioOn)||i>=K-1)return;hd=new Audio('../mix/holds/hold_'+String(i+1).padStart(2,'0')+'.wav');hd.loop=true;hd.volume=0;const p=hd.play();if(p&&p.catch)p.catch(()=>{});const T=performance.now();
+  hdIv=setInterval(()=>{if(!hd)return;const e=(performance.now()-T)/1000,v=Math.min(1,e/.5)*Math.max(.45,1-(e-.5)/12*.55)*(e<30?1:Math.max(0,1-(e-30)/6));hd.volume=Math.max(0,Math.min(1,v));if(e>36)stopHold()},50)}
+function stopRun(){stopHold();stopHoldAnim();if(run){cancelAnimationFrame(run.raf);clearInterval(run.iv);run=null}[au,vo].forEach(x=>{if(x){x.pause();x.volume=1}})}
+function play(i){stopRun();const a=T0[i],b=T1[i];const useAu=started&&audioOn&&au;
+  const subs=SETS&&SETS[lang].subs,c=subs&&subs[i],cs=c?c.start:0,ce=c?c.end-.3:0,nx=subs&&subs[i+1],vEnd=Math.min(ce+.2,nx?nx.start-.05:ce+.2);
+  vo=(useAu&&c)?new Audio(SETS[lang].lines+c.id+'.wav'):null;if(vo)vo.preload='auto';
+  let vStarted=false,bedOn=false;const r={raf:0,iv:0},T=performance.now();run=r;
+  const now=()=>a+(performance.now()-T)/1000;
+  const tick=()=>{if(run!==r)return;const t=now();
+    if(t>=b&&!r.ha){r.ha=1;startHoldAnim(b)}
+    if(useAu){if(!bedOn&&t<b+.4&&!r.bed){r.bed=1;au.currentTime=a;au.volume=1;const p=au.play();if(p&&p.catch)p.catch(()=>{});bedOn=true}
+      if(!vStarted&&vo&&t>=cs-.03){vStarted=true;vo.currentTime=0;const p=vo.play();if(p&&p.catch)p.catch(()=>{})}
+      if(bedOn&&t>=b){if(!r.hold){r.hold=1;startHold(i)}const f=1-Math.min(1,(t-b)/.4);au.volume=Math.max(0,f);if(f<=0){au.pause();bedOn=false}}
+      }
+    const done=t>=b&&(!useAu||(((vStarted?vo.ended:t>cs+1)||t>cs+9)&&!bedOn));
+    if(done){API.frame(b);if(vo)vo.pause();if(au)au.pause();stopRunQuiet(r);return true}return false};
+  const stopRunQuiet=rr=>{cancelAnimationFrame(rr.raf);clearInterval(rr.iv);if(run===rr)run=null};
+  const loop=()=>{if(run!==r)return;API.frame(Math.min(now(),b));r.raf=requestAnimationFrame(loop)};
+  r.iv=setInterval(tick,30);r.raf=requestAnimationFrame(loop);tick()}
+function goStep(i,instant){i=Math.max(0,Math.min(K-1,i));scrollTo({top:i*innerHeight,behavior:'auto'})}
+function onStep(i){if(i===step)return;step=i;dots();showCap();hint.style.opacity=i===0?1:0;if(typeof small==='function'&&small()&&typeof showPanel==='function')showPanel(false);if(started)play(i);else API.frame(T0[i])}
+function pos(){return Math.round(scrollY/innerHeight)}
+let lastPos=-1;addEventListener('scroll',()=>{window.__sc=(window.__sc||0)+1;try{const p=pos();if(p!==lastPos){lastPos=p;onStep(p)}}catch(e){window.__errs.push('scroll:'+e.message+' | '+String(e.stack).slice(0,300))}},{passive:true});
+addEventListener('keydown',e=>{if(!started)return;if(['ArrowDown','PageDown',' ','ArrowRight'].includes(e.key)){e.preventDefault();goStep(pos()+1)}else if(['ArrowUp','PageUp','ArrowLeft'].includes(e.key)){e.preventDefault();goStep(pos()-1)}else if(e.key==='Home')goStep(0);else if(e.key==='End')goStep(K-1)});
+addEventListener('resize',()=>{S=fit();inst.setScale(S)});
+const killAudio=()=>{stopHold();stopHoldAnim();[au,vo].forEach(x=>x&&x.pause())};addEventListener('pagehide',killAudio);document.addEventListener('visibilitychange',()=>{if(document.hidden)killAudio()});
+sel.onchange=()=>{const was=run;lang=sel.value;setAudio();const en=isEn(lang);if((curLang==='en')!==en){curLang=en?'en':'vi';inst=API.rebuild(inst,curLang);inst.ready.then(()=>API.frame(T1[Math.max(0,step)]))}showCap();if(started&&step>=0)play(step)};
+document.getElementById('mu').onclick=function(){audioOn=!audioOn;this.textContent='Âm thanh: '+(audioOn?'bật':'tắt');if(!audioOn&&au)au.pause()};
+document.getElementById('en').onclick=function(){subsOn=!subsOn;this.textContent='Phụ đề: '+(subsOn?'bật':'tắt');showCap()};
+// ---- giao diện gọn cho mobile
+const small=()=>matchMedia('(max-width:760px),(pointer:coarse)').matches,panel=document.getElementById('panel'),mbtn=document.getElementById('mbtn');let menuT=0;
+const setH=()=>{document.querySelectorAll('.step').forEach(s=>s.style.height=innerHeight+'px')};setH();addEventListener('resize',()=>{const k=Math.round(scrollY/Math.max(1,innerHeight));setH();if(started&&step>=0)scrollTo(0,Math.max(0,step)*innerHeight)});
+const showPanel=on=>{clearTimeout(menuT);panel.classList.toggle('hide',!on);if(on&&small())menuT=setTimeout(()=>panel.classList.add('hide'),6000)};
+showPanel(!small());mbtn.onclick=()=>showPanel(panel.classList.contains('hide'));
+panel.addEventListener('click',()=>{if(small())showPanel(true)});
+document.getElementById('rs').onclick=()=>{goStep(0);if(small())showPanel(false)};
+capEl.onclick=()=>{subsOn=!subsOn;document.getElementById('en').textContent='Phụ đề: '+(subsOn?'bật':'tắt');showCap()};
+if(small()){hint.textContent='Vuốt lên ↑';const sp=document.querySelector('#start p');if(sp)sp.textContent='Vuốt lên/xuống để xem từng bước. Mỗi lần vuốt chạy một cảnh rồi dừng chờ bạn. Chạm nút ⋯ ở góc phải để đổi ngôn ngữ, bật/tắt tiếng và phụ đề.'}
+const _onStep=onStep;
+build(isEn(lang));curLang=isEn(lang)?'en':'vi';setAudio();inst.ready.then(()=>{API.frame(T0[0]);document.body.dataset.ready=1});
+function begin(withAudio){started=true;setTimeout(()=>{hint.style.opacity=0;hint.style.animation='none'},4500);audioOn=withAudio;document.getElementById('mu').textContent='Âm thanh: '+(audioOn?'bật':'tắt');document.getElementById('start').style.display='none';scrollTo(0,0);step=-1;lastPos=0;onStep(0)}
+document.getElementById('go').onclick=()=>begin(true);document.getElementById('go0').onclick=()=>begin(false);
+if(q.get('step')!==null){document.getElementById('start').style.display='none';const k=+q.get('step')-1;started=false;step=-1;lastPos=k;onStep(k);inst.ready.then(()=>{if(q.get('hold')){API.holdT=+q.get('hold')}API.frame(T1[k])})}
+dots();
+if(q.get('res')){setTimeout(()=>{const p=document.createElement('pre');p.id='res';p.textContent=JSON.stringify(performance.getEntriesByType('resource').map(e=>e.name.replace(location.origin,'').replace(/^file:.*lien-xo-sup-do\//,'')));document.body.appendChild(p)},3000)}
+window.__dbg={get au(){return au},get vo(){return vo},get step(){return step},get hd(){return hd},get run(){return !!run}};
+})();
+</script><script>(function(){
+var q=new URLSearchParams(location.search),sel=document.getElementById('lang');
+var RULES=[['Sự sụp đổ của Liên Xô','The Fall of the Soviet Union'],
+['Cuộn chuột (hoặc','Scroll (or use \u2193 \u2191, Space, swipe) to see one step at a time. Each scroll plays one scene, then waits for you.'],
+['Vuốt lên/xuống','Swipe up or down to see one step at a time. Each swipe plays one scene, then waits for you. Tap \u22ef at the top right for language, sound and subtitles.'],
+['Bắt đầu (có âm thanh)','Start (with sound)'],['Bắt đầu không âm thanh','Start without sound'],
+['Hình minh hoạ','Illustrations, not archival footage \u00b7 draft audio mix'],
+['Âm thanh: bật','Sound: on'],['Âm thanh: tắt','Sound: off'],['Phụ đề: bật','Subtitles: on'],['Phụ đề: tắt','Subtitles: off'],
+['Xem lại từ đầu','Restart'],['Cuộn xuống','Scroll down \u2193'],['Vuốt lên \u2191','Swipe up \u2191']];
+function tr(s){for(var i=0;i<RULES.length;i++)if(s.indexOf(RULES[i][0])===0)return RULES[i][1];return null}
+var ids=['#start h1','#start p','#go','#go0','#start .sub','#mu','#en','#rs','#hint'],busy=false;
+function isEn(){return sel&&/^en/.test(sel.value)}
+function fix(el){ if(busy||!el)return; var cur=el.textContent;
+  if(el._en!==undefined&&cur===el._en) return;            // do chính ta đặt
+  var e=tr(cur); if(e===null) return;                     // không phải chữ tiếng Việt đã biết
+  el._vi=cur; el._en=e; if(isEn()){ busy=true; el.textContent=e; busy=false; } }
+function sync(){ ids.forEach(function(s){ var el=document.querySelector(s); if(!el)return; fix(el); if(el._vi!==undefined){ busy=true; el.textContent=isEn()?el._en:el._vi; busy=false; } }); document.documentElement.lang=isEn()?'en':'vi'; document.title=isEn()?'The Fall of the Soviet Union':'Liên Xô sụp đổ'; }
+var mo=new MutationObserver(function(ms){ ms.forEach(function(m){ var el=m.target.nodeType===1?m.target:m.target.parentNode; ids.forEach(function(s){ var x=document.querySelector(s); if(x&&(x===el||x.contains(el)))fix(x); }); }); });
+ids.forEach(function(s){ var el=document.querySelector(s); if(el) mo.observe(el,{childList:true,characterData:true,subtree:true}); });
+if(sel) sel.addEventListener('change',function(){ setTimeout(sync,0) });
+sync(); new MutationObserver(sync).observe(document.body,{childList:true}); setTimeout(sync,300);
+// ---- báo cho Reed (trang cha): sẵn sàng, bước hiện tại, đã xem hết, đóng bằng Esc
+if(window.parent!==window){
+  var post=function(o){ try{ parent.postMessage(Object.assign({source:'reed-story',id:'ussr'},o),location.origin) }catch(e){} };
+  var K=function(){return document.querySelectorAll('.step').length}, last=-1, done=false;
+  var rd=setInterval(function(){ if(document.body.dataset.ready==='1'){ clearInterval(rd); post({event:'ready'}); } },100);
+  addEventListener('scroll',function(){ var p=Math.round(scrollY/Math.max(1,innerHeight)); if(p!==last){ last=p; post({event:'step',step:p,of:K()}); if(!done&&p>=K()-1){ done=true; post({event:'done'}); } } },{passive:true});
+  addEventListener('keydown',function(e){ if(e.key==='Escape'){ post({event:'close'}); } });
+}
+})();</script></body></html>

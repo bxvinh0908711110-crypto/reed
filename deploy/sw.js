@@ -6,12 +6,13 @@
 const VERSION = "reed-v3";
 const SHELL = VERSION + "-shell";
 const AUDIO_CACHE = "reed-audio-v2";
+const STORY_CACHE = "reed-stories-v1";   /* bài Stories: tải khi mở, lưu lại sau lần xem đầu (không tải sẵn ~13 MB) */
 const SHELL_FILES = [
   "./", "manifest.webmanifest", "reed-icon.svg",
   "icons/icon-192.png", "icons/icon-512.png", "icons/icon-maskable-512.png", "icons/apple-touch-icon.png",
   "fonts/inter-latin.woff2", "fonts/inter-vietnamese.woff2", "fonts/inter-latin-ext.woff2",
   "img/hero.webp", "img/hero-sm.webp", "img/family.webp", "img/friends.webp", "img/school.webp", "img/work.webp",
-  "img/weekend.webp", "img/health.webp", "img/tech.webp", "img/welcome.webp",
+  "img/weekend.webp", "img/health.webp", "img/tech.webp", "img/welcome.webp", "img/topic-stories.webp",
   "img/topic-family.webp", "img/topic-friends.webp", "img/topic-school.webp", "img/topic-work.webp", "img/topic-lifestyle.webp", "img/topic-health.webp", "img/topic-tech.webp"
 ];
 
@@ -28,7 +29,7 @@ self.addEventListener("install", e => {
 
 self.addEventListener("activate", e => {
   e.waitUntil((async () => {
-    const keep = new Set([SHELL, AUDIO_CACHE]);
+    const keep = new Set([SHELL, AUDIO_CACHE, STORY_CACHE]);
     for (const k of await caches.keys()) if (k.startsWith("reed-") && !keep.has(k)) await caches.delete(k);
     await self.clients.claim();
   })());
@@ -83,6 +84,19 @@ async function rangeFrom(resp, range) {
     "Content-Length": String(e - s + 1), "Accept-Ranges": "bytes" } });
 }
 
+async function stories(req) {
+  const cache = await caches.open(STORY_CACHE), key = new Request(req.url), range = req.headers.get("range");
+  let hit = await cache.match(key);
+  if (!hit) {
+    try {
+      const full = await fetch(key);
+      if (!(full.ok && full.status === 200)) return full;
+      cache.put(key, full.clone()); hit = full;
+    } catch (err) { return fetch(req); }
+  }
+  return range ? rangeFrom(hit, range) : hit;
+}
+
 async function audio(req) {
   const cache = await caches.open(AUDIO_CACHE), key = new Request(req.url), range = req.headers.get("range");
   const hit = await cache.match(key);
@@ -97,8 +111,9 @@ async function audio(req) {
 self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET" || !same(req)) return;
-  if (req.mode === "navigate") { e.respondWith(navigate(req)); return; }
   const p = new URL(req.url).pathname;
+  if (/\/stories\//.test(p)) { e.respondWith(stories(req)); return; }   /* kể cả khi trang Stories được mở trong iframe (mode=navigate) */
+  if (req.mode === "navigate") { e.respondWith(navigate(req)); return; }
   if (/\/audio\/(female|male|music)\/[^/]+\.mp3$/.test(p)) e.respondWith(audio(req));
   else if (/\/(img|fonts|icons)\//.test(p)) e.respondWith(cacheFirst(req));
   else if (/manifest\.webmanifest$|reed-icon\.svg$/.test(p)) e.respondWith(staleWhileRevalidate(req));

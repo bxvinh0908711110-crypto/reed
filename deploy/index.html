@@ -768,6 +768,16 @@ html.lite .hero.heroRise .heroImg{animation-name:heroImgInSoft}
 html.lite .lscCard,html.lite .lsc,html.lite .ovSec{animation:none;transition:none}
 html.lite .lscThumb img{transition:none}
 html.lite .player,html.lite .pwaBar,html.lite .toast{box-shadow:none}
+/* ---- Stories: bài hoạt hình tương tác mở toàn màn hình (iframe) ---- */
+.storyView{position:fixed;inset:0;z-index:100;background:#101012}
+.storyView[hidden]{display:none}
+.storyView iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#101012}
+.storyLoad{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#ffe9a8;font:600 15px system-ui,sans-serif;background:#101012;pointer-events:none}
+.storyLoad[hidden]{display:none}
+.storyClose{position:absolute;left:max(10px,env(safe-area-inset-left));top:max(10px,env(safe-area-inset-top));z-index:2;width:42px;height:42px;border-radius:50%;border:1px solid #666;background:#000b;color:#fff;font-size:17px;line-height:1;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+body.storyOpen{overflow:hidden}
+.lscCard.story .lscDur{display:inline-flex;align-items:center;gap:4px}
+.lscThumb .lscDur svg{position:static;inset:auto;width:12px;height:12px;flex:none}   /* ghi đè quy tắc svg phủ kín ô ảnh */
 /* ---- PWA: thanh thông báo + nút cài app ---- */
 .pwaBar{position:fixed;z-index:90;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 106px);transform:translate(-50%,16px);width:max-content;max-width:calc(100vw - 32px);display:flex;align-items:center;gap:14px;padding:12px 18px;border-radius:999px;background:var(--bar);color:#fff;font-size:13.5px;font-weight:600;box-shadow:0 12px 32px rgba(0,0,0,.28);opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease}
 .pwaBar.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
@@ -806,6 +816,7 @@ body:has(.player:not(.away)) .pwaPill{display:none}   /* chỉ hiện ở màn h
 <section id="overviewScreen" class="lsc" hidden aria-label="Topics">
   <div class="ovsBody" id="ovsBody"></div>
 </section>
+<div id="storyView" class="storyView" hidden role="dialog" aria-label="Story"><div id="storyLoad" class="storyLoad">Loading story…</div><button id="storyClose" class="storyClose" type="button" aria-label="Close story">✕</button></div>
 <div id="nbBackdrop" class="nbBackdrop" hidden></div>
 <aside id="notebook" class="nb" hidden aria-label="My Vocabulary">
   <div class="nbFold"><div class="nbFoldIn">
@@ -1075,6 +1086,7 @@ const TOPICS=[
   {k:"health",label:"Health",vb:"0 0 208.27 181.02",icon:"<path d=\"M52.3.55c19.43-2.19,37.82,5.5,50.86,19.65,4.76-2.98,7.55-7.18,12.44-10.35,49.48-32.01,109.84,19.59,88.1,74.1-10.02,25.12-57.77,67.57-79.71,85.29-12.18,9.83-17.79,17-32.8,6.86-21.55-14.56-71.06-61.59-83.19-83.81C-12.71,54.34,8.46,5.5,52.3.55ZM105.51,105.27c1.37-4.88,6.47-14.58,11.72-15.78,4.19-.96,7.05.76,10.75.83,14.28.28,34.41,1.4,48.1.02,5.8-.59,9.36-8.52,11.22-13.78C203.6,30.38,143.72-2.07,116.11,34.36c-3.65,4.81-4.97,13.26-12.07,13.44-8.87.22-9.77-8.76-14.1-14.44-17.44-22.84-52.45-17.44-66.22,6.61-9.86,17.21-7.67,34.04,3.81,49.8l32.01.02c7.05-9.31,14.46-40.68,29.4-23.42,5.82,10.94,8.67,27.19,14.36,37.64.63,1.16-.03,1.68,2.22,1.27ZM161.52,108.27h-37.5c-5.74,7.37-17.42,38.13-28.71,19.71-2.64-4.32-14.24-37.76-16.29-37.69-3.6,2.99-8.22,17.98-13,17.98h-21.5c-.44,1.75.72,2,1.49,3.01,5.18,6.77,18.6,18.2,25.49,24.51,10.12,9.26,20.58,18.24,31.52,26.52,2.8-.02,37.78-32.03,42.51-36.52,4.17-3.96,11.21-10.22,14.49-14.51.77-1.01,1.93-1.26,1.49-3.01Z\"/>"},
   {k:"tech",label:"Tech",vb:"0 0 211.26 159.58",icon:"<path d=\"M47.91,1.27c36.04,1.9,76.23-3.36,111.79-.28,10.83.94,19.81,8.61,21.47,19.53l.2,92.8,28.67,32.33c3.13,5.42-.15,10.93-5.3,13.45l-196.63.48c-7.48-1.56-9.54-7.3-7.19-14.3l27.22-31.78c1.91-28.77-2.47-60.62-.01-89.01,1.01-11.65,8.36-20.57,19.78-23.22ZM164.17,106.03V24.53c0-3.3-5.59-5.29-8.45-5.55-32.41-2.93-69.19,2.31-102.07.03-1.85-.69-7.48,3.58-7.48,4.52v82.5h118ZM182.17,142.03l-12.92-15.58-2.61-1.39-125.27.19-13.21,16.78h154Z\"/>"}
 ];
+TOPICS.push({k:"stories",label:"Stories",vb:"0 0 24 24",icon:"<path fill-rule=\"evenodd\" d=\"M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm6 4.4v7.2l6-3.6z\"/>"});
 let passages=[], curTopic="family";
 
 /* Chưa có phương án nâng cấp phụ cho vòng demo này (chỉ 1 mức A1 -> A2 theo yêu cầu) */
@@ -2199,6 +2211,33 @@ $("#rate").addEventListener("click",e=>{const b=e.target.closest("button");if(!b
 
 /* Auto-play: mỗi bước, tự đọc đúng cụm A1 / A2 đang hiển thị (không đọc cả câu). Mặc định bật, lưu trong máy.
    Không tự phát khi đang ghi âm, tour / làm thử, ở trang chủ, hoặc chưa có file âm thanh (không dùng giọng trình duyệt vì hay bị chặn). */
+/* Stories: mở bài đặc biệt toàn màn hình; trang con báo về (sẵn sàng / xem hết / đóng) bằng postMessage */
+let storyId=null;
+function openStory(slug){
+  const st=STORIES.find(x=>x.slug===slug); if(!st) return;
+  stopAll(); Bgm.pauseTemp();
+  const view=$("#storyView"); storyId=st.id;
+  let fr=$("#storyFrame"); if(fr) fr.remove();
+  fr=document.createElement("iframe"); fr.id="storyFrame"; fr.title="Story"; fr.allow="autoplay; fullscreen"; fr.referrerPolicy="no-referrer"; view.insertBefore(fr,view.firstChild);   /* tạo mới mỗi lần mở, bỏ hẳn khi đóng (dừng âm thanh, trả tiêu điểm bàn phím) */
+  document.body.classList.add("storyOpen"); view.hidden=false; $("#storyLoad").hidden=false;
+  fr.onload=()=>{ try{ fr.contentWindow.focus(); }catch(e){} };
+  fr.src=st.src+"?embed=1&lang="+(document.body.classList.contains("lang-vi")?"vi":"en_michael");
+  setTimeout(()=>{ $("#storyClose").focus({preventScroll:true}); },50);
+}
+function closeStory(){
+  const view=$("#storyView"); if(view.hidden) return;
+  const fr=$("#storyFrame"); if(fr) fr.remove(); view.hidden=true; storyId=null;
+  document.body.classList.remove("storyOpen"); Bgm.resume();
+  try{ window.focus(); }catch(e){}
+  if(typeof renderLessonList==="function"&&document.body.classList.contains("listOpen")) renderLessonList();
+}
+$("#storyClose").addEventListener("click",closeStory);
+addEventListener("message",e=>{
+  const d=e.data; if(e.origin!==location.origin||!d||d.source!=="reed-story"||!storyId) return;
+  if(d.event==="ready") $("#storyLoad").hidden=true;
+  else if(d.event==="done") markRead(storyId);
+  else if(d.event==="close") closeStory();
+});
 const AutoPlay=(function(){
   const KEY="reed_autoplay", btn=$("#autoBtn"); let on=true, key="", timer=0, tapAt=0;
   try{ on=localStorage.getItem(KEY)!=="0"; }catch(e){}
@@ -2206,7 +2245,7 @@ const AutoPlay=(function(){
   btn.addEventListener("click",()=>{ on=!on; try{ localStorage.setItem(KEY,on?"1":"0"); }catch(e){} sync(); if(!on){ clearTimeout(timer); } });
   sync();
   function blocked(){
-    return document.hidden||document.body.classList.contains("listOpen")||player.classList.contains("away")||player.classList.contains("picker-open")
+    return document.hidden||document.body.classList.contains("storyOpen")||document.body.classList.contains("listOpen")||player.classList.contains("away")||player.classList.contains("picker-open")
       ||(typeof Tour!=="undefined"&&(Tour.active||Tour.welcomeOpen))||(typeof Practice!=="undefined"&&Practice.active)
       ||(typeof Rec!=="undefined"&&(Rec.open||Rec.state==="recording"));
   }
@@ -2661,7 +2700,10 @@ const Rec=(function(){
   if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   setInterval(()=>{ w.classList.add("out"); setTimeout(()=>{ i=(i+1)%words.length; w.textContent=words[i]; w.classList.remove("out"); },280); },2400);
 })();
-const hasLessons=k=>ALL.some(p=>p.cat===k);
+/* Stories: bài đặc biệt có hoạt hình tương tác, mở bằng trang riêng (iframe) thay vì engine đọc từng câu */
+const STORIES=[{id:"story-ussr",slug:"ussr",title:"The Fall of the Soviet Union",level:"B1",dur:"1:13",cover:"img/topic-stories.webp",src:"stories/ussr/index.html"}];
+let storiesView=false;   /* true: danh sách bài đang hiển thị là danh sách Stories (chủ đề đọc hiện tại vẫn giữ nguyên) */
+const hasLessons=k=>k==="stories"?STORIES.length>0:ALL.some(p=>p.cat===k);
 /* ---------- Màn hình danh sách bài (nút Start Reading) ----------
    Hiện các bài của chủ đề đang chọn dạng thẻ (ảnh, số bài, tên, mức, "1 min"); bài đã đọc có dấu ✓, bài chưa mở có ổ khoá.
    Chạm thẻ → nhảy tới bài đó. Vuốt/lăn vẫn dùng để đi thẳng vào bài như cũ (điều hướng linh hoạt). */
@@ -2682,8 +2724,19 @@ const lscCardHTML=(p,i,locked,read,n,k)=>{
 };
 const markLoaded=root=>root.querySelectorAll("img").forEach(i=>{ if(i.complete&&i.naturalWidth) i.classList.add("ld"); });
 const lscFilterOK=(read)=>lscFilter==="all"||(lscFilter==="read"?read:!read);
+const STORY_PLAY=`<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>`;
+const storyCardHTML=(st,n,read)=>`<button type="button" class="lscCard story${read?" read":""}" data-story="${st.slug}" data-k="stories" data-id="${st.id}" style="--n:${n}" aria-label="${st.title} (story)">
+      <span class="lscThumb"><img src="${st.cover}" alt="${st.title}" loading="lazy" decoding="async" onload="this.classList.add('ld')" onerror="this.remove()"><span class="lscDur">${STORY_PLAY} ${st.dur}</span>${read?'<i class="lscSeen"></i>':""}</span>
+      <span class="lscText"><span class="lscTitle">${st.title}</span><span class="lscMeta">Story · ${st.level}</span></span>
+      <span class="lscSide">${read?LSC_CHECK:""}</span>
+    </button>`;
 function renderLessonList(){
   document.querySelectorAll("#lscChips button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.f===lscFilter));
+  if(storiesView){
+    const sr=STORIES.map(st=>({st,read:readSet.has(st.id)})).filter(r=>lscFilterOK(r.read));
+    lscGrid.innerHTML=sr.length?sr.map(({st,read},n)=>storyCardHTML(st,n,read)).join(""):`<div class="lscEmpty">${lscFilter==="read"?"No stories read yet":"All stories read"}</div>`;
+    markLoaded(lscGrid); return;
+  }
   const rows=passages.map((p,i)=>({p,i,read:readSet.has(p.id)})).filter(r=>lscFilterOK(r.read));
   if(!rows.length){ lscGrid.innerHTML=`<div class="lscEmpty">${lscFilter==="read"?"No lessons read yet":"All lessons read"}</div>`; return; }
   lscGrid.innerHTML=rows.map(({p,i,read},n)=>lscCardHTML(p,i,i>=unlockedCount,read,n,curTopic)).join("");
@@ -2699,13 +2752,14 @@ function openLessonList(){
 }
 let lscFrom="";   /* "ov": danh sách chủ đề được mở từ trang tổng quan, Esc sẽ quay lại tổng quan */
 function closeLessonList(back){
-  lscEl.classList.remove("on");
+  lscEl.classList.remove("on"); storiesView=false;
   const toOv=back&&lscFrom==="ov"; lscFrom="";
   if(toOv) openOverview(); else document.body.classList.remove("listOpen");
   setTimeout(()=>{ if(!lscEl.classList.contains("on")) lscEl.hidden=true; },340);
 }
 lscGrid.addEventListener("click",e=>{
   const c=e.target.closest(".lscCard"); if(!c) return;
+  if(c.dataset.story){ openStory(c.dataset.story); return; }
   const i=+c.dataset.i;
   if(i>=unlockedCount){ c.classList.remove("shake"); void c.offsetWidth; c.classList.add("shake"); return; }   /* bài chưa mở: lắc nhẹ */
   closeLessonList(); jumpToLesson(i);
@@ -2715,13 +2769,13 @@ lscGrid.addEventListener("click",e=>{
    Mỗi chủ đề là một mục: tên + "See all ›" và vài bài đầu (hàng ảnh 16:9 trên máy tính, danh sách dọc trên điện thoại).
    Chạm tên chủ đề → danh sách bài của chủ đề; chạm một bài → vào thẳng bài đó. */
 const ovsEl=$("#overviewScreen"), ovsBody=$("#ovsBody");
-const TOPIC_THUMB=Object.fromEntries(["family","friends","school","work","lifestyle","health","tech"].map(k=>[k,"img/topic-"+k+".webp"]));   /* ảnh bìa chủ đề 640×360 (chủ đề nào chưa có ảnh thì ô xám) */
-const TOPIC_ALT={family:"A family having breakfast together",friends:"Friends laughing at a cafe table",school:"Children in uniforms walking to school",work:"A young professional smiling at her desk",lifestyle:"A person relaxing at home with tea and a book",health:"A person stretching in a park at sunrise",tech:"A person using a laptop and smartphone"};
-const topicLessons=k=>ALL.filter(p=>p.cat===k&&p.id>0);
+const TOPIC_THUMB=Object.fromEntries(["family","friends","school","work","lifestyle","health","tech","stories"].map(k=>[k,"img/topic-"+k+".webp"]));   /* ảnh bìa chủ đề 640×360 (chủ đề nào chưa có ảnh thì ô xám) */
+const TOPIC_ALT={family:"A family having breakfast together",friends:"Friends laughing at a cafe table",school:"Children in uniforms walking to school",work:"A young professional smiling at her desk",lifestyle:"A person relaxing at home with tea and a book",health:"A person stretching in a park at sunrise",tech:"A person using a laptop and smartphone",stories:"Paper-cut illustration of a star playing card on a red sunburst"};
+const topicLessons=k=>k==="stories"?STORIES:ALL.filter(p=>p.cat===k&&p.id>0);
 const topicUnlocked=k=>{ try{ const n=+localStorage.getItem("reed_unlocked_"+k); return n>=1?n:1; }catch(e){ return 1; } };
 function syncTabs(){   /* tab "All" sáng khi đang ở trang tổng quan; tab chủ đề sáng khi không ở đó */
   const ov=!ovsEl.hidden&&ovsEl.classList.contains("on");
-  document.querySelectorAll("#topics button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.all?ov:(!ov&&b.dataset.k===curTopic&&curTopic!=="practice")));
+  document.querySelectorAll("#topics button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.all?ov:(!ov&&b.dataset.k===(storiesView?"stories":curTopic)&&curTopic!=="practice")));
 }
 function renderOverview(){
   const secs=TOPICS.map(t=>{
@@ -2730,7 +2784,7 @@ function renderOverview(){
   }).filter(s=>s.rows.length);
     let n=0;
   ovsBody.innerHTML=secs.map(({t,rows},n)=>{
-    const tot=topicLessons(t.k).length, cnt=tot+(tot===1?" lesson":" lessons"), im=TOPIC_THUMB[t.k];
+    const tot=topicLessons(t.k).length, cnt=t.k==="stories"?tot+(tot===1?" story":" stories"):tot+(tot===1?" lesson":" lessons"), im=TOPIC_THUMB[t.k];
     return `<section class="ovSec" data-k="${t.k}">
     <button type="button" class="ovHead" data-k="${t.k}"><span class="ovIcon"><svg viewBox="${t.vb}" fill="currentColor" aria-hidden="true">${t.icon}</svg></span><span class="ovName">${t.label}</span><span class="ovMore">See all ›</span></button>
     <div class="ovRows"><button type="button" class="lscCard ovTopic" data-k="${t.k}" style="--n:${n}" aria-label="${t.label}, ${cnt}">
@@ -2750,8 +2804,18 @@ function openOverview(){
 }
 function hideOverview(){ ovsEl.classList.remove("on"); syncTabs(); setTimeout(()=>{ if(!ovsEl.classList.contains("on")) ovsEl.hidden=true; },340); }
 function closeOverview(){ document.body.classList.remove("listOpen"); hideOverview(); }
-function closeAllScreens(){ lscFrom=""; if(lscEl.classList.contains("on")) closeLessonList(); if(ovsEl.classList.contains("on")) closeOverview(); }
-function openTopicList(k){ hideOverview(); if(curTopic!==k) setTopic(k); lscFrom="ov"; openLessonList(); }
+function closeAllScreens(){ lscFrom=""; storiesView=false; if(lscEl.classList.contains("on")) closeLessonList(); if(ovsEl.classList.contains("on")) closeOverview(); }
+function openTopicList(k){
+  if(k==="stories"){ storiesView=true; hideOverview(); lscFrom="ov"; openLessonList(); return; }
+  storiesView=false; hideOverview(); if(curTopic!==k) setTopic(k); lscFrom="ov"; openLessonList();
+}
+/* bấm tab Stories: từ đọc bài / từ danh sách chủ đề khác / từ trang tổng quan */
+function showStories(){
+  if(typeof Practice!=="undefined"&&Practice.active) Practice.end();
+  const fromOv=ovsEl.classList.contains("on"); storiesView=true;
+  if(fromOv){ hideOverview(); lscFrom="ov"; }
+  if(lscEl.classList.contains("on")){ renderLessonList(); syncTabs(); } else { openLessonList(); syncTabs(); }
+}
 function tabToTopicList(){ hideOverview(); lscFrom="ov"; openLessonList(); }   /* bấm tab chủ đề khi đang ở trang tổng quan */
 function goToLesson(k,id){
   closeAllScreens();
@@ -2766,7 +2830,9 @@ ovsBody.addEventListener("click",e=>{
   const c=e.target.closest(".ovTopic"); if(c) openTopicList(c.dataset.k);   /* mỗi chủ đề một thẻ bìa → danh sách bài của chủ đề */
 });
 addEventListener("keydown",e=>{
-  if(e.key!=="Escape"||!listOpen()) return;
+  if(e.key!=="Escape") return;
+  if(document.body.classList.contains("storyOpen")){ closeStory(); return; }
+  if(!listOpen()) return;
   if(lscEl.classList.contains("on")) closeLessonList(true);   /* danh sách chủ đề: quay lại tổng quan (nếu mở từ đó) */
   else closeOverview();
 });
@@ -2775,12 +2841,14 @@ addEventListener("resize",()=>{ if(listOpen()) lscPlace(); });
 (function(){
   const order=()=>["all",...TOPICS.filter(t=>hasLessons(t.k)).map(t=>t.k)];
   function go(dir){
-    const o=order(), cur=ovsEl.classList.contains("on")?"all":curTopic, i=o.indexOf(cur), j=i+dir;
+    if(document.body.classList.contains("storyOpen")) return;
+    const o=order(), cur=ovsEl.classList.contains("on")?"all":(storiesView?"stories":curTopic), i=o.indexOf(cur), j=i+dir;
     if(i<0||j<0||j>=o.length) return;
     const to=o[j];
     if(to==="all"){ lscFrom=""; closeLessonList(); openOverview(); }
     else if(cur==="all") openTopicList(to);
-    else setTopic(to);
+    else if(to==="stories"){ storiesView=true; renderLessonList(); syncTabs(); lscGrid.scrollTop=0; }
+    else { storiesView=false; setTopic(to); }
     const b=document.querySelector('#topics button[data-k="'+to+'"]'), bar=$("#topics");
     if(b&&bar.scrollWidth>bar.clientWidth) bar.scrollTo({left:b.offsetLeft-(bar.clientWidth-b.offsetWidth)/2,behavior:"smooth"});
   }
@@ -2794,7 +2862,7 @@ addEventListener("resize",()=>{ if(listOpen()) lscPlace(); });
 $("#startBtn").addEventListener("click",openOverview);   /* Start Reading: trang tổng quan các chủ đề (vuốt xuống vẫn đi thẳng vào bài 1) */
 
 function setTopic(k,jump){
-  curTopic=k; if(k!=="practice"){ try{localStorage.setItem("reed_topic",k)}catch(e){} }
+  storiesView=false; curTopic=k; if(k!=="practice"){ try{localStorage.setItem("reed_topic",k)}catch(e){} }
   passages=ALL.filter(p=>p.cat===k);
   P=makeP(); F=passages.map(()=>({})); recapMode=passages.map(()=>"up");
   unlockedCount=loadUnlocked(); active={pi:0,si:0}; live=[];
@@ -2830,6 +2898,7 @@ function animateTopic(k){
     const b=e.target.closest("button"); if(!b) return;
     if(b.dataset.all){ if(Practice.active) Practice.end(); if(lscEl.classList.contains("on")){ lscFrom=""; closeLessonList(); openOverview(); } else if(!(ovsEl.classList.contains("on"))) openOverview(); return; }
     if(b.dataset.soon){ toast.textContent=b.textContent+" lessons are coming soon"; toast.classList.add("on"); clearTimeout(tt); tt=setTimeout(()=>toast.classList.remove("on"),1800); return; }
+    if(b.dataset.k==="stories"){ showStories(); return; }
     if(Practice.active){ Practice.end(); setTopic(b.dataset.k,true); return; }
     animateTopic(b.dataset.k);
   });
