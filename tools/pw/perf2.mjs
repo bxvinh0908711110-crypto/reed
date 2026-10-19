@@ -6,15 +6,12 @@ const port=await new Promise(res=>srv.on('listening',()=>res(srv.address().port)
 let fails=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) fails++; };
 const b=await chromium.launch();
 const mk=async(opts,init)=>{ const ctx=await b.newContext(opts); await ctx.addInitScript(()=>{localStorage.setItem('reed_tour_done','1');localStorage.setItem('reed_tips',JSON.stringify({swipe_done:1,tap_done:1,listen_done:1,hold_done:1,recap_done:1,save_done:1}))}); if(init) await ctx.addInitScript(init); await ctx.route('**/*supabase.co/**',r=>r.abort()); return ctx; };
-// 1. skeleton: ảnh bìa bị làm chậm 1,2s
-{ const ctx=await mk({...devices['iPhone 13'],serviceWorkers:'block'}); await ctx.route('**/img/topic-*.webp',async r=>{ await new Promise(s=>setTimeout(s,1200)); r.continue(); });
-  const p=await ctx.newPage(); await p.goto(`http://localhost:${port}/`); await p.waitForTimeout(4500);
+// 1. thumb: tải + giải mã sẵn ngay khi app chạy → mở trang All là ảnh hiện luôn (không mờ dần); ô xám chỉ là khung dự phòng
+{ const ctx=await mk({...devices['iPhone 13'],serviceWorkers:'block'});
+  const p=await ctx.newPage(); await p.goto(`http://localhost:${port}/`); await p.waitForTimeout(5000);
   await p.evaluate(()=>document.querySelector('#startBtn').click()); await p.waitForTimeout(500);
-  const a=await p.evaluate(()=>{ const t=document.querySelector('.ovTopic .lscThumb'), i=t.querySelector('img'); return {bg:getComputedStyle(t).backgroundColor,op:getComputedStyle(i).opacity,ld:i.classList.contains('ld')}; });
-  ok(a.bg==='rgb(227, 229, 232)'&&a.op==='0'&&!a.ld,'ảnh chưa tải: ô xám làm khung chờ, ảnh ẩn '+JSON.stringify(a));
-  await p.waitForTimeout(2200);
-  const c=await p.evaluate(()=>{ const i=document.querySelector('.ovTopic img'); return {ld:i.classList.contains('ld'),op:getComputedStyle(i).opacity}; });
-  ok(c.ld&&c.op==='1','ảnh tải xong: mờ vào '+JSON.stringify(c));
+  const a=await p.evaluate(()=>{ const t=document.querySelector('.ovTopic .lscThumb'), i=t.querySelector('img'); return {bg:getComputedStyle(t).backgroundColor,op:getComputedStyle(i).opacity,ld:i.classList.contains('ld'),seen:window.__seen?window.__seen.size:0}; });
+  ok(a.bg==='rgb(227, 229, 232)'&&a.ld&&a.op==='1'&&a.seen>=8,'thumb đã tải sẵn: hiện ngay không mờ dần, ô xám là nền dự phòng '+JSON.stringify(a));
   await ctx.close(); }
 // 2. tải trước âm thanh
 { const ctx=await mk(devices['iPhone 13']); const p=await ctx.newPage(); const reqs=[]; p.on('request',q=>{ if(/\/audio\/(female|male)\//.test(q.url())) reqs.push(q.url().split('/audio/')[1]); });

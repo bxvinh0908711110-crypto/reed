@@ -17,28 +17,47 @@ for(const [name,opts] of [['mobile',{viewport:{width:390,height:844},isMobile:tr
   await p.evaluate(()=>document.querySelector('#topics [data-k=family]').click()); await p.waitForTimeout(60); dirs.push(await p.evaluate(()=>document.querySelector('#main').style.getPropertyValue('--tdir'))); await p.waitForTimeout(1200);
   ok(dirs[0]==='1'&&dirs[1]==='-1','đọc bài: sang tab bên phải trượt +1, sang tab bên trái trượt -1 '+JSON.stringify(dirs));
   ok(await p.evaluate(()=>getComputedStyle(document.querySelector('#main')).transitionProperty.includes('transform')),'#main có chuyển động transform');
-  // 2. trang All → danh sách bài: bấm tab, danh sách trượt (Web Animation chạy một lần)
+  // 2. pager: bấm tab → trang bên cạnh (đã dựng sẵn) và trang hiện tại trượt cùng hướng, xong thì đổi thật và gỡ trang phụ
+  const pager=async(clickSel,expect)=>{
+    await p.evaluate(sel=>document.querySelector(sel).click(),clickSel); await p.waitForTimeout(90);
+    const mid=await p.evaluate(()=>({ghosts:document.querySelectorAll('.pgGhost').length,anims:[...document.querySelectorAll('.pgGhost,#overviewScreen,#lessonScreen')].reduce((n,e)=>n+e.getAnimations().length,0),title:document.querySelector('.pgGhost')?[...document.querySelectorAll('.pgGhost .lscTitle,.pgGhost .ovName')].slice(0,1).map(x=>x.textContent)[0]:null}));
+    await p.waitForTimeout(650);
+    const end=await p.evaluate(()=>({ghosts:document.querySelectorAll('.pgGhost').length,anims:[ovsEl,lscEl].reduce((n,e)=>n+e.getAnimations().length,0),commit:document.body.classList.contains('pgCommit'),key:viewKey(),tf:[ovsEl.style.transform,lscEl.style.transform]}));
+    return {mid,end,ok:mid.ghosts===1&&mid.anims>=2&&end.ghosts===0&&end.anims===0&&!end.commit&&end.key===expect&&end.tf.every(x=>!x)};
+  };
   await p.evaluate(()=>document.querySelector('#topics [data-all]').click()); await p.waitForTimeout(900);
-  await p.evaluate(()=>document.querySelector('#topics [data-k=school]').click()); await p.waitForTimeout(80);
-  const a1=await p.evaluate(()=>lscGrid.getAnimations().map(a=>({n:a.effect.getKeyframes().map(k=>k.transform).join('→'),d:a.effect.getTiming().duration})));
-  ok(a1.length===1&&/translateX\(34px\)/.test(a1[0].n),'từ trang All bấm School: danh sách trượt từ phải vào '+JSON.stringify(a1));
-  await p.waitForTimeout(600);
-  await p.evaluate(()=>document.querySelector('#topics [data-k=friends]').click()); await p.waitForTimeout(80);
-  const a2=await p.evaluate(()=>lscGrid.getAnimations().map(a=>a.effect.getKeyframes().map(k=>k.transform).join('→')));
-  ok(a2.length===1&&/translateX\(-34px\)/.test(a2[0]),'từ School bấm Friends (bên trái): trượt từ trái vào '+JSON.stringify(a2));
-  await p.waitForTimeout(600);
-  await p.evaluate(()=>document.querySelector('#topics [data-k=stories]').click()); await p.waitForTimeout(80);
-  const a3=await p.evaluate(()=>lscGrid.getAnimations().length); ok(a3===1,'sang Stories: danh sách trượt');
-  await p.waitForTimeout(600);
-  // 3. về All: trượt từ trái
-  await p.evaluate(()=>document.querySelector('#topics [data-all]').click()); await p.waitForTimeout(80);
-  const a4=await p.evaluate(()=>ovsBody.getAnimations().map(a=>a.effect.getKeyframes().map(k=>k.transform).join('→')));
-  ok(a4.length===1&&/translateX\(-34px\)/.test(a4[0]),'về trang All: trượt từ trái vào '+JSON.stringify(a4));
-  await p.waitForTimeout(600);
+  let r=await pager('#topics [data-k=school]','school'); ok(r.ok,'All → School: trang School đã dựng sẵn trượt vào cùng lúc, xong thì gỡ trang phụ '+JSON.stringify(r));
+  r=await pager('#topics [data-k=friends]','friends'); ok(r.ok&&await p.evaluate(()=>curTopic==='friends'),'School → Friends (sang trái) '+JSON.stringify(r.end));
+  r=await pager('#topics [data-k=stories]','stories'); ok(r.ok&&await p.evaluate(()=>storiesView),'sang Stories');
+  r=await pager('#topics [data-all]','all'); ok(r.ok&&await p.evaluate(()=>ovsEl.classList.contains('on')&&!lscEl.classList.contains('on')),'về trang All');
+  // 3. bấm 3 tab liên tiếp nhanh: chỉ lần đầu chạy, các lần sau bị bỏ qua khi đang trượt, kết thúc ở trạng thái sạch
+  await p.evaluate(()=>{ document.querySelector('#topics [data-k=family]').click(); document.querySelector('#topics [data-k=friends]').click(); document.querySelector('#topics [data-k=school]').click(); }); await p.waitForTimeout(1200);
+  ok(await p.evaluate(()=>document.querySelectorAll('.pgGhost').length===0&&!document.body.classList.contains('pgCommit')&&[ovsEl,lscEl].every(e=>!e.style.transform&&e.getAnimations().length===0)),'bấm liên tiếp: không còn trang phụ / animation / transform treo (đang ở '+await p.evaluate(()=>viewKey())+')');
   // 4. hiệu ứng chạy xong thì không để lại trạng thái (opacity/transform)
-  ok(await p.evaluate(()=>{ const c=getComputedStyle(ovsBody); return c.transform==='none'&&c.opacity==='1'&&ovsBody.getAnimations().length===0; }),'xong hiệu ứng: nội dung về trạng thái bình thường, không còn animation');
+  ok(await p.evaluate(()=>{ const c=getComputedStyle(lscGrid); return c.opacity==='1'&&lscGrid.getAnimations().length===0; }),'xong hiệu ứng: nội dung về trạng thái bình thường, không còn animation');
   ok(errs.length===0,'không lỗi JS'+(errs.length?': '+errs[0]:'')); await ctx.close();
 }
+// 4b. KÉO bằng ngón tay (cảm ứng thật qua CDP): trang bên cạnh đi theo ngón tay, thả xa → sang, thả gần → quay lại
+{ const ctx=await b.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true}); await ctx.addInitScript(()=>{localStorage.setItem('reed_tour_done','1')}); await ctx.route('**/*supabase.co/**',r=>r.abort());
+  const p=await ctx.newPage(); const cdp=await ctx.newCDPSession(p); await p.goto(`http://localhost:${port}/`); await p.waitForTimeout(5000);
+  const T=(type,x,y)=>cdp.send('Input.dispatchTouchEvent',{type,touchPoints:type==='touchEnd'?[]:[{x,y}]});
+  const mv=async(x1,x2,y,steps=8,dt=16)=>{ for(let i=1;i<=steps;i++){ await T('touchMove',x1+(x2-x1)*i/steps,y); await p.waitForTimeout(dt);} };
+  console.log('-- kéo bằng ngón tay');
+  await p.evaluate(()=>document.querySelector('#startBtn').click()); await p.waitForTimeout(900);
+  await T('touchStart',300,500); await mv(300,180,500); await p.waitForTimeout(80);
+  const mid=await p.evaluate(()=>{ const g=document.querySelector('.pgGhost'); return {ghost:!!g,host:ovsEl.style.transform,gt:g&&g.style.transform,title:g&&g.querySelector('.lscTitle')&&g.querySelector('.lscTitle').textContent,key:viewKey()}; });
+  ok(mid.ghost&&mid.host==='translateX(-120px)'&&mid.gt==='translateX(270px)'&&mid.key==='all','đang kéo 120px: trang All đi theo ngón tay, trang Family dựng sẵn ở bên phải (270px) '+JSON.stringify(mid));
+  await T('touchEnd'); await p.waitForTimeout(700);
+  ok(await p.evaluate(()=>viewKey()==='family'&&lscEl.classList.contains('on')&&!document.querySelector('.pgGhost')),'thả (xa hơn 28%): sang trang Family, gỡ trang phụ');
+  await T('touchStart',300,500); await mv(300,270,500); await T('touchEnd'); await p.waitForTimeout(600);
+  ok(await p.evaluate(()=>viewKey()==='family'&&!document.querySelector('.pgGhost')&&!lscEl.style.transform),'kéo ngắn (30px) rồi thả: quay lại, vẫn ở Family');
+  await T('touchStart',100,500); await mv(100,330,500,8,12); await T('touchEnd'); await p.waitForTimeout(700);
+  ok(await p.evaluate(()=>viewKey()==='all'&&ovsEl.classList.contains('on')),'kéo sang phải: về trang All');
+  await T('touchStart',100,500); await mv(100,330,500); await T('touchEnd'); await p.waitForTimeout(700);
+  ok(await p.evaluate(()=>viewKey()==='all'&&!document.querySelector('.pgGhost')&&!ovsEl.style.transform),'hết trang bên trái: kéo có lực cản rồi tự về, không đổi trang');
+  await T('touchStart',300,500); await mv(300,300,300); await T('touchEnd'); await p.waitForTimeout(400);
+  ok(await p.evaluate(()=>viewKey()==='all'&&!document.querySelector('.pgGhost')),'kéo dọc: không dựng trang bên cạnh');
+  await ctx.close(); }
 // 5. chế độ nhẹ / giảm chuyển động: không có hiệu ứng
 { const ctx=await b.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'}); await ctx.addInitScript(()=>{localStorage.setItem('reed_tour_done','1')}); await ctx.route('**/*supabase.co/**',r=>r.abort());
   const p=await ctx.newPage(); await p.goto(`http://localhost:${port}/`); await p.waitForTimeout(4500);

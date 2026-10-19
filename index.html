@@ -209,8 +209,8 @@ body{margin:0;background:var(--bg);color:var(--ink);
 .toast{position:fixed;z-index:70;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 110px);transform:translate(-50%,8px);padding:10px 16px;border-radius:999px;
   background:#0b0b0b;color:#fff;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease;white-space:nowrap}
 .toast.on{opacity:1;transform:translate(-50%,0)}
- #main{transition:opacity .17s ease,transform .17s ease}
-#main.leaving{opacity:0;transform:translateX(calc(var(--tdir,1) * -28px))}
+ #main{transition:opacity .15s cubic-bezier(.4,0,1,1),transform .15s cubic-bezier(.4,0,1,1)}
+#main.leaving{opacity:0;transform:translateX(calc(var(--tdir,1) * -18px))}
 /* Logo → hero: bài mờ + nhoè nhẹ rồi biến mất, hero hiện lên lần lượt (tiêu đề → câu mô tả → nút → ảnh) */
 #main.homeOut{opacity:0;filter:blur(6px);transform:scale(.99);transition:opacity .22s ease,filter .22s ease,transform .26s ease}
 @keyframes heroIn{from{opacity:0;transform:translateY(16px);filter:blur(5px)}to{opacity:1;transform:none;filter:none}}
@@ -220,9 +220,9 @@ body{margin:0;background:var(--bg);color:var(--ink);
 .hero.heroRise .heroCta{animation-delay:.16s}
 .hero.heroRise .heroImg{animation:heroImgIn .85s .06s cubic-bezier(.2,.8,.2,1) both}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-@keyframes slideIn{from{opacity:0;transform:translateX(calc(var(--tdir,1) * 36px))}to{opacity:1;transform:none}}
-#main.entering .label,#main.entering .sents{animation:slideIn .5s cubic-bezier(.2,.8,.2,1) both}
-#main.entering .art{animation:slideIn .6s .06s cubic-bezier(.2,.8,.2,1) both}
+@keyframes slideIn{from{opacity:0;transform:translateX(calc(var(--tdir,1) * 22px))}to{opacity:1;transform:none}}
+#main.entering .label,#main.entering .sents{animation:slideIn .45s cubic-bezier(.16,1,.3,1) both}
+#main.entering .art{animation:slideIn .5s .03s cubic-bezier(.16,1,.3,1) both}
 .tipBtn{height:32px;width:auto;padding:0 12px;justify-content:center;font-weight:600;font-size:12.5px;margin-right:0;color:var(--ink);white-space:nowrap}
 .tip{position:fixed;z-index:65;left:0;top:0;max-width:min(280px,calc(100vw - 24px));padding:11px 14px;border-radius:14px;background:var(--bar);color:#fff;
   font-size:13.5px;font-weight:600;line-height:1.4;letter-spacing:0;box-shadow:0 10px 28px rgba(0,0,0,.28);cursor:pointer;
@@ -778,6 +778,11 @@ html.lite .hero.heroRise .heroImg{animation-name:heroImgInSoft}
 html.lite .lscCard,html.lite .lsc,html.lite .ovSec{animation:none;transition:none}
 html.lite .lscThumb img{transition:none}
 html.lite .player,html.lite .pwaBar,html.lite .toast{box-shadow:none}
+/* ---- Pager chủ đề (kéo ngang giữa All / danh sách bài) ---- */
+.lsc{touch-action:pan-y}
+.pgGhost{pointer-events:none!important;transition:none!important}
+.pgGhost .lscCard{animation:none!important}
+body.pgCommit .lsc{transition:none!important}
 /* ---- Stories: bài hoạt hình tương tác mở toàn màn hình (iframe) ---- */
 .storyView{position:fixed;inset:0;z-index:100;background:#101012}
 .storyView[hidden]{display:none}
@@ -2733,9 +2738,15 @@ const LSC_LOCK=`<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stro
 const LSC_CHECK=`<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 5 5L20 7"/></svg>`;
 function lscPlace(){ const v=Math.round($(".top").getBoundingClientRect().bottom)+"px"; lscEl.style.setProperty("--lsc-top",v); document.getElementById("overviewScreen").style.setProperty("--lsc-top",v); }
 let lscFilter="all";   /* all | unread | read */
+const seenSrc=u=>{ try{ return !!(window.__seen&&window.__seen.has(new URL(u,location.href).href)); }catch(e){ return false; } };
+const IMG_ONLOAD="this.classList.add('ld');(window.__seen=window.__seen||new Set()).add(this.currentSrc||this.src)";
+function warmThumbs(){   /* tải trước ảnh thumb (lúc rảnh) để chuyển chủ đề không phải đợi ảnh / không hiện ô xám */
+  const run=()=>{ const urls=new Set([...Object.values(IMG),...Object.values(TOPIC_THUMB),...STORIES.map(x=>x.cover)]); urls.forEach(u=>{ if(!u||seenSrc(u)) return; const im=new Image(); im.decoding="async"; const mark=()=>{ (window.__seen=window.__seen||new Set()).add(im.src); }; im.onload=()=>{ mark(); }; im.src=u; if(im.decode) im.decode().then(mark).catch(()=>{}); }); };
+  if(window.requestIdleCallback) window.requestIdleCallback(run,{timeout:1500}); else setTimeout(run,300);
+}
 const lscCardHTML=(p,i,locked,read,n,k)=>{
   const src=IMG[p.scene];
-  const art=src?`<img src="${src}" alt="" loading="lazy" decoding="async" onload="this.classList.add('ld')" onerror="this.remove()">`:(scenes[p.scene]||scenes.hobbies).replace("<svg ",'<svg preserveAspectRatio="xMidYMid slice" ');
+  const art=src?`<img src="${src}" alt="" class="${seenSrc(src)?"ld":""}" loading="lazy" decoding="async" onload="${IMG_ONLOAD}" onerror="this.remove()">`:(scenes[p.scene]||scenes.hobbies).replace("<svg ",'<svg preserveAspectRatio="xMidYMid slice" ');
   return `<button type="button" class="lscCard${locked?" locked":""}${read?" read":""}" data-i="${i}" data-k="${k}" data-id="${p.id}" style="--n:${n}" aria-label="${p.topic}${locked?" (locked)":""}">
       <span class="lscThumb">${art}<span class="lscDur">1 min</span>${locked?`<span class="lscLockBadge">${LSC_LOCK}</span>`:""}${read?'<i class="lscSeen"></i>':""}</span>
       <span class="lscText"><span class="lscTitle">${p.topic}</span><span class="lscMeta">Lesson ${String(i+1).padStart(2,"0")} · ${p.level||"A1"}</span></span>
@@ -2746,7 +2757,7 @@ const markLoaded=root=>root.querySelectorAll("img").forEach(i=>{ if(i.complete&&
 const lscFilterOK=(read)=>lscFilter==="all"||(lscFilter==="read"?read:!read);
 const STORY_PLAY=`<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>`;
 const storyCardHTML=(st,n,read)=>`<button type="button" class="lscCard story${read?" read":""}" data-story="${st.slug}" data-k="stories" data-id="${st.id}" style="--n:${n}" aria-label="${st.title} (story)">
-      <span class="lscThumb"><img src="${st.cover}" alt="${st.title}" loading="lazy" decoding="async" onload="this.classList.add('ld')" onerror="this.remove()"><span class="lscDur">${STORY_PLAY} ${st.dur}</span>${read?'<i class="lscSeen"></i>':""}</span>
+      <span class="lscThumb"><img src="${st.cover}" alt="${st.title}" class="${seenSrc(st.cover)?"ld":""}" loading="lazy" decoding="async" onload="${IMG_ONLOAD}" onerror="this.remove()"><span class="lscDur">${STORY_PLAY} ${st.dur}</span>${read?'<i class="lscSeen"></i>':""}</span>
       <span class="lscText"><span class="lscTitle">${st.title}</span><span class="lscMeta">Story · ${st.level}</span></span>
       <span class="lscSide">${read?LSC_CHECK:""}</span>
     </button>`;
@@ -2764,6 +2775,7 @@ function renderLessonList(){
 }
 $("#lscChips").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; lscFilter=b.dataset.f; renderLessonList(); lscGrid.scrollTop=0; });
 function openLessonList(){
+  warmThumbs();
   if(typeof Tour!=="undefined"&&(Tour.active||Tour.welcomeOpen)) return;
   if(typeof Rec!=="undefined"&&Rec.open) return;
   renderLessonList(); lscPlace(); lscEl.hidden=false; lscGrid.scrollTop=0;
@@ -2805,25 +2817,25 @@ function centerTab(b){
   const x=b.getBoundingClientRect().left-bar.getBoundingClientRect().left+bar.scrollLeft;
   bar.scrollTo({left:Math.max(0,x-(bar.clientWidth-b.offsetWidth)/2),behavior:"smooth"});
 }
-function renderOverview(){
+function overviewHTML(){
   const secs=TOPICS.map(t=>{
     const un=topicUnlocked(t.k);
     return {t,rows:topicLessons(t.k).map((p,i)=>({p,i,read:readSet.has(p.id),locked:i>=un}))};
   }).filter(s=>s.rows.length);
-    let n=0;
-  ovsBody.innerHTML=secs.map(({t,rows},n)=>{
+  return secs.map(({t,rows},n)=>{
     const tot=topicLessons(t.k).length, cnt=t.k==="stories"?tot+(tot===1?" story":" stories"):tot+(tot===1?" lesson":" lessons"), im=TOPIC_THUMB[t.k];
     return `<section class="ovSec" data-k="${t.k}">
     <button type="button" class="ovHead" data-k="${t.k}"><span class="ovIcon"><svg viewBox="${t.vb}" fill="currentColor" aria-hidden="true">${t.icon}</svg></span><span class="ovName">${t.label}</span><span class="ovMore">See all ›</span></button>
     <div class="ovRows"><button type="button" class="lscCard ovTopic" data-k="${t.k}" style="--n:${n}" aria-label="${t.label}, ${cnt}">
-      <span class="lscThumb">${im?`<img src="${im}" alt="${TOPIC_ALT[t.k]||t.label}" loading="lazy" decoding="async" onload="this.classList.add('ld')" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'ovGray'}))">`:'<span class="ovGray"></span>'}</span>
+      <span class="lscThumb">${im?`<img src="${im}" alt="${TOPIC_ALT[t.k]||t.label}" class="${seenSrc(im)?"ld":""}" loading="lazy" decoding="async" onload="${IMG_ONLOAD}" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'ovGray'}))">`:'<span class="ovGray"></span>'}</span>
       <span class="lscText"><span class="lscTitle">${t.label}</span><span class="lscMeta">${cnt}</span></span>
       <span class="lscSide"></span>
     </button></div>
   </section>`;}).join("");
-  markLoaded(ovsBody);
 }
+function renderOverview(){ ovsBody.innerHTML=overviewHTML(); markLoaded(ovsBody); }
 function openOverview(){
+  warmThumbs();
   if(typeof Tour!=="undefined"&&(Tour.active||Tour.welcomeOpen)) return;
   if(typeof Rec!=="undefined"&&Rec.open) return;
   renderOverview(); lscPlace(); ovsEl.hidden=false; ovsBody.scrollTop=0;
@@ -2865,28 +2877,100 @@ addEventListener("keydown",e=>{
   else closeOverview();
 });
 addEventListener("resize",()=>{ if(listOpen()) lscPlace(); });
-/* Vuốt ngang trên danh sách bài / trang tổng quan: chuyển chủ đề kế tiếp / trước (thứ tự như thanh chủ đề: All, Family, Friends…) */
-(function(){
-  const order=()=>["all",...TOPICS.filter(t=>hasLessons(t.k)).map(t=>t.k)];
-  function go(dir){
-    if(document.body.classList.contains("storyOpen")) return;
-    const o=order(), cur=ovsEl.classList.contains("on")?"all":(storiesView?"stories":curTopic), i=o.indexOf(cur), j=i+dir;
-    if(i<0||j<0||j>=o.length) return;
-    const to=o[j];
-    if(to==="all"){ lscFrom=""; closeLessonList(); openOverview(); }
-    else if(cur==="all") openTopicList(to);
-    else if(to==="stories"){ storiesView=true; renderLessonList(); syncTabs(); lscGrid.scrollTop=0; }
-    else { storiesView=false; setTopic(to); }
-    slideView(dir,to==="all"?ovsBody:lscGrid);
-    const b=document.querySelector('#topics button[data-k="'+to+'"]'), bar=$("#topics");
-    if(b) centerTab(b);
+/* ---------- Pager chủ đề: kéo ngang trang All / danh sách bài, trang bên cạnh đã dựng sẵn và đi theo ngón tay ----------
+   Thứ tự như thanh chủ đề (All, Family … Stories). Bấm tab dùng cùng hiệu ứng trượt. */
+const PG={busy:false};
+const pgOrder=()=>["all",...TOPICS.filter(t=>hasLessons(t.k)).map(t=>t.k)];
+const pgHost=()=>ovsEl.classList.contains("on")?ovsEl:lscEl;
+const pgReduced=()=>LITE||matchMedia("(prefers-reduced-motion: reduce)").matches;
+/* HTML của danh sách một chủ đề (cho trang bên cạnh) — giống hệt khung thật */
+function listInnerHTML(key){
+  const bar='<div class="lscBar"><div class="lscChips">'+[["all","All"],["unread","Unread"],["read","Read"]].map(([f,l])=>'<button type="button" data-f="'+f+'" aria-pressed="'+(f===lscFilter)+'">'+l+'</button>').join("")+'</div></div>';
+  let grid;
+  if(key==="stories"){
+    const sr=STORIES.map(st=>({st,read:readSet.has(st.id)})).filter(r=>lscFilterOK(r.read));
+    grid=sr.length?sr.map(({st,read},n)=>storyCardHTML(st,n,read)).join(""):`<div class="lscEmpty">${lscFilter==="read"?"No stories read yet":"All stories read"}</div>`;
+  } else {
+    const un=topicUnlocked(key), rows=topicLessons(key).map((p,i)=>({p,i,read:readSet.has(p.id)})).filter(r=>lscFilterOK(r.read));
+    grid=rows.length?rows.map(({p,i,read},n)=>lscCardHTML(p,i,i>=un,read,n,key)).join(""):`<div class="lscEmpty">${lscFilter==="read"?"No lessons read yet":"All lessons read"}</div>`;
   }
-  let sx=0,sy=0,st=0,on=false;
-  const start=e=>{ if(e.touches.length!==1){ on=false; return; } on=true; sx=e.touches[0].clientX; sy=e.touches[0].clientY; st=Date.now(); };
-  const end=e=>{ if(!on) return; on=false; const t=e.changedTouches[0], dx=t.clientX-sx, dy=t.clientY-sy;
-    if(Math.abs(dx)>=60&&Math.abs(dx)>Math.abs(dy)*1.6&&Date.now()-st<800) go(dx<0?1:-1); };
-  for(const el of [lscEl,ovsEl]){ el.addEventListener("touchstart",start,{passive:true}); el.addEventListener("touchend",end,{passive:true}); el.addEventListener("touchcancel",()=>{on=false},{passive:true}); }
-  window.__listSwipe=go;
+  return bar+'<div class="lscGrid">'+grid+'</div>';
+}
+function makeGhost(key){
+  const g=document.createElement("section"); g.className="lsc on pgGhost"; g.setAttribute("aria-hidden","true");
+  g.style.setProperty("--lsc-top",lscEl.style.getPropertyValue("--lsc-top")||ovsEl.style.getPropertyValue("--lsc-top")||"150px");
+  g.innerHTML=key==="all"?'<div class="ovsBody">'+overviewHTML()+'</div>':listInnerHTML(key);
+  document.body.appendChild(g); markLoaded(g); return g;
+}
+/* đổi hẳn sang một "trang" (trạng thái thật của app) */
+function switchView(to){
+  const cur=viewKey();
+  if(to===cur) return;
+  if(to==="all"){ lscFrom=""; closeLessonList(); openOverview(); }
+  else if(cur==="all") openTopicList(to);
+  else if(to==="stories"){ storiesView=true; renderLessonList(); syncTabs(); lscGrid.scrollTop=0; }
+  else { storiesView=false; setTopic(to); }
+}
+function pgCommit(to,ghost,anims){
+  document.body.classList.add("pgCommit");   /* tắt hiệu ứng mờ/trượt của màn hình trong lúc đổi (khung thật khớp hệt khung bên cạnh) */
+  switchView(to);
+  const tgt=to==="all"?ovsEl:lscEl, other=to==="all"?lscEl:ovsEl;
+  tgt.hidden=false; tgt.classList.add("on"); other.classList.remove("on"); other.hidden=true;
+  anims.forEach(a=>{ try{ a.cancel(); }catch(e){} }); if(ghost) ghost.remove();
+  pgHost().style.transform=""; lscEl.style.transform=""; ovsEl.style.transform="";
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ document.body.classList.remove("pgCommit"); PG.busy=false; }));
+}
+/* trượt từ vị trí hiện tại (a px) tới đích; ok=true: sang trang bên cạnh, ok=false: quay lại */
+function pgSettle(host,ghost,dir,a,W,ok,to,dur){
+  PG.busy=true;
+  const ease="cubic-bezier(.22,.8,.3,1)", t1=ok?-dir*W:0, g0=a+dir*W, g1=ok?0:dir*W;
+  const ah=host.animate([{transform:"translateX("+a+"px)"},{transform:"translateX("+t1+"px)"}],{duration:dur,easing:ease,fill:"forwards"});
+  const ag=ghost?ghost.animate([{transform:"translateX("+g0+"px)"},{transform:"translateX("+g1+"px)"}],{duration:dur,easing:ease,fill:"forwards"}):null;
+  const list=[ah].concat(ag?[ag]:[]);
+  ah.finished.then(()=>{
+    if(ok) pgCommit(to,ghost,list);
+    else { list.forEach(x=>{ try{ x.cancel(); }catch(e){} }); if(ghost) ghost.remove(); host.style.transform=""; PG.busy=false; }
+  }).catch(()=>{ if(ghost) ghost.remove(); PG.busy=false; });
+}
+/* bấm tab: cả hai trang trượt cùng hướng */
+function pagerGo(to){
+  const cur=viewKey(), o=pgOrder(), i=o.indexOf(cur), j=o.indexOf(to);
+  if(j<0||to===cur||PG.busy) return;
+  if(pgReduced()||i<0){ switchView(to); return; }
+  const dir=j>i?1:-1, host=pgHost(), ghost=makeGhost(to), W=innerWidth;
+  host.style.transform="translateX(0px)"; ghost.style.transform="translateX("+(dir*W)+"px)";
+  pgSettle(host,ghost,dir,0,W,true,to,300);
+}
+(function(){
+  let g=null;
+  const start=e=>{ if(e.touches.length!==1||PG.busy||document.body.classList.contains("storyOpen")){ g=null; return; } g={x:e.touches[0].clientX,y:e.touches[0].clientY,t:performance.now(),host:pgHost(),intent:null,ghost:null,dir:0,to:null,a:0,W:innerWidth,hadGhost:false}; };
+  const move=e=>{
+    if(!g) return; const dx=e.touches[0].clientX-g.x, dy=e.touches[0].clientY-g.y;
+    if(!g.intent){
+      if(Math.abs(dx)<8&&Math.abs(dy)<8) return;
+      g.intent=Math.abs(dx)>Math.abs(dy)*1.15?"h":"v";
+      if(g.intent==="h"){
+        const o=pgOrder(), i=o.indexOf(viewKey()); g.dir=dx<0?1:-1; g.to=i>=0?(o[i+g.dir]||null):null;
+        if(g.to&&!pgReduced()){ g.ghost=makeGhost(g.to); g.ghost.style.transform="translateX("+(g.dir*g.W)+"px)"; }
+      }
+    }
+    if(g.intent!=="h") return;
+    let a=dx; if(g.dir>0) a=Math.max(-g.W,Math.min(0,dx)); else a=Math.min(g.W,Math.max(0,dx));
+    if(!g.to) a=dx*0.22;   /* hết trang: kéo có lực cản */
+    g.a=a; g.host.style.transform="translateX("+a+"px)";
+    if(g.ghost) g.ghost.style.transform="translateX("+(a+g.dir*g.W)+"px)";
+  };
+  const end=e=>{
+    if(!g){ return; } const k=g; g=null;
+    if(k.intent!=="h"){ return; }
+    const dt=Math.max(1,performance.now()-k.t), dx=k.a, v=Math.abs(dx)/dt;
+    const go=!!k.to&&(Math.abs(dx)>k.W*0.28||(v>0.45&&Math.abs(dx)>40));
+    if(!k.ghost){ k.host.style.transform=""; if(go) switchView(k.to); return; }   /* chế độ nhẹ: không dựng trang bên cạnh, đổi thẳng khi thả */
+    const rest=Math.max(120,Math.min(300,Math.round((go?(k.W-Math.abs(dx)):Math.abs(dx))/Math.max(.9,v*1.2)*0.55)));
+    pgSettle(k.host,k.ghost,k.dir,dx,k.W,go,k.to,rest);
+  };
+  for(const el of [lscEl,ovsEl]){ el.addEventListener("touchstart",start,{passive:true}); el.addEventListener("touchmove",move,{passive:true}); el.addEventListener("touchend",end,{passive:true}); el.addEventListener("touchcancel",()=>{ if(g&&g.intent==="h"){ const k=g; g=null; if(k.ghost) pgSettle(k.host,k.ghost,k.dir,k.a,k.W,false,null,150); else k.host.style.transform=""; } else g=null; },{passive:true}); }
+  window.__pagerGo=pagerGo;
 })();
 $("#startBtn").addEventListener("click",openOverview);   /* Start Reading: trang tổng quan các chủ đề (vuốt xuống vẫn đi thẳng vào bài 1) */
 
@@ -2913,11 +2997,7 @@ const TAB_ORDER=()=>["all",...TOPICS.map(t=>t.k)];
 const topicDir=(a,b)=>{ const o=TAB_ORDER(), d=o.indexOf(b)-o.indexOf(a); return d>0?1:d<0?-1:1; };
 const viewKey=()=>ovsEl.classList.contains("on")?"all":(storiesView?"stories":curTopic);
 /* trang All / danh sách bài: nội dung mới trượt vào từ phía của tab mới (chỉ transform + opacity, một lần; bỏ qua ở chế độ nhẹ / giảm chuyển động) */
-function slideView(dir,el){
-  if(!dir||LITE||matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  el=el||(ovsEl.classList.contains("on")?ovsBody:lscGrid);
-  try{ el.animate([{transform:"translateX("+(dir*34)+"px)",opacity:0},{transform:"none",opacity:1}],{duration:260,easing:"cubic-bezier(.22,.8,.3,1)"}); }catch(e){}
-}
+
 function animateTopic(k){
   if(switching){ pendingTopic=k; return; }   /* bấm liên tiếp: chủ đề bấm sau cùng sẽ được áp dụng */
   const main=$("#main");
@@ -2936,11 +3016,11 @@ function animateTopic(k){
   bar.innerHTML=`<button type="button" data-k="all" data-all="1" aria-pressed="false" aria-label="All topics" title="All"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg><span>All</span></button>`+TOPICS.map(t=>`<button type="button" data-k="${t.k}" aria-pressed="false" aria-label="${t.label}" title="${t.label}"${hasLessons(t.k)?"":' data-soon="1"'}><svg viewBox="${t.vb}" width="20" height="20" fill="currentColor" aria-hidden="true">${t.icon}</svg><span>${t.label}</span></button>`).join("");
   bar.addEventListener("click",e=>{
     const b=e.target.closest("button"); if(!b) return;
-    if(b.dataset.all){ if(Practice.active) Practice.end(); if(lscEl.classList.contains("on")){ lscFrom=""; closeLessonList(); openOverview(); slideView(-1,ovsBody); } else if(!(ovsEl.classList.contains("on"))) openOverview(); return; }
+    if(b.dataset.all){ if(Practice.active) Practice.end(); if(lscEl.classList.contains("on")){ pagerGo("all"); return; } else if(!(ovsEl.classList.contains("on"))) openOverview(); return; }
     if(b.dataset.soon){ toast.textContent=b.textContent+" lessons are coming soon"; toast.classList.add("on"); clearTimeout(tt); tt=setTimeout(()=>toast.classList.remove("on"),1800); return; }
-    if(b.dataset.k==="stories"){ const d=topicDir(viewKey(),"stories"); showStories(); slideView(d,lscGrid); return; }
+    if(b.dataset.k==="stories"){ if(listOpen()){ pagerGo("stories"); return; } showStories(); return; }
     if(listOpen()&&!Practice.active){   /* đang ở trang All / danh sách bài: đổi chủ đề tại chỗ và trượt theo hướng của tab */
-      const d=topicDir(viewKey(),b.dataset.k), k=b.dataset.k; storiesView=false; setTopic(k); slideView(d,lscGrid); return;
+      pagerGo(b.dataset.k); return;
     }
     if(Practice.active){ Practice.end(); setTopic(b.dataset.k,true); return; }
     animateTopic(b.dataset.k);
@@ -2949,6 +3029,7 @@ function animateTopic(k){
   const first=TOPICS.find(t=>hasLessons(t.k));
   setTopic(saved&&saved!=="practice"&&hasLessons(saved)?saved:(first?first.k:"family"),false);
   Tour.maybeStart();
+  setTimeout(warmThumbs,1500);   /* tải + giải mã sẵn mọi ảnh thumb để chuyển trang không hiện ô xám / mờ dần */
 })();
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{layout();measure();movePills();update();fitSlides()});
 /* Kích thước trang thay đổi rất nhiều khi layout() vừa chạy xong (thanh cuộn có thể xuất hiện),
