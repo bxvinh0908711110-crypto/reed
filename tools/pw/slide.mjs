@@ -58,6 +58,21 @@ for(const [name,opts] of [['mobile',{viewport:{width:390,height:844},isMobile:tr
   await T('touchStart',300,500); await mv(300,300,300); await T('touchEnd'); await p.waitForTimeout(400);
   ok(await p.evaluate(()=>viewKey()==='all'&&!document.querySelector('.pgGhost')),'kéo dọc: không dựng trang bên cạnh');
   await ctx.close(); }
+// 4b2. viên thuốc của thanh chủ đề: đi theo ngón tay giữa hai tab, rồi dừng khớp tab đang chọn
+{ const ctx=await b.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true}); await ctx.addInitScript(()=>{localStorage.setItem('reed_tour_done','1')}); await ctx.route('**/*supabase.co/**',r=>r.abort());
+  const p=await ctx.newPage(); const cdp=await ctx.newCDPSession(p); await p.goto(`http://localhost:${port}/`); await p.waitForTimeout(5000);
+  const T=(type,x,y)=>cdp.send('Input.dispatchTouchEvent',{type,touchPoints:type==='touchEnd'?[]:[{x,y}]});
+  const geo=()=>p.evaluate(()=>{ const bar=document.querySelector('#topics'),pl=bar.querySelector('.tpill'),pr=bar.querySelector('button[aria-pressed="true"]'); if(!pl||!pr) return null; const a=pl.getBoundingClientRect(),c=pr.getBoundingClientRect(); return {pill:[Math.round(a.left),Math.round(a.width)],btn:[Math.round(c.left),Math.round(c.width)],op:getComputedStyle(pl).opacity,key:pr.dataset.k||'all'}; });
+  console.log('-- viên thuốc thanh chủ đề');
+  await p.evaluate(()=>document.querySelector('#startBtn').click()); await p.waitForTimeout(1200);
+  let g=await geo(); ok(g&&g.op==='1'&&Math.abs(g.pill[0]-g.btn[0])<=1&&Math.abs(g.pill[1]-g.btn[1])<=1,'có viên thuốc, khớp tab All '+JSON.stringify(g));
+  await T('touchStart',300,500); for(let i=1;i<=6;i++){ await T('touchMove',300-i*16,500); await p.waitForTimeout(16);} await p.waitForTimeout(250);
+  const mid=await geo(); ok(mid&&mid.pill[0]>g.pill[0]+3&&mid.key==='all','đang kéo: viên thuốc rời tab All đi về phía tab kế '+JSON.stringify({from:g.pill,mid:mid&&mid.pill}));
+  for(let i=7;i<=14;i++){ await T('touchMove',300-i*16,500); await p.waitForTimeout(16);} await T('touchEnd'); await p.waitForTimeout(900);
+  g=await geo(); ok(g&&g.key==='family'&&Math.abs(g.pill[0]-g.btn[0])<=1&&Math.abs(g.pill[1]-g.btn[1])<=1,'thả: viên thuốc dừng khớp tab Family '+JSON.stringify(g));
+  await p.evaluate(()=>document.querySelector('#topics [data-k=school]').click()); await p.waitForTimeout(1100);
+  g=await geo(); ok(g&&g.key==='school'&&Math.abs(g.pill[0]-g.btn[0])<=1&&Math.abs(g.pill[1]-g.btn[1])<=1,'bấm tab School: viên thuốc trượt tới và khớp '+JSON.stringify(g));
+  await ctx.close(); }
 // 4c. CHẾ ĐỘ NHẸ (?lite=1, như máy của người dùng) vẫn phải dựng trang bên cạnh và có nền che — không được lộ trang chủ phía sau
 { const ctx=await b.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true}); await ctx.addInitScript(()=>{localStorage.setItem('reed_tour_done','1')}); await ctx.route('**/*supabase.co/**',r=>r.abort());
   const p=await ctx.newPage(); const cdp=await ctx.newCDPSession(p); await p.goto(`http://localhost:${port}/?lite=1`); await p.waitForTimeout(5000);
