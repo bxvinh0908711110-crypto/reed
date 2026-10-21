@@ -58,6 +58,26 @@ for(const [name,opts] of [['mobile',{viewport:{width:390,height:844},isMobile:tr
   await T('touchStart',300,500); await mv(300,300,300); await T('touchEnd'); await p.waitForTimeout(400);
   ok(await p.evaluate(()=>viewKey()==='all'&&!document.querySelector('.pgGhost')),'kéo dọc: không dựng trang bên cạnh');
   await ctx.close(); }
+// 4c. CHẾ ĐỘ NHẸ (?lite=1, như máy của người dùng) vẫn phải dựng trang bên cạnh và có nền che — không được lộ trang chủ phía sau
+{ const ctx=await b.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true}); await ctx.addInitScript(()=>{localStorage.setItem('reed_tour_done','1')}); await ctx.route('**/*supabase.co/**',r=>r.abort());
+  const p=await ctx.newPage(); const cdp=await ctx.newCDPSession(p); await p.goto(`http://localhost:${port}/?lite=1`); await p.waitForTimeout(5000);
+  const T=(type,x,y)=>cdp.send('Input.dispatchTouchEvent',{type,touchPoints:type==='touchEnd'?[]:[{x,y}]});
+  const mv=async(x1,x2,y)=>{ for(let i=1;i<=8;i++){ await T('touchMove',x1+(x2-x1)*i/8,y); await p.waitForTimeout(16);} };
+  console.log('-- chế độ nhẹ (LITE)'); ok(await p.evaluate(()=>LITE),'đang ở chế độ nhẹ');
+  await p.evaluate(()=>{ document.querySelector('#startBtn').click(); }); await p.waitForTimeout(900);
+  await T('touchStart',300,500); await mv(300,170,500); await p.waitForTimeout(80);
+  let m=await p.evaluate(()=>({ghost:!!document.querySelector('.pgGhost'),back:document.body.classList.contains('pgActive'),bg:getComputedStyle(document.body,'::after').backgroundColor,pos:getComputedStyle(document.body,'::after').position}));
+  ok(m.ghost&&m.back&&m.pos==='fixed'&&m.bg!=='rgba(0, 0, 0, 0)','LITE: đang kéo vẫn có trang bên cạnh + nền che phía sau '+JSON.stringify(m));
+  await T('touchEnd'); await p.waitForTimeout(800);
+  ok(await p.evaluate(()=>viewKey()==='family'&&!document.body.classList.contains('pgActive')&&!document.querySelector('.pgGhost')),'LITE: thả → sang Family, gỡ nền và trang phụ');
+  // kéo sang phải ở trang đầu (hết trang): không có trang bên cạnh nhưng phải có nền che
+  await p.evaluate(()=>document.querySelector('#topics [data-all]').click()); await p.waitForTimeout(900);
+  await T('touchStart',100,500); await mv(100,230,500); await p.waitForTimeout(80);
+  m=await p.evaluate(()=>({ghost:!!document.querySelector('.pgGhost'),back:document.body.classList.contains('pgActive'),tf:ovsEl.style.transform}));
+  ok(!m.ghost&&m.back&&/translateX/.test(m.tf),'hết trang: trang hơi dịch (lực cản) và có nền che, không lộ trang chủ '+JSON.stringify(m));
+  await T('touchEnd'); await p.waitForTimeout(600);
+  ok(await p.evaluate(()=>!document.body.classList.contains('pgActive')&&!ovsEl.style.transform),'thả: về chỗ cũ, gỡ nền');
+  await ctx.close(); }
 // 5. chế độ nhẹ / giảm chuyển động: không có hiệu ứng
 { const ctx=await b.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'}); await ctx.addInitScript(()=>{localStorage.setItem('reed_tour_done','1')}); await ctx.route('**/*supabase.co/**',r=>r.abort());
   const p=await ctx.newPage(); await p.goto(`http://localhost:${port}/`); await p.waitForTimeout(4500);
