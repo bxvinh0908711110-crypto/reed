@@ -793,6 +793,66 @@ html.lite .player,html.lite .pwaBar,html.lite .toast{box-shadow:none}
 .pgGhost .lscCard{animation:none!important}
 body.pgCommit .lsc{transition:none!important}
 body.pgActive::after{content:"";position:fixed;left:0;right:0;bottom:0;top:var(--pgtop,150px);background:var(--bg,#fff);z-index:27;pointer-events:none}
+/* ---- Navbar đáy (điện thoại / tablet): kính nổi, thu gọn khi cuộn, chỉ ở màn hình duyệt ---- */
+.bnav{display:none;position:fixed;left:0;right:0;bottom:0;z-index:36;padding:0 16px calc(env(safe-area-inset-bottom,0px) + 12px);pointer-events:none;
+  transform:translateY(130%);opacity:0;transition:transform .5s cubic-bezier(.32,.72,0,1),opacity .3s ease}
+@media (max-width:1099px){ .bnav{display:block} body.navOn .top .right{opacity:0;pointer-events:none} .top .right{transition:opacity .3s ease} }
+body.navOn .bnav{transform:none;opacity:1}
+.bnBar{pointer-events:none;position:relative;isolation:isolate;display:flex;height:64px;margin:0 auto;width:min(100%,460px);padding:5px;border-radius:32px;
+  background:rgba(255,255,255,.66);-webkit-backdrop-filter:blur(22px) saturate(1.6);backdrop-filter:blur(22px) saturate(1.6);border:1px solid rgba(255,255,255,.85);box-shadow:0 8px 28px rgba(20,24,31,.18);
+  transition:width .5s cubic-bezier(.32,.72,0,1);touch-action:pan-y}
+body.navOn .bnBar{pointer-events:auto}
+html.lite .bnBar{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(255,255,255,.96);box-shadow:0 6px 18px rgba(20,24,31,.16)}
+.bnav.min .bnBar{width:64px}
+.bnPill{position:absolute;left:0;top:0;width:0;height:0;border-radius:27px;background:rgba(27,59,255,.12);pointer-events:none;z-index:0;opacity:0;will-change:transform,width}
+.bnItem{position:relative;z-index:1;flex:1 1 0;min-width:0;height:100%;border-radius:27px;padding:0;margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  font:600 11px/1.1 inherit;font-family:inherit;color:var(--muted);white-space:nowrap;overflow:hidden;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  transition:flex-grow .5s cubic-bezier(.32,.72,0,1),opacity .3s ease,color .32s ease,transform .18s cubic-bezier(.32,.72,0,1)}
+.bnItem:active{transform:scale(.94)}
+.bnItem svg{width:24px;height:24px;flex:none;transition:transform .3s cubic-bezier(.32,.72,0,1)}
+.bnItem .lb{transition:opacity .25s ease,max-height .4s cubic-bezier(.32,.72,0,1);max-height:16px}
+.bnItem.on{color:var(--accent)}
+.bnav.min .bnItem:not(.on){flex-grow:0;flex-basis:0;width:0;opacity:0;pointer-events:none}
+.bnav.min .bnItem.on svg{width:26px;height:26px}
+.bnav.min .bnItem.on .lb{opacity:0;max-height:0}
+.bnItem .badge{position:absolute;top:7px;left:calc(50% + 6px);min-width:17px;height:17px;padding:0 5px;border-radius:9px;background:var(--accent);color:#fff;font-size:10px;line-height:17px;text-align:center;transition:opacity .2s ease}
+.bnItem .badge[hidden]{display:none}
+.bnav.min .bnItem .badge{opacity:0}
+.bnItem .dot{position:absolute;top:12px;left:calc(50% + 7px);width:9px;height:9px;border-radius:50%;background:var(--accent);opacity:0;transition:opacity .3s ease}
+.bnav.min .bnItem.on .dot{opacity:0}
+body.navOn .lscGrid,body.navOn .ovsBody{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 108px)}
+body.navOn .pwaPill{bottom:calc(env(safe-area-inset-bottom,0px) + 96px)}
+@media (min-width:600px){ .bnBar{width:min(100%,520px)} }
+/* bảng "You" */
+.youSheet{position:fixed;inset:0;z-index:35;background:rgba(20,24,31,.16);opacity:0;transition:opacity .3s ease}
+.youSheet[hidden]{display:none}
+.youSheet.show{opacity:1}
+.ysCard{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 92px);width:min(calc(100vw - 32px),460px);padding:16px;border-radius:26px;
+  background:rgba(255,255,255,.82);-webkit-backdrop-filter:blur(24px) saturate(1.6);backdrop-filter:blur(24px) saturate(1.6);border:1px solid rgba(255,255,255,.9);box-shadow:0 12px 36px rgba(20,24,31,.22);
+  transform:translate(-50%,18px) scale(.98);opacity:0;transition:transform .45s cubic-bezier(.32,.72,0,1),opacity .3s ease;max-height:calc(100dvh - 190px);overflow:auto}
+html.lite .ysCard{-webkit-backdrop-filter:none;backdrop-filter:none;background:#fff}
+.youSheet.show .ysCard{transform:translate(-50%,0) scale(1);opacity:1}
+.ysHead{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.ysAv{width:44px;height:44px;border-radius:50%;background:var(--leaf);color:var(--accent);display:grid;place-items:center;flex:none}
+.ysAv svg{width:24px;height:24px}
+.ysName{font-weight:800;font-size:16px;color:var(--ink)}
+.ysSub{font-size:12px;color:var(--muted);margin-top:2px}
+.ysStats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.ysStat{background:rgba(27,59,255,.07);border-radius:16px;padding:10px 12px}
+.ysStat b{display:block;font-size:20px;font-weight:800;color:var(--accent);letter-spacing:-.02em}
+.ysStat span{font-size:11.5px;color:var(--muted);font-weight:600}
+.ysBar{height:5px;border-radius:3px;background:rgba(27,59,255,.14);margin-top:7px;overflow:hidden}
+.ysBar i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.ysRow{display:flex;align-items:center;gap:12px;width:100%;padding:11px 4px;border:0;background:none;font:inherit;font-size:14.5px;font-weight:600;color:var(--ink);text-align:left;cursor:pointer;border-top:1px solid rgba(20,24,31,.07);-webkit-tap-highlight-color:transparent}
+.ysRow:first-of-type{border-top:0}
+.ysRow .ysTx{flex:1}
+.ysRow svg{width:20px;height:20px;color:var(--muted);flex:none}
+.ysRow[disabled]{opacity:.5;cursor:default}
+.ysSw{width:44px;height:26px;border-radius:13px;background:#d3d7dd;position:relative;flex:none;transition:background .25s ease}
+.ysSw::after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .3s cubic-bezier(.32,.72,0,1)}
+.ysRow[aria-checked="true"] .ysSw{background:var(--accent)}
+.ysRow[aria-checked="true"] .ysSw::after{transform:translateX(18px)}
+@media (prefers-reduced-motion:reduce){ .bnav,.bnBar,.bnItem,.ysCard{transition-duration:.01s} }
 /* ---- Stories: bài hoạt hình tương tác mở toàn màn hình (iframe) ---- */
 .storyView{position:fixed;inset:0;z-index:100;background:#101012}
 .storyView[hidden]{display:none}
@@ -848,6 +908,15 @@ body:has(.player:not(.away)) .pwaPill{display:none}   /* chỉ hiện ở màn h
   <div class="ovsBody" id="ovsBody"></div>
 </section>
 <div id="storyView" class="storyView" hidden role="dialog" aria-label="Story"><div id="storyLoad" class="storyLoad">Loading story…</div><button id="storyClose" class="storyClose" type="button" aria-label="Close story">✕</button></div>
+<nav id="bnav" class="bnav" aria-label="Main">
+  <div class="bnBar" id="bnBar"><i class="bnPill" aria-hidden="true"></i>
+    <button type="button" class="bnItem on" data-act="explore" aria-label="Explore"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="4" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"/></svg><span class="lb">Explore</span><i class="dot"></i></button>
+    <button type="button" class="bnItem" data-act="continue" aria-label="Continue reading"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M10 8.6v6.8l5.6-3.4z" fill="currentColor"/></svg><span class="lb">Continue</span><i class="dot"></i></button>
+    <button type="button" class="bnItem" data-act="notebook" aria-label="Notebook"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="3.5" width="13" height="17" rx="2.4"/><path d="M9 8h6M9 12h6"/></svg><span class="lb">Notebook</span><b class="badge" hidden>0</b><i class="dot"></i></button>
+    <button type="button" class="bnItem" data-act="you" aria-label="You"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c.9-3.8 3.9-5.6 7.5-5.6s6.6 1.8 7.5 5.6"/></svg><span class="lb">You</span><i class="dot"></i></button>
+  </div>
+</nav>
+<div id="youSheet" class="youSheet" hidden><div class="ysCard" role="dialog" aria-label="You"></div></div>
 <div id="nbBackdrop" class="nbBackdrop" hidden></div>
 <aside id="notebook" class="nb" hidden aria-label="My Vocabulary">
   <div class="nbFold"><div class="nbFoldIn">
@@ -1723,7 +1792,7 @@ function update(){
     pp.el.classList.toggle("on",on);
     if(on) act={pi,si:cur};
   });
-  if(act){ if((act.pi!==active.pi||act.si!==active.si)&&document.body.classList.contains("lang-vi")) setLang("en"); active=act; if(typeof AutoPlay!=="undefined") AutoPlay.check(act.pi,act.si,P[act.pi].curPh); const pk=curTopic+":"+act.pi+":"+act.si; if(pk!==preKey){ preKey=pk; setTimeout(()=>prefetchAudio(act.pi,act.si),400); } }   /* qua câu/bài khác: bản dịch tự trả về tiếng Anh */
+  if(act){ if((act.pi!==active.pi||act.si!==active.si)&&document.body.classList.contains("lang-vi")) setLang("en"); active=act; if(typeof AutoPlay!=="undefined") AutoPlay.check(act.pi,act.si,P[act.pi].curPh); if(!player.classList.contains("away")) bnavSave(act.pi,act.si); const pk=curTopic+":"+act.pi+":"+act.si; if(pk!==preKey){ preKey=pk; setTimeout(()=>prefetchAudio(act.pi,act.si),400); } }   /* qua câu/bài khác: bản dịch tự trả về tiếng Anh */
   updatePlayerUI();
   playBtns.forEach(b=>b.setAttribute("aria-label", P[active.pi].sents[active.si].recap ? "Play whole passage" : "Play sentence"));
   if(!raf){ lastT=0; raf=requestAnimationFrame(tick); }
@@ -2913,6 +2982,7 @@ ovsBody.addEventListener("click",e=>{
 });
 addEventListener("keydown",e=>{
   if(e.key!=="Escape") return;
+  if(window.__bnav&&window.__bnav.sheetOpen) return;
   if(document.body.classList.contains("storyOpen")){ closeStory(); return; }
   if(!listOpen()) return;
   if(lscEl.classList.contains("on")) closeLessonList(true);   /* danh sách chủ đề: quay lại tổng quan (nếu mở từ đó) */
@@ -3060,6 +3130,107 @@ function animateTopic(k){
     setTimeout(()=>{ main.classList.remove("entering"); switching=false; if(pendingTopic&&pendingTopic!==curTopic){ const n=pendingTopic; pendingTopic=null; animateTopic(n); } else pendingTopic=null; },700);
   },170);
 }
+/* ---------- Navbar đáy: Explore / Continue / Notebook / You ---------- */
+function bnavSave(pi,si){ if(window.__bnav) window.__bnav.saveLast(pi,si); }
+const Bnav=(function(){
+  const nav=$("#bnav"), bar=$("#bnBar"), sheet=$("#youSheet"), card=sheet.querySelector(".ysCard"), items=[...bar.querySelectorAll(".bnItem")], pillEl=bar.querySelector(".bnPill");
+  const LAST="reed_last", DAYS="reed_days";
+  let min=false, lastSaved="", px=0,pw=0,py=0,ph=0,init=false,raf=0,lastT=0,idle=0;
+  const ymd=(d=new Date())=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  const readJSON=(k,def)=>{ try{ const v=JSON.parse(localStorage.getItem(k)||"null"); return v==null?def:v; }catch(e){ return def; } };
+  function touchDay(){ try{ const t=ymd(), d=readJSON(DAYS,[]); if(d[d.length-1]!==t){ d.push(t); localStorage.setItem(DAYS,JSON.stringify(d.slice(-400))); } }catch(e){} }
+  function streak(){ const d=new Set(readJSON(DAYS,[])); let n=0, c=new Date(); if(!d.has(ymd(c))) c.setDate(c.getDate()-1); while(d.has(ymd(c))){ n++; c.setDate(c.getDate()-1); } return n; }
+  function saveLast(pi,si){ try{ const p=passages[pi]; if(!p||curTopic==="practice") return; const k=curTopic+":"+p.id+":"+si; if(k===lastSaved) return; lastSaved=k; localStorage.setItem(LAST,JSON.stringify({k:curTopic,id:p.id,si})); touchDay(); }catch(e){} }
+  /* viên thuốc lò xo dưới mục đang chọn (cùng cách làm với thanh chủ đề) */
+  function target(){ const a=bar.querySelector(".bnItem.on"); if(!a) return null; const br=bar.getBoundingClientRect(), r=a.getBoundingClientRect(); return {x:r.left-br.left-1,y:r.top-br.top-1,w:r.width,h:r.height}; }
+  function frame(t){
+    raf=0; const tg=target(); if(!tg){ pillEl.style.opacity=0; return; }
+    pillEl.style.opacity=1;
+    if(!init||document.hidden){ px=tg.x; pw=tg.w; init=true; } else { const dt=Math.min(50,lastT?t-lastT:16), k=1-Math.exp(-dt/80); px+=(tg.x-px)*k; pw+=(tg.w-pw)*k; }
+    py=tg.y; ph=tg.h; lastT=t;
+    pillEl.style.width=pw.toFixed(1)+"px"; pillEl.style.height=ph.toFixed(1)+"px"; pillEl.style.transform="translate("+px.toFixed(1)+"px,"+py.toFixed(1)+"px)";
+    if(Math.abs(tg.x-px)>.35||Math.abs(tg.w-pw)>.35||performance.now()<idle) raf=requestAnimationFrame(frame); else lastT=0;
+  }
+  const kick=(ms)=>{ idle=performance.now()+(ms||600); if(!raf) raf=requestAnimationFrame(frame); };
+  function sheetOpen(){ return !sheet.hidden&&sheet.classList.contains("show"); }
+  function sync(){
+    const T=typeof Tour!=="undefined"&&(Tour.active||Tour.welcomeOpen), PR=typeof Practice!=="undefined"&&Practice.active, R=typeof Rec!=="undefined"&&Rec.open;
+    const away=player.classList.contains("away"), b=document.body.classList;
+    const on=(b.contains("listOpen")||away)&&!T&&!PR&&!R&&!b.contains("storyOpen")&&!player.classList.contains("picker-open");
+    b.toggle("navOn",on);
+    if(!on){ if(min){ min=false; nav.classList.remove("min"); } if(!sheet.hidden) hideSheet(true); }
+    const nbOn=$("#notebook").classList.contains("show"), act=nbOn?"notebook":(sheetOpen()?"you":"explore");
+    items.forEach(i=>i.classList.toggle("on",i.dataset.act===act));
+    const c=($("#nbBtn b")||{}).textContent||"0", bd=bar.querySelector(".badge"); bd.textContent=c; bd.hidden=!(+c>0);
+    kick(500);
+  }
+  function setMin(v){ if(v===min) return; min=v; nav.classList.toggle("min",v); kick(700); }
+  /* thu gọn khi cuộn xuống danh sách, mở lại khi cuộn lên / ở đầu trang */
+  const lastTop=new WeakMap();
+  document.addEventListener("scroll",e=>{
+    const t=e.target; if(!t||!t.classList||!(t.classList.contains("lscGrid")||t.classList.contains("ovsBody"))) return;
+    const y=t.scrollTop, d=y-(lastTop.get(t)||0);
+    if(y<40) setMin(false); else if(d>8) setMin(true); else if(d<-8) setMin(false);
+    if(Math.abs(d)>8) lastTop.set(t,y);
+  },true);
+  /* hành động */
+  function explore(){
+    hideSheet(); setMin(false);
+    if(ovsEl.classList.contains("on")){ ovsBody.scrollTo({top:0,behavior:"smooth"}); return; }
+    if(lscEl.classList.contains("on")){ pagerGo("all"); return; }
+    if(typeof Practice!=="undefined"&&Practice.active) Practice.end();
+    openOverview();
+  }
+  function cont(){
+    hideSheet(true); setMin(false);
+    const L=readJSON(LAST,null);
+    const ok=L&&ALL.some(p=>p.id===L.id&&p.cat===L.k);
+    const k=ok?L.k:(TOPICS.find(t=>t.k!=="stories"&&hasLessons(t.k))||{k:"family"}).k;
+    closeAllScreens();
+    fadeJump(()=>{
+      if(curTopic!==k) setTopic(k);
+      let pi=ok?passages.findIndex(x=>x.id===L.id):0; if(pi<0||pi>=unlockedCount) pi=0;
+      const si=Math.max(0,Math.min(ok?(L.si||0):0,P[pi].sents.length-1));
+      return lessonY(pi,si);
+    });
+  }
+  function notebook(){ hideSheet(true); nbOpen(); setTimeout(sync,60); }
+  function renderSheet(){
+    const lessons=ALL.filter(p=>p.id>0), done=lessons.filter(p=>readSet.has(p.id)).length, stories=STORIES.filter(x=>readSet.has(x.id)).length, st=streak();
+    const pct=lessons.length?Math.round(done/lessons.length*100):0;
+    const musicOn=typeof Bgm!=="undefined"&&Bgm.playing, autoOn=typeof AutoPlay!=="undefined"&&AutoPlay.on;
+    card.innerHTML='<div class="ysHead"><span class="ysAv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c.9-3.8 3.9-5.6 7.5-5.6s6.6 1.8 7.5 5.6"/></svg></span><div><div class="ysName">Reed learner</div><div class="ysSub">Sign in to sync across devices (coming soon)</div></div></div>'
+      +'<div class="ysStats"><div class="ysStat"><b>'+done+' / '+lessons.length+'</b><span>Lessons read'+(stories?' · '+stories+' story':'')+'</span><div class="ysBar"><i style="width:'+pct+'%"></i></div></div><div class="ysStat"><b>'+st+'</b><span>'+(st===1?'day':'day')+' streak</span></div></div>'
+      +'<button type="button" class="ysRow" data-y="music" role="switch" aria-checked="'+musicOn+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg><span class="ysTx">Background music</span><i class="ysSw"></i></button>'
+      +'<button type="button" class="ysRow" data-y="auto" role="switch" aria-checked="'+autoOn+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg><span class="ysTx">Auto-play phrases</span><i class="ysSw"></i></button>'
+      +'<button type="button" class="ysRow" data-y="tour"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.6 2.6 0 1 1 3.6 2.4c-.8.4-1.1.9-1.1 1.7M12 17h.01"/></svg><span class="ysTx">How to Learn</span></button>'
+      +'<button type="button" class="ysRow" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg><span class="ysTx">Sign in with Google · soon</span></button>';
+  }
+  function showSheet(){ renderSheet(); sheet.hidden=false; requestAnimationFrame(()=>requestAnimationFrame(()=>{ sheet.classList.add("show"); sync(); })); }
+  function hideSheet(now){ if(sheet.hidden) return; sheet.classList.remove("show"); const f=()=>{ if(!sheet.classList.contains("show")) sheet.hidden=true; sync(); }; if(now) { sheet.hidden=true; sync(); } else setTimeout(f,320); sync(); }
+  function you(){ if(sheetOpen()){ hideSheet(); return; } setMin(false); showSheet(); }
+  items.forEach(b=>b.addEventListener("click",()=>{
+    if(min&&!b.classList.contains("on")){ setMin(false); return; }
+    if(min){ setMin(false); return; }
+    ({explore,continue:cont,notebook,you})[b.dataset.act]();
+  }));
+  sheet.addEventListener("click",e=>{
+    if(e.target===sheet){ hideSheet(); return; }
+    const r=e.target.closest(".ysRow"); if(!r||r.disabled) return;
+    const y=r.dataset.y;
+    if(y==="music"){ if(Bgm.playing) Bgm.off(); else Bgm.on(); setTimeout(()=>{ r.setAttribute("aria-checked",Bgm.playing); },120); }
+    else if(y==="auto"){ $("#autoBtn").click(); r.setAttribute("aria-checked",AutoPlay.on); }
+    else if(y==="tour"){ hideSheet(true); closeAllScreens(); setTimeout(()=>Tour.start(),200); }
+  });
+  addEventListener("keydown",e=>{ if(e.key==="Escape"&&sheetOpen()){ e.stopPropagation(); hideSheet(); } },true);
+  new MutationObserver(sync).observe(document.body,{attributes:true,attributeFilter:["class"]});
+  new MutationObserver(sync).observe(player,{attributes:true,attributeFilter:["class"]});
+  new MutationObserver(sync).observe($("#notebook"),{attributes:true,attributeFilter:["class","hidden"]});
+  const nbc=$("#nbBtn b"); if(nbc) new MutationObserver(sync).observe(nbc,{childList:true,characterData:true,subtree:true});
+  setInterval(sync,500); addEventListener("resize",()=>{ init=false; kick(200); });
+  const api={saveLast,sync,explore,cont,notebook,you,setMin,get min(){ return min; },get sheetOpen(){ return sheetOpen(); }};
+  window.__bnav=api; sync(); return api;
+})();
 (function initTopics(){
   const bar=$("#topics"), toast=$("#toast"); let tt=0;
   bar.innerHTML=`<button type="button" data-k="all" data-all="1" aria-pressed="false" aria-label="All topics" title="All"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg><span>All</span></button>`+TOPICS.map(t=>`<button type="button" data-k="${t.k}" aria-pressed="false" aria-label="${t.label}" title="${t.label}"${hasLessons(t.k)?"":' data-soon="1"'}><svg viewBox="${t.vb}" width="20" height="20" fill="currentColor" aria-hidden="true">${t.icon}</svg><span>${t.label}</span></button>`).join("");

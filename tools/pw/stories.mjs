@@ -77,10 +77,10 @@ for(const [name,opts] of [['mobile',devices['iPhone 13']],['desktop',{viewport:{
   async function swipe(x1,x2,y){ await T('touchStart',x1,y); for(let i=1;i<=8;i++){ await T('touchMove',x1+(x2-x1)*i/8,y); await p.waitForTimeout(16);} await T('touchEnd'); await p.waitForTimeout(800); }
   await p.evaluate(()=>{ document.querySelector('#startBtn').click(); }); await p.waitForTimeout(900);
   await p.evaluate(()=>document.querySelector('.ovTopic[data-k="tech"]').click()); await p.waitForTimeout(900);
-  await swipe(300,80,600);
+  await swipe(300,80,300);
   ok(await p.evaluate(()=>lscEl.classList.contains('on')&&storiesView&&!!document.querySelector('#lscGrid .story')&&document.querySelector('#topics [data-k=stories]').getAttribute('aria-pressed')==='true'),'vuốt trái ở Tech: sang Stories');
-  await swipe(300,80,600); ok(await p.evaluate(()=>storiesView),'vuốt trái ở Stories (cuối): đứng yên');
-  await swipe(80,300,600);
+  await swipe(300,80,300); ok(await p.evaluate(()=>storiesView),'vuốt trái ở Stories (cuối): đứng yên');
+  await swipe(80,300,300);
   ok(await p.evaluate(()=>!storiesView&&curTopic==='tech'&&document.querySelectorAll('#lscGrid .lscCard:not(.story)').length>=1),'vuốt phải ở Stories: về Tech');
   await ctx.close(); }
 await b.close(); srv.close(); console.log(fails?`\n${fails} rớt`:'\nTất cả đạt'); process.exit(fails?1:0);

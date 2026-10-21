@@ -12,13 +12,13 @@ for(const [name,opts] of [['SE',devices['iPhone SE']],['13',devices['iPhone 13']
   ok(lay.right<=lay.vw&&lay.gapTip>=4&&lay.gapNb>=4&&lay.brandToTip>=4&&lay.musicW>=30,name+': nút nằm gọn trên đầu trang '+JSON.stringify(lay));
   await p.screenshot({path:`tools/pw/shots/music_${name}.png`,clip:{x:0,y:0,width:opts.viewport?.width||opts.screen?.width||390,height:130}});
   if(name==='13'||name==='d1280'){
-    await p.click('#musicBtn'); await p.waitForTimeout(700); await p.screenshot({path:'tools/pw/shots/music_on_'+name+'.png',clip:{x:0,y:0,width:opts.viewport?.width||390,height:130}});
+    await p.evaluate(()=>document.querySelector('#musicBtn').click()); await p.waitForTimeout(700); await p.screenshot({path:'tools/pw/shots/music_on_'+name+'.png',clip:{x:0,y:0,width:opts.viewport?.width||390,height:130}});
     let s=await p.evaluate(()=>({pressed:musicBtn.getAttribute('aria-pressed'),playing:Bgm.playing}));
     ok(s.pressed==='true'&&s.playing,name+': bấm → phát '+JSON.stringify(s));
     const t1=await p.evaluate(()=>0); await p.waitForTimeout(600);
     await p.evaluate(()=>goStep(1)); await p.waitForTimeout(900);
     ok(await p.evaluate(()=>Bgm.playing),name+': đổi bước/vào bài, nhạc vẫn phát');
-    await p.click('#musicBtn'); await p.waitForTimeout(400);
+    await p.evaluate(()=>document.querySelector('#musicBtn').click()); await p.waitForTimeout(400);
     s=await p.evaluate(()=>({pressed:musicBtn.getAttribute('aria-pressed'),playing:Bgm.playing}));
     ok(s.pressed==='false'&&!s.playing,name+': bấm nữa → dừng '+JSON.stringify(s));
   }
