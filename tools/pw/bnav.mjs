@@ -8,7 +8,8 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) fails+
 const b=await chromium.launch({args:['--autoplay-policy=no-user-gesture-required']});
 const mk=async(opts,init)=>{ const ctx=await b.newContext(opts); await ctx.addInitScript(()=>{localStorage.setItem('reed_tour_done','1');localStorage.setItem('reed_tips',JSON.stringify({swipe_done:1,tap_done:1,listen_done:1,hold_done:1,recap_done:1,save_done:1}))}); if(init) await ctx.addInitScript(init); await ctx.route('**/*supabase.co/**',r=>r.abort()); return ctx; };
 const nav=p=>p.evaluate(()=>{ const n=document.querySelector('#bnav'),bar=document.querySelector('#bnBar'),r=bar.getBoundingClientRect(),cs=getComputedStyle(n); return {on:document.body.classList.contains('navOn'),disp:cs.display,op:+cs.opacity,min:n.classList.contains('min'),l:Math.round(r.left),r:Math.round(r.right),t:Math.round(r.top),b:Math.round(r.bottom),w:Math.round(r.width),vh:innerHeight,vw:innerWidth,active:(bar.querySelector('.bnItem.on')||{dataset:{}}).dataset.act,items:[...bar.querySelectorAll('.bnItem')].map(i=>i.dataset.act),badge:bar.querySelector('.badge').hidden?'':bar.querySelector('.badge').textContent}; });
-const rightVis=p=>p.evaluate(()=>+getComputedStyle(document.querySelector('.top .right')).opacity);
+const rightVis=p=>p.evaluate(()=>{ const c=getComputedStyle(document.querySelector('.top .right')); return c.display==='none'?0:+c.opacity; });
+const topH=p=>p.evaluate(()=>Math.round(document.querySelector('.top').getBoundingClientRect().height));
 for(const [name,opts] of [['phone',{viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:2}],['tablet',{viewport:{width:834,height:1194},isMobile:true,hasTouch:true}]]){
   console.log('--',name);
   const ctx=await mk(opts); const p=await ctx.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message));
@@ -17,6 +18,7 @@ for(const [name,opts] of [['phone',{viewport:{width:390,height:844},isMobile:tru
   ok(n.on&&n.op===1&&n.items.join()==='explore,continue,notebook,you'&&n.active==='explore','trang chủ: navbar hiện với 4 mục, Explore sáng '+JSON.stringify({items:n.items,active:n.active}));
   ok(n.b<=n.vh&&n.t>n.vh-100&&n.w<=(name==='phone'?460:520)&&Math.abs((n.l+n.r)/2-n.vw/2)<2,'navbar nằm sát đáy, căn giữa, rộng '+n.w+'px');
   ok(await rightVis(p)===0,'nút How to Learn / nhạc / sổ tay trên thanh trên được ẩn khi có navbar');
+  const hBrowse=await topH(p);
   await p.screenshot({path:`tools/pw/shots/bnav_${name}_home.png`});
   // Explore
   await p.evaluate(()=>document.querySelector('.bnItem[data-act=explore]').click()); await p.waitForTimeout(900);
@@ -57,6 +59,7 @@ for(const [name,opts] of [['phone',{viewport:{width:390,height:844},isMobile:tru
   ok(!st.away&&st.topic==='family'&&st.pi===0&&st.y>300,'Continue (chưa đọc gì): vào bài đầu của chủ đề đầu tiên '+JSON.stringify(st));
   n=await nav(p); ok(!n.on&&n.op===0,'trong bài: navbar ẩn (nhường chỗ cho player)');
   ok(await rightVis(p)===1,'trong bài: nút trên thanh trên hiện lại');
+  const hLesson=await topH(p); ok(Math.abs(hLesson-hBrowse)<=4,'chiều cao thanh trên không nhảy giữa chế độ duyệt ('+hBrowse+'px) và chế độ đọc ('+hLesson+'px)');
   await p.evaluate(()=>document.querySelector('#topics [data-k=school]').click()); await p.waitForTimeout(1200);
   await p.evaluate(()=>goStep(1)); await p.waitForTimeout(900); await p.evaluate(()=>goStep(1)); await p.waitForTimeout(1000);
   const where=await p.evaluate(()=>({topic:curTopic,pi:active.pi,si:active.si,saved:localStorage.getItem('reed_last')}));

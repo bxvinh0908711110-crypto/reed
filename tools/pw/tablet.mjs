@@ -17,7 +17,7 @@ for(const [name,w,h,touch] of SIZES){
   const top=await R('.top'), brand=await R('.top .brand'), btext=await R('.top .brandtext'), slog=await R('.top .brandtext i'), topics=await R('#topics'), right=await R('.top .right');
   ok(slog&&(w<=350?!slog.vis:(slog.vis&&slog.h>0)),name+': '+(w<=350?'màn rất hẹp (≤350px): ẩn slogan để vừa hàng':'có dòng slogan dưới logo ')+JSON.stringify(slog));
   ok(slog&&(w<=350||(w<=430?slog.h<=12:slog.h<=16)),name+': slogan '+(w<=430?'một dòng':'một dòng')+' (cao '+(slog&&slog.h)+'px)');
-  ok(right.t<brand.b&&right.b>brand.t,name+': logo và các nút (How to Learn, nhạc, sổ tay) cùng một hàng '+JSON.stringify({brand:[brand.t,brand.b],right:[right.t,right.b]}));
+  ok(right.h===0||(right.t<brand.b&&right.b>brand.t),name+': logo và các nút (How to Learn, nhạc, sổ tay) cùng một hàng (hoặc đã chuyển xuống navbar) '+JSON.stringify({brand:[brand.t,brand.b],right:[right.t,right.b]}));
   const tabsInfo=await p.evaluate(()=>[...document.querySelectorAll('#topics button')].map(b=>({k:b.dataset.k,name:b.getAttribute('aria-label'),r:Math.round(b.getBoundingClientRect().right),vis:b.offsetWidth>0})));
   ok(tabsInfo.every(x=>x.name),name+': mọi tab chủ đề có tên (aria-label)');
   await p.waitForTimeout(700);
