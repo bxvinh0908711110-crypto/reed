@@ -925,20 +925,12 @@ body.sbxOn .bnav{opacity:0;pointer-events:none}
   .sbox{background:var(--lav)}
   .sug{position:absolute;left:0;right:0;top:calc(100% + 6px);padding:8px;border-radius:24px;background:var(--lime-bar)}
 }
-/* chip màu pastel theo chủ đề (kiểu thiết kế mẫu): nền nhạt + chữ/biểu tượng cùng tông */
-.sgChip{background:var(--cb,#fff);color:var(--cf,var(--ink))}
-.sgChip:active,.sgChip:focus-visible{background:var(--cf2,var(--leaf))}
-.sgLead{background:rgba(255,255,255,.7);color:var(--cf,var(--accent))}
-.c-family{--cb:#e8eaff;--cf:#3b3bd6;--cf2:#d6daff}
-.c-friends{--cb:#e9f9cf;--cf:#3d6a00;--cf2:#d9f2a8}
-.c-school{--cb:#f1e6ff;--cf:#7a3fc8;--cf2:#e4d0ff}
-.c-work{--cb:#ffeedb;--cf:#b4600a;--cf2:#ffdfba}
-.c-lifestyle{--cb:#dcf6ee;--cf:#0d7a5f;--cf2:#c2ecde}
-.c-health{--cb:#ffe4ec;--cf:#c2255c;--cf2:#ffd0de}
-.c-tech{--cb:#dff0ff;--cf:#1b66b8;--cf2:#c8e4ff}
-.c-stories{--cb:#fff4cc;--cf:#9a6b00;--cf2:#ffe9a0}
-.c-tag{--cb:#e8eaff;--cf:#3b3bd6;--cf2:#d6daff}
-.c-rec{--cb:#fff;--cf:#555a6b;--cf2:#e8eaff}
+/* chip gợi ý: cùng kiểu với tab của thanh chủ đề (biểu tượng + chữ, không nền riêng, một tông màu) */
+.sgChip{background:transparent;color:var(--ink);font-weight:600;padding:0 11px;gap:8px}
+.sgChip:active,.sgChip:focus-visible{background:#fff}
+.sgLead{background:none;color:var(--ink);width:20px;height:20px;margin-left:0;font-size:16px}
+.sgLead svg{width:100%;height:100%}
+.sgLead img{border-radius:50%}
 /*SEARCHUI-CSS-END*/
 </style>
 </head>
