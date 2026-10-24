@@ -29,31 +29,37 @@ for(const [name,opts] of cases){
   const t2=await p.evaluate(()=>{ const a=document.querySelector('.sbA'),b=document.querySelector('.sbB'); const vis=[a,b].filter(x=>+getComputedStyle(x).opacity>0.5).map(x=>x.textContent); return vis; });
   ok(t2.length===1&&t2[0]!==t1&&SEARCH_PHS.includes(t2[0]),'chữ chạy đổi câu: '+t1+' → '+t2[0]);
   // mở lớp phủ
-  await p.evaluate(()=>document.getElementById('sbox').click()); await p.waitForTimeout(500);
-  const o1=await p.evaluate(()=>({open:window.__sov.isOpen(),focus:document.activeElement&&document.activeElement.id,chips:document.querySelectorAll('#sovBody .sovChip').length,secs:[...document.querySelectorAll('#sovBody h3')].map(h=>h.firstChild.textContent),on:document.getElementById('sov').classList.contains('on')}));
-  ok(o1.open&&o1.on&&o1.focus==='sovIn','chạm ô: lớp phủ mở, ô nhập được focus '+JSON.stringify(o1));
-  ok(o1.secs.includes('Topics')&&o1.secs.includes('Try')&&o1.chips>=8,'lớp phủ trống: Topics + Try (chip '+o1.chips+')');
+  await p.click('#sbox .sbIco'); await p.waitForTimeout(500);
+  const hBefore=await p.evaluate(()=>document.querySelector('.top').offsetHeight);
+  const o1=await p.evaluate(()=>({open:window.__sov.isOpen(),focus:document.activeElement&&document.activeElement.id,chips:document.querySelectorAll('#sug .sgChip').length,secs:[...document.querySelectorAll('#sug .sgLabel')].map(h=>h.textContent),on:getComputedStyle(document.getElementById('sug')).display!=='none'}));
+  ok(o1.open&&o1.on&&o1.focus==='sbIn','chạm ô: hàng gợi ý mở, ô nhập được focus '+JSON.stringify(o1));
+  ok(o1.secs.length===0&&o1.chips>=8,'ô trống: chỉ chip (không nhãn Continue/Try) (chip '+o1.chips+')');
   await p.screenshot({path:SH+`search_${name}_open.png`});
+  const flat=await p.evaluate(()=>{ const f=el=>{ const c=getComputedStyle(el); return c.boxShadow==='none'&&parseFloat(c.borderTopWidth)===0&&parseFloat(c.borderLeftWidth)===0; }; return f(document.getElementById('sbox'))&&f(document.getElementById('sug'))&&[...document.querySelectorAll('#sug .sgChip')].every(f); });
+  ok(flat,'phẳng: ô, hàng gợi ý và chip không viền, không đổ bóng');
+  const lay=await p.evaluate(()=>{ const s=document.getElementById('sug').getBoundingClientRect(), ch=[...document.querySelectorAll('#sug .sgChip')].map(c=>Math.round(c.getBoundingClientRect().top)); return {sh:s.height,oneRow:new Set(ch).size===1,topicsHidden:getComputedStyle(document.getElementById('topics')).display==='none',hdr:document.querySelector('.top').offsetHeight}; });
+  ok(lay.oneRow&&lay.sh<=70,'gợi ý nằm trọn một hàng (cao '+Math.round(lay.sh)+'px)');
+  if(name.startsWith('m')) ok(lay.topicsHidden&&Math.abs(lay.hdr-hBefore)<=2,'điện thoại: gợi ý thay chỗ thanh chủ đề, header không nhảy ('+hBefore+'→'+lay.hdr+')');
   await p.keyboard.type('gia dinh',{delay:20}); await p.waitForTimeout(300);
-  const r1=await p.evaluate(()=>[...document.querySelectorAll('#sovBody .sovRow b')].map(x=>x.textContent));
+  const r1=await p.evaluate(()=>[...document.querySelectorAll('#sug .sgChip .sgTx')].map(x=>x.textContent));
   ok(r1[0]==='Family'&&r1.includes('My Family'),'gõ "gia dinh": Family + My Family '+JSON.stringify(r1));
   await p.screenshot({path:SH+`search_${name}_results.png`});
   await p.keyboard.press('Escape'); await p.waitForTimeout(500);
   let v=await view(p); ok(!v.sov&&v.ov,'Esc đóng lớp phủ, vẫn ở trang All');
   // Enter → mở chủ đề đứng đầu
-  await p.evaluate(()=>document.getElementById('sbox').click()); await p.waitForTimeout(400);
+  await p.evaluate(()=>window.__sov.open()); await p.waitForTimeout(400);
   await p.keyboard.type('familly'); await p.waitForTimeout(300); await p.keyboard.press('Enter'); await p.waitForTimeout(1000);
   v=await view(p); ok(!v.sov&&v.ls&&v.topic==='family','sai chính tả "familly" + Enter: mở danh sách Family '+JSON.stringify(v));
   // ô vẫn hiện ở danh sách bài, recent được lưu
   ok(await p.evaluate(()=>document.getElementById('sbox').getClientRects().length>0),'ô tìm kiếm hiện ở danh sách bài');
-  await p.evaluate(()=>document.getElementById('sbox').click()); await p.waitForTimeout(400);
-  const rc=await p.evaluate(()=>[...document.querySelectorAll('#sovBody .sovChip')].map(x=>x.textContent));
+  await p.evaluate(()=>window.__sov.open()); await p.waitForTimeout(400);
+  const rc=await p.evaluate(()=>[...document.querySelectorAll('#sug .sg-recent .sgTx')].map(x=>x.textContent));
   ok(rc.includes('familly'),'Recent nhớ lượt tìm: '+JSON.stringify(rc.slice(0,3)));
   // chọn bài → vào đúng bài
   await p.evaluate(()=>{ window.__sov.input.value='soviet'; window.__sov.render(); }); await p.waitForTimeout(200);
-  ok(await p.evaluate(()=>[...document.querySelectorAll('#sovBody .sovRow b')][0].textContent)==='The Fall of the Soviet Union','"soviet" → Story Liên Xô');
+  ok(await p.evaluate(()=>document.querySelector('#sug .sgChip .sgTx').textContent)==='The Fall of the Soviet Union','"soviet" → Story Liên Xô');
   await p.evaluate(()=>{ window.__sov.input.value='ba me'; window.__sov.render(); }); await p.waitForTimeout(200);
-  await p.evaluate(()=>[...document.querySelectorAll('#sovBody .sovRow')].find(r=>r.querySelector('b').textContent==='My Family').click()); await p.waitForTimeout(1500);
+  await p.evaluate(()=>[...document.querySelectorAll('#sug .sgChip')].find(r=>r.querySelector('.sgTx').textContent==='My Family').click()); await p.waitForTimeout(1500);
   v=await view(p); ok(!v.sov&&!v.ov&&!v.ls&&v.topic==='family','chọn bài "My Family": vào bài (không còn màn hình duyệt) '+JSON.stringify(v));
   ok(await p.evaluate(()=>!document.getElementById('sbox').getClientRects().length),'trong bài đọc: ô tìm kiếm ẩn');
   ok(p.errs.length===0,'không lỗi JS '+JSON.stringify(p.errs));
@@ -61,20 +67,20 @@ for(const [name,opts] of cases){
 }
 // chọn tag → danh sách lọc theo tag
 { const ctx=await b.newContext(devices['iPhone 13']); await ctx.addInitScript(init); const p=await boot(ctx); await startAll(p);
-  await p.evaluate(()=>document.getElementById('sbox').click()); await p.waitForTimeout(300);
+  await p.evaluate(()=>window.__sov.open()); await p.waitForTimeout(300);
   await p.evaluate(()=>{ window.__sov.input.value='daily routine'; window.__sov.render(); }); await p.waitForTimeout(200);
-  await p.evaluate(()=>document.querySelector('#sovBody [data-a="tag"]').click()); await p.waitForTimeout(1000);
+  await p.evaluate(()=>document.querySelector('#sug [data-a="tag"]').click()); await p.waitForTimeout(1000);
   const tv=await p.evaluate(()=>({ls:!lscEl.hidden&&lscEl.classList.contains('on'),tag:!!tagMode,cards:document.querySelectorAll('#lscGrid .lscCard').length,head:(document.querySelector('.lscTagHead b')||{}).textContent,pressed:document.querySelectorAll('#topics [aria-pressed="true"]').length,chips:getComputedStyle(document.querySelector('.lscBar')).display}));
   ok(tv.ls&&tv.tag&&tv.cards===3&&tv.head==='#daily routine'&&tv.pressed===0&&tv.chips==='none','tag "daily routine": danh sách lọc 3 bài, không tab nào sáng '+JSON.stringify(tv));
   await p.screenshot({path:SH+'search_tag_list.png'});
   await p.keyboard.press('Escape'); await p.waitForTimeout(800);
   let vv=await view(p); ok(vv.ov&&!vv.ls&&!(await p.evaluate(()=>!!tagMode)),'Esc từ danh sách theo tag: về trang All, thoát chế độ tag '+JSON.stringify(vv));
   await p.evaluate(()=>{ window.__sov.open(); window.__sov.input.value='daily routine'; window.__sov.render(); }); await p.waitForTimeout(200);
-  await p.evaluate(()=>document.querySelector('#sovBody [data-a="tag"]').click()); await p.waitForTimeout(900);
+  await p.evaluate(()=>document.querySelector('#sug [data-a="tag"]').click()); await p.waitForTimeout(900);
   await p.evaluate(()=>document.querySelector('#topics button[data-k="school"]').click()); await p.waitForTimeout(1000);
   vv=await view(p); ok(vv.ls&&vv.topic==='school'&&await p.evaluate(()=>!tagMode&&document.querySelector('#topics [data-k="school"]').getAttribute('aria-pressed')==='true'),'bấm tab School khi đang ở danh sách tag: sang danh sách School '+JSON.stringify(vv));
   await p.evaluate(()=>{ window.__sov.open(); window.__sov.input.value='daily routine'; window.__sov.render(); }); await p.waitForTimeout(200);
-  await p.evaluate(()=>document.querySelector('#sovBody [data-a="tag"]').click()); await p.waitForTimeout(900);
+  await p.evaluate(()=>document.querySelector('#sug [data-a="tag"]').click()); await p.waitForTimeout(900);
   await p.evaluate(()=>document.querySelector('#lscGrid .lscCard:not(.locked)').click()); await p.waitForTimeout(1500);
   vv=await view(p); ok(!vv.ls&&!vv.ov&&!vv.sov,'chạm bài mở khoá trong danh sách tag: vào bài '+JSON.stringify(vv));
   ok(p.errs.length===0,'không lỗi JS '+JSON.stringify(p.errs)); await ctx.close(); }
@@ -83,12 +89,12 @@ for(const [label,opts,q] of [['LITE',devices['iPhone 13'],'?lite=1'],['reduced-m
   const ctx=await b.newContext(opts); await ctx.addInitScript(init); const p=await boot(ctx,q); await startAll(p);
   await p.waitForTimeout(7500);
   ok(await p.evaluate(()=>document.querySelector('.sbA').textContent==='What do you want to learn today?'&&+getComputedStyle(document.querySelector('.sbA')).opacity===1&&+getComputedStyle(document.querySelector('.sbB')).opacity===0),label+': chữ gợi ý đứng yên ở câu đầu');
-  await p.evaluate(()=>document.getElementById('sbox').click()); await p.waitForTimeout(300);
+  await p.evaluate(()=>window.__sov.open()); await p.waitForTimeout(300);
   ok(await p.evaluate(()=>window.__sov.isOpen()),label+': lớp phủ vẫn mở được'); await ctx.close();
 }
 // tab ẩn: không chạy; lớp phủ mở thì tạm dừng
 { const ctx=await b.newContext(devices['iPhone 13']); await ctx.addInitScript(init); const p=await boot(ctx); await startAll(p);
-  await p.evaluate(()=>document.getElementById('sbox').click()); await p.waitForTimeout(3600*2);
+  await p.evaluate(()=>window.__sov.open()); await p.waitForTimeout(3600*2);
   await p.evaluate(()=>window.__sov.close()); await p.waitForTimeout(400);
   ok(await p.evaluate(()=>document.querySelector('.sbA').textContent==='What do you want to learn today?'),'lớp phủ mở: chữ chạy tạm dừng (không đổi câu) '); await ctx.close(); }
 await b.close(); srv.close(); console.log(fails?fails+' FAIL':'ALL PASS'); process.exit(fails?1:0);
