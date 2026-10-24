@@ -878,16 +878,17 @@ body:has(.player:not(.away)) .pwaPill{display:none}   /* chỉ hiện ở màn h
 /*SEARCHUI-CSS-BEGIN*/
 /* ---------- Khối tìm kiếm + chủ đề (phẳng: không viền, không đổ bóng) ---------- */
 .sbx{position:relative;pointer-events:auto}
-.sbox{display:none;position:relative;align-items:center;gap:10px;height:46px;padding:0 5px 0 15px;border:0;border-radius:999px;background:#fff;color:var(--muted);font-size:15px;letter-spacing:0;cursor:text;-webkit-tap-highlight-color:transparent}
+.sbx{--lav:#efedff;--lime-bar:#f4fce1;--vio:#4a3df0}
+.sbox{display:none;position:relative;align-items:center;gap:10px;height:46px;padding:0 5px 0 15px;border:0;border-radius:999px;background:var(--lav);color:#8d88bd;font-size:15px;letter-spacing:0;cursor:text;-webkit-tap-highlight-color:transparent}
 body.listOpen .sbox,body.heroView .sbox{display:flex}
-.sbIco{flex:none;width:20px;height:20px;color:var(--accent)}
+.sbIco{flex:none;width:20px;height:20px;color:#6a4cf0}
 .sbIn{flex:1;min-width:0;height:100%;border:0;outline:0;background:transparent;font:inherit;font-size:16px;color:var(--ink);-webkit-appearance:none;appearance:none;padding:0;caret-color:var(--accent)}
 .sbIn::-webkit-search-cancel-button,.sbIn::-webkit-search-decoration{-webkit-appearance:none;display:none}
 .sbTxt{position:absolute;left:44px;right:56px;top:50%;height:22px;margin-top:-11px;overflow:hidden;line-height:22px;pointer-events:none}
 .sbTxt span{position:absolute;left:0;right:0;top:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;will-change:transform,opacity}
 .sbTxt .sbB{opacity:0}
 .sbox:focus-within .sbTxt,.sbox.hasv .sbTxt{visibility:hidden}
-.sbGo{flex:none;width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;border:0;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sbGo{flex:none;width:36px;height:36px;border-radius:50%;background:var(--vio);color:#fff;display:flex;align-items:center;justify-content:center;border:0;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .sbGo svg{width:18px;height:18px;display:block}
 /* hàng gợi ý */
 .sug{display:none;align-items:center;gap:8px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x}
@@ -911,19 +912,18 @@ body.sbxOn .bnav{opacity:0;pointer-events:none}
 .lsc.tagMode .lscBar{display:none}
 @media (max-width:820px){
   .sbx{order:2;width:100%}
-  body.listOpen .sbx,body.heroView .sbx{background:#eefcff;border-radius:26px;padding:6px}
-  body.listOpen .sbx .topics,body.heroView .sbx .topics{width:100%;max-width:none;margin:6px 0 0;padding:3px 2px;background:transparent;border-radius:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;gap:4px;scroll-padding:0 6px}
+    body.listOpen .sbx .topics,body.heroView .sbx .topics{width:100%;max-width:none;margin:8px 0 0;padding:4px 6px;background:var(--lime-bar);border-radius:999px;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;gap:4px;scroll-padding:0 6px}
   body.listOpen .sbx .topics button,body.heroView .sbx .topics button{padding:6px 11px}
   body.sbxOn .sbx .topics{display:none}
-  .sug{margin-top:6px;height:var(--sgh,46px);padding:0 2px}
+  .sug{margin-top:8px;height:var(--sgh,46px);padding:4px 6px;border-radius:999px;background:var(--lime-bar)}
   body.listOpen .top{background:var(--bg)}
   .hero{padding-top:186px}
 }
 @media (min-width:821px){
   .sbx{display:none;position:fixed;z-index:29;left:50%;transform:translateX(-50%);width:min(640px,calc(100% - 12vw));top:90px}
   body.listOpen .sbx,body.heroView .sbx{display:block}
-  .sbox{background:#eefcff}
-  .sug{position:absolute;left:0;right:0;top:calc(100% + 6px);padding:8px;border-radius:24px;background:#eefcff}
+  .sbox{background:var(--lav)}
+  .sug{position:absolute;left:0;right:0;top:calc(100% + 6px);padding:8px;border-radius:24px;background:var(--lime-bar)}
 }
 /* chip màu pastel theo chủ đề (kiểu thiết kế mẫu): nền nhạt + chữ/biểu tượng cùng tông */
 .sgChip{background:var(--cb,#fff);color:var(--cf,var(--ink))}
