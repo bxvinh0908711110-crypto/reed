@@ -39,7 +39,9 @@ for(const [name,opts,qs] of CASES){
   ok(c.bot<=a.navTop-2,`thẻ mèo không bị navbar đáy che (bottom ${Math.round(c.bot)} <= ${Math.round(a.navTop)})`);
   ok(a.cards.every(x=>x.lh<x.fs*1.4&&x.sw<=x.cw+1&&x.inCard&&x.gap>=-2)&&a.docW<=a.vw,'mỗi thẻ: chữ MỘT dòng, nằm trong thẻ, không chồng ảnh, không tràn ngang');
   ok(a.cards.every(x=>near(x.color,'#4433ff')||x.f>0),'A1 chữ xanh #4433ff');
-  const h=await p.evaluate(()=>['h1','p','#startBtn'].map(q=>getComputedStyle(document.querySelector('.hero '+q)).display)); ok(h.every(x=>x==='none'),'tiêu đề / câu mô tả / nút Start Reading đã bỏ (ẩn) '+h);
+  const h=await p.evaluate(()=>['p','#startBtn'].map(q=>getComputedStyle(document.querySelector('.hero '+q)).display)); ok(h.every(x=>x==='none'),'câu mô tả / nút Start Reading đã bỏ (ẩn) '+h);
+  const hd=await p.evaluate(()=>{ const h1=document.querySelector('.hero h1'), r=h1.getBoundingClientRect(), c=document.querySelector('.dmCard').getBoundingClientRect(), sb=document.getElementById('sbox').getBoundingClientRect(); return {txt:h1.textContent.replace(/\s+/g,' ').trim(),top:r.top,bot:r.bottom,cardTop:c.top,sbBot:sb.bottom,vis:r.height>0}; });
+  ok(hd.vis&&/^Read English,\s*\w+ better\.$/.test(hd.txt)&&hd.top>=hd.sbBot-1&&hd.bot<=hd.cardTop+1,'tiêu đề "Read English, … better." nằm dưới ô tìm kiếm, trên hai thẻ: '+hd.txt);
   if(name==='w1280') ok(Math.abs((a.rootL+a.rootR)/2-a.vw/2)<40,'desktop: hai thẻ nằm giữa');
   if(name.startsWith('reduce')){
     await p.waitForTimeout(4000); const r0=(await info()).cards; ok(r0.every(x=>x.f===0),'giảm chuyển động: không tự chạy');
@@ -50,11 +52,21 @@ for(const [name,opts,qs] of CASES){
   }
   const until=(fn,ms)=>p.waitForFunction(fn,null,{timeout:ms}).then(()=>true,()=>false);
   const q=i=>`document.querySelectorAll('.dmCard .ph')[${i}]`;
-  ok(await until(`${q(0)}._f===1&&${q(1)}._f===1`,12000),'cả hai thẻ tự cuộn sang A2');
-  const m=await info(); ok(m.cards.every(x=>near(x.color,'#ff004c')&&x.op[1]>.9&&x.op[0]<.1),'A2: "puppy" và "kitten" đỏ hồng #ff004c, A1 đã tan '+m.cards.map(x=>x.color));
-  ok(m.cards.every(x=>x.lh<x.fs*1.4&&x.sw<=x.cw+1&&x.inCard),'A2 vẫn một dòng trong thẻ');
+  // so le: ghi thời điểm BẮT ĐẦU đổi của 4 nguồn (thẻ chó, thẻ mèo, chữ tiêu đề, câu trong ô tìm kiếm) trong 14s
+  await p.evaluate(()=>{ window.__ev=[]; const src={dog:()=>document.querySelectorAll('.dmCard .ph')[0]._f,cat:()=>document.querySelectorAll('.dmCard .ph')[1]._f,head:()=>document.getElementById('rotWord').textContent,search:()=>(document.querySelector('#sbox .sbA')?.textContent||'')+'|'+(document.querySelector('#sbox .sbB')?.textContent||'')}; const last={},quiet={}; Object.keys(src).forEach(k=>{ last[k]=src[k](); quiet[k]=-1e9; });
+    window.__t=setInterval(()=>{ const now=performance.now(); for(const k in src){ const v=src[k](); if(v!==last[k]){ if(now-quiet[k]>900) window.__ev.push([k,Math.round(now)]); quiet[k]=now; last[k]=v; } } },40); });
+  await p.waitForTimeout(14000);
+  const ev=await p.evaluate(()=>{ clearInterval(window.__t); return window.__ev; });
+  const srcs=new Set(ev.map(e=>e[0]));
+  ok(srcs.has('dog')&&srcs.has('cat')&&srcs.has('head')&&(name==='lite390'||srcs.has('search')),'cả 4 nguồn đều đổi trong 14s: '+[...srcs]);
+  let minGap=1e9; for(let i=0;i<ev.length;i++) for(let j=i+1;j<ev.length;j++) if(ev[i][0]!==ev[j][0]) minGap=Math.min(minGap,Math.abs(ev[i][1]-ev[j][1]));
+  ok(minGap>=550,'các nguồn không đổi đồng loạt: khoảng cách ngắn nhất giữa hai lần đổi của hai nguồn khác nhau = '+minGap+'ms ('+ev.length+' lần)');
+  const cd=await p.evaluate(()=>Conductor.log.slice(-8).map(x=>x[0])); ok(cd.every((k,i)=>i===0||k===(cd[i-1]+1)%6),'Conductor chạy tuần tự 0..5 '+cd);
+  ok(await until(`${q(0)}._f===1`,8000),'thẻ chó cuộn sang A2');
+  const m=await info(); ok(near(m.cards[0].color,'#ff004c')&&m.cards[0].op[1]>.9&&m.cards[0].op[0]<.1,'A2 "puppy" đỏ hồng #ff004c, A1 đã tan '+m.cards[0].color);
+  ok(await until(`${q(1)}._f===1`,8000),'thẻ mèo cuộn sang A2'); const m2=await info(); ok(near(m2.cards[1].color,'#ff004c'),'A2 "kitten" đỏ hồng');
+  ok(m2.cards.every(x=>x.lh<x.fs*1.4&&x.sw<=x.cw+1&&x.inCard),'A2 vẫn một dòng trong thẻ');
   await p.waitForTimeout(300); await p.screenshot({path:`tools/pw/shots/demo_${name}.png`});
-  ok(await until(`${q(0)}._f===0&&${q(1)}._f===0`,14000),'rồi cuộn lại A1 (lặp)');
   const fl=await p.evaluate(()=>[...document.querySelectorAll('#heroDemo *')].filter(e=>!e.classList.contains('o')&&getComputedStyle(e).filter!=='none'&&!e.closest('.ph')).length); ok(fl===0,'không filter/blur trên thẻ (ngoài chữ .o của cơ chế bài)');
   await until(`${q(0)}._f===1`,8000);
   await p.evaluate(()=>{ Object.defineProperty(document,'hidden',{configurable:true,get:()=>true}); document.dispatchEvent(new Event('visibilitychange')); });
