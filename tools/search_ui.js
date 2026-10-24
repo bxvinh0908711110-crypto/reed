@@ -45,8 +45,9 @@ const Sov=(function(){
   const lessonOf=id=>ALL.find(p=>p.id===id);
   /* điện thoại: thanh chủ đề nằm trong khối cùng ô tìm kiếm; máy tính: thanh chủ đề ở hàng trên như cũ */
   const mq=matchMedia("(max-width:820px)");
+  const inside=()=>mq.matches||document.body.classList.contains("heroView")||document.body.classList.contains("listOpen");   /* máy tính: thanh chủ đề vào khối này khi duyệt, về hàng trên khi đọc bài */
   function placeTopics(){
-    if(mq.matches){ if(topics.parentNode!==sbx) sbx.insertBefore(topics,sug); }
+    if(inside()){ if(topics.parentNode!==sbx) sbx.insertBefore(topics,sug); }
     else if(topics.parentNode===sbx) top.insertBefore(topics,top.querySelector(".right"));
     const pk=document.querySelector("#topics button[aria-pressed=true]"); if(pk&&typeof centerTab==="function") requestAnimationFrame(()=>centerTab(pk));
   }
@@ -100,6 +101,16 @@ const Sov=(function(){
       sug.innerHTML="";
     }
   }
+  /* mở danh sách của chủ đề chứa bài / story, cuộn tới thẻ và nháy nhẹ (không vào thẳng bài) */
+  function showInTopic(k,id){
+    if(viewKey()==="all"||(!document.body.classList.contains("listOpen"))){ closeAllScreens(); openTopicList(k); } else switchView(k);
+    let n=0; (function find(){
+      const c=document.querySelector('#lscGrid .lscCard[data-id="'+id+'"]');
+      if(!c){ if(++n<40) requestAnimationFrame(find); return; }
+      c.scrollIntoView({block:"center"});
+      c.classList.remove("flash"); void c.offsetWidth; c.classList.add("flash"); setTimeout(()=>c.classList.remove("flash"),2400);
+    })();
+  }
   function act(b){
     const a=b.dataset.a;
     if(a==="clear"){ clearRecent(); render(); return; }
@@ -108,12 +119,8 @@ const Sov=(function(){
     setOpen(false);
     if(a==="topic"){ switchView(b.dataset.k); }
     else if(a==="tag"){ openTag(b.dataset.key,b.dataset.label); }
-    else if(a==="story"){ closeAllScreens(); const st=STORIES.find(x=>x.id===b.dataset.id); if(st) openStory(st.slug); }
-    else if(a==="lesson"){
-      const k=b.dataset.k, id=+b.dataset.id, i=topicLessons(k).findIndex(p=>p.id===id);
-      if(i>=0&&i>=topicUnlocked(k)){ closeAllScreens(); openTopicList(k); }   /* bài còn khoá: mở danh sách chủ đề (có ổ khoá) */
-      else goToLesson(k,id);
-    }
+    else if(a==="story"){ showInTopic("stories",b.dataset.id); }
+    else if(a==="lesson"){ showInTopic(b.dataset.k,+b.dataset.id); }
   }
   function submit(){
     const first=sug.querySelector(".sgChip:not([data-a=q]):not([data-a=clear])");
@@ -145,7 +152,7 @@ const Sov=(function(){
     e.preventDefault(); inp.focus({preventScroll:true});
   });
   /* rời màn hình duyệt (vào bài / mở story) thì đóng gợi ý */
-  new MutationObserver(()=>{ if(open&&!box.getClientRects().length) setOpen(false); }).observe(document.body,{attributes:true,attributeFilter:["class"]});
+  new MutationObserver(()=>{ placeTopics(); if(open&&!box.getClientRects().length) setOpen(false); }).observe(document.body,{attributes:true,attributeFilter:["class"]});
   const api={isOpen:()=>open,open:()=>{ inp.focus({preventScroll:true}); setOpen(true); },close:()=>setOpen(false),render,get input(){ return inp; },get sug(){ return sug; }};
   window.__sov=api; return api;
 })();

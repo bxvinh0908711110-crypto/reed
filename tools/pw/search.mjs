@@ -58,9 +58,19 @@ for(const [name,opts] of cases){
   // chọn bài → vào đúng bài
   await p.evaluate(()=>{ window.__sov.input.value='soviet'; window.__sov.render(); }); await p.waitForTimeout(200);
   ok(await p.evaluate(()=>document.querySelector('#sug .sgChip .sgTx').textContent)==='The Fall of the Soviet Union','"soviet" → Story Liên Xô');
-  await p.evaluate(()=>{ window.__sov.input.value='ba me'; window.__sov.render(); }); await p.waitForTimeout(200);
-  await p.evaluate(()=>[...document.querySelectorAll('#sug .sgChip')].find(r=>r.querySelector('.sgTx').textContent==='My Family').click()); await p.waitForTimeout(1500);
-  v=await view(p); ok(!v.sov&&!v.ov&&!v.ls&&v.topic==='family','chọn bài "My Family": vào bài (không còn màn hình duyệt) '+JSON.stringify(v));
+  // chọn story → danh sách Stories, thẻ story nháy (không mở thẳng story)
+  await p.evaluate(()=>document.querySelector('#sug .sgChip').click()); await p.waitForTimeout(1200);
+  let fl=await p.evaluate(()=>({ls:!lscEl.hidden&&lscEl.classList.contains('on'),stories:storiesView,story:document.body.classList.contains('storyOpen'),flash:[...document.querySelectorAll('#lscGrid .lscCard.flash')].map(c=>c.dataset.id)}));
+  ok(fl.ls&&fl.stories&&!fl.story&&fl.flash.join()==='story-ussr','chọn story: mở danh sách Stories, nháy thẻ story, không mở thẳng '+JSON.stringify(fl));
+  await p.waitForTimeout(2600);
+  ok(await p.evaluate(()=>!document.querySelector('#lscGrid .lscCard.flash')),'hiệu ứng nháy tự tắt');
+  // chọn bài (từ danh sách chủ đề khác) → danh sách chủ đề của bài, thẻ bài nháy
+  await p.evaluate(()=>{ window.__sov.open(); window.__sov.input.value='ba me'; window.__sov.render(); }); await p.waitForTimeout(250);
+  await p.evaluate(()=>[...document.querySelectorAll('#sug .sgChip')].find(r=>r.querySelector('.sgTx').textContent==='My Family').click()); await p.waitForTimeout(1200);
+  v=await view(p); fl=await p.evaluate(()=>({flash:[...document.querySelectorAll('#lscGrid .lscCard.flash')].map(c=>c.dataset.id),inView:(()=>{ const c=document.querySelector('#lscGrid .lscCard.flash'); if(!c) return false; const r=c.getBoundingClientRect(); return r.top>=0&&r.bottom<=innerHeight; })()}));
+  ok(!v.sov&&v.ls&&v.topic==='family'&&fl.flash.join()==='1'&&fl.inView,'chọn bài "My Family": mở danh sách Family, thẻ bài nháy và nằm trong màn hình '+JSON.stringify({v,fl}));
+  await p.evaluate(()=>document.querySelector('#lscGrid .lscCard.flash').click()); await p.waitForTimeout(1500);
+  v=await view(p); ok(!v.ls&&!v.ov&&!v.sov,'chạm thẻ đang nháy: vào bài '+JSON.stringify(v));
   ok(await p.evaluate(()=>!document.getElementById('sbox').getClientRects().length),'trong bài đọc: ô tìm kiếm ẩn');
   ok(p.errs.length===0,'không lỗi JS '+JSON.stringify(p.errs));
   await ctx.close();

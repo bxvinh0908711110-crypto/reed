@@ -32,20 +32,22 @@ body.sbxOn .bnav{opacity:0;pointer-events:none}
 .lscTagHead b{font-size:20px;font-weight:700;color:var(--ink)}
 .lscTagHead span{font-size:13px;color:var(--muted)}
 .lsc.tagMode .lscBar{display:none}
+/* khối ô tìm kiếm + thanh chủ đề: hai viên thuốc xếp dọc, dùng chung điện thoại / tablet / máy tính */
+.sbx{order:2;flex:0 0 100%;width:100%}
+body.listOpen .sbx .topics,body.heroView .sbx .topics{position:relative;left:auto;top:auto;transform:none;width:100%;max-width:none;margin:8px 0 0;padding:4px 6px;background:var(--lime-bar);border-radius:999px;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;gap:4px;scroll-padding:0 6px}
+body.listOpen .sbx .topics button,body.heroView .sbx .topics button{padding:6px 11px}
+body.sbxOn .sbx .topics{display:none}
+.sug{margin-top:8px;height:var(--sgh,46px);padding:4px 6px;border-radius:999px;background:var(--lime-bar)}
+body.listOpen .top{background:var(--bg)}
 @media (max-width:820px){
-  .sbx{order:2;width:100%}
-    body.listOpen .sbx .topics,body.heroView .sbx .topics{width:100%;max-width:none;margin:8px 0 0;padding:4px 6px;background:var(--lime-bar);border-radius:999px;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;gap:4px;scroll-padding:0 6px}
-  body.listOpen .sbx .topics button,body.heroView .sbx .topics button{padding:6px 11px}
-  body.sbxOn .sbx .topics{display:none}
-  .sug{margin-top:8px;height:var(--sgh,46px);padding:4px 6px;border-radius:999px;background:var(--lime-bar)}
-  body.listOpen .top{background:var(--bg)}
   .hero{padding-top:186px}
 }
 @media (min-width:821px){
-  .sbx{display:none;position:fixed;z-index:29;left:50%;transform:translateX(-50%);width:min(640px,calc(100% - 12vw));top:90px}
+  .sbx{display:none;padding-inline:max(0px,calc((100% - 680px) / 2))}
   body.listOpen .sbx,body.heroView .sbx{display:block}
-  .sbox{background:var(--lav)}
-  .sug{position:absolute;left:0;right:0;top:calc(100% + 6px);padding:8px;border-radius:24px;background:var(--lime-bar)}
+  body.listOpen .top,body.heroView .top{height:auto;flex-wrap:wrap;row-gap:12px;padding:16px 6vw 14px;align-items:center}
+  body.listOpen .top .brand,body.heroView .top .brand{min-height:40px}
+  .hero{padding-top:150px}
 }
 /* chip gợi ý: cùng kiểu với tab của thanh chủ đề (biểu tượng + chữ, không nền riêng, một tông màu) */
 .sgChip{background:transparent;color:var(--ink);font-weight:600;padding:0 11px;gap:8px}
@@ -53,3 +55,10 @@ body.sbxOn .bnav{opacity:0;pointer-events:none}
 .sgLead{background:none;color:var(--ink);width:20px;height:20px;margin-left:0;font-size:16px}
 .sgLead svg{width:100%;height:100%}
 .sgLead img{border-radius:50%}
+/* thẻ bài vừa được gợi ý: nền lime nhấp nháy hai lần (chỉ opacity); chế độ nhẹ / giảm chuyển động: sáng đứng yên */
+.lscCard.flash{isolation:isolate}
+.lscCard.flash::before{content:"";position:absolute;inset:0 -10px;border-radius:16px;background:var(--leaf);z-index:-1;opacity:0;pointer-events:none;animation:cardFlash 1.2s ease-in-out 2}
+@keyframes cardFlash{0%,100%{opacity:0}35%,65%{opacity:.95}}
+html.lite .lscCard.flash::before{animation:none;opacity:.9}
+@media (prefers-reduced-motion:reduce){ .lscCard.flash::before{animation:none;opacity:.9} }
+.lscCard.flash{position:relative}

@@ -59,7 +59,7 @@ for(const [name,opts] of [['phone',{viewport:{width:390,height:844},isMobile:tru
   ok(!st.away&&st.topic==='family'&&st.pi===0&&st.y>300,'Continue (chưa đọc gì): vào bài đầu của chủ đề đầu tiên '+JSON.stringify(st));
   n=await nav(p); ok(!n.on&&n.op===0,'trong bài: navbar ẩn (nhường chỗ cho player)');
   ok(await rightVis(p)===1,'trong bài: nút trên thanh trên hiện lại');
-  const hLesson=await topH(p); const sbH=58; ok(Math.abs(hBrowse-hLesson-sbH)<=8||Math.abs(hLesson-hBrowse)<=4,'thanh trên: duyệt ('+hBrowse+'px) = đọc ('+hLesson+'px) + ô tìm kiếm ('+sbH+'px) trên điện thoại');
+  const hLesson=await topH(p); const sbH=hBrowse-hLesson; ok((sbH>=50&&sbH<=110)||Math.abs(sbH)<=4,'thanh trên: duyệt ('+hBrowse+'px) = đọc ('+hLesson+'px) + ô tìm kiếm ('+sbH+'px) trên điện thoại');
   await p.evaluate(()=>document.querySelector('#topics [data-k=school]').click()); await p.waitForTimeout(1200);
   await p.evaluate(()=>goStep(1)); await p.waitForTimeout(900); await p.evaluate(()=>goStep(1)); await p.waitForTimeout(1000);
   const where=await p.evaluate(()=>({topic:curTopic,pi:active.pi,si:active.si,saved:localStorage.getItem('reed_last')}));

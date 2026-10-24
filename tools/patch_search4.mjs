@@ -19,5 +19,6 @@ if (!h.includes('id="sbx"')) throw new Error('chưa chèn được #sbx');
 region('/*SEARCHUI-CSS-BEGIN*/', '/*SEARCHUI-CSS-END*/', rd('search_ui.css'));
 region('/*SEARCHUI-BEGIN*/', '/*SEARCHUI-END*/', rd('search_ui.js'));
 if (h.includes('document.getElementById("sbox")')) h = h.replace('sb=document.getElementById("sbox"), wide', 'sb=document.getElementById("sbx"), wide');
+h = h.replace(/if\(sb\) sb\.style\.top=wide\?\(hb\+10\)\+"px":"";\s*const v=\(hb\+\(wide\?68:0\)\)\+"px";/, 'const v=hb+"px";');
 fs.writeFileSync(F, h.split('\n').join('\r\n'));
 console.log('ok');

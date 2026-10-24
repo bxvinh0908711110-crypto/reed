@@ -24,7 +24,7 @@ for(const [name,w,h,touch] of SIZES){
   const pr=await p.evaluate(()=>{const bar=document.querySelector('#topics'),b=bar.querySelector('button[aria-pressed="true"]'); if(!b) return null; const r=b.getBoundingClientRect(),br=bar.getBoundingClientRect(); return {l:Math.round(r.left),r:Math.round(r.right),barL:Math.round(br.left),barR:Math.round(br.right),name:b.dataset.k}});
   ok(pr&&pr.l>=pr.barL-1&&pr.r<=pr.barR+1,name+': tab đang chọn ('+(pr&&pr.name)+') nằm trong vùng nhìn thấy của thanh chủ đề '+JSON.stringify(pr));
   // (thanh chủ đề tablet có thể cuộn ngang khi không đủ chỗ; điều quan trọng là tab đang chọn luôn nhìn thấy: đã kiểm ở trên)
-  ok(topics.r<=w+1&&right.r<=w+1&&brand.r<=topics.l+2||w<=820,name+': header không chồng nhau/tràn '+JSON.stringify({brandR:brand.r,topicsL:topics.l,topicsR:topics.r,rightL:right.l,rightR:right.r,w}));
+  ok(topics.r<=w+1&&right.r<=w+1&&brand.r<=topics.l+2||w<=820||await p.evaluate(()=>document.getElementById('topics').parentElement.id==='sbx'),name+': header không chồng nhau/tràn '+JSON.stringify({brandR:brand.r,topicsL:topics.l,topicsR:topics.r,rightL:right.l,rightR:right.r,w}));
   const cards=await p.evaluate(()=>[...document.querySelectorAll('.ovSec')].map(s=>{const r=s.getBoundingClientRect();return {l:Math.round(r.left),r:Math.round(r.right),t:Math.round(r.top)}}));
   const row1=cards.filter(c=>c.t===cards[0].t); let gapOK=true; for(let i=1;i<row1.length;i++) if(row1[i].l-row1[i-1].r<12) gapOK=false;
   ok(gapOK&&cards.every(c=>c.r<=w+1),name+': lưới trang All có khoảng cách giữa cột, không tràn ('+row1.length+' cột/hàng) '+JSON.stringify(row1));
