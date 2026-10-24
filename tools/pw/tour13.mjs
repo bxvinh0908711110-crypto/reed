@@ -6,7 +6,7 @@ const port=await new Promise(res=>srv.on('listening',()=>res(srv.address().port)
 fs.mkdirSync('tools/pw/shots',{recursive:true});
 let fails=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) fails++; };
 // mỗi bước: đoạn chữ phải có + bộ chọn phần tử được làm sáng (null = kiểm tra riêng)
-const EXP=[['chủ đề','#topics'],['bài học','#startBtn'],['câu ngắn','.passage .sents'],['từ tô sáng','.sent .ph'],['loa','#player .play'],['Micro','#micBtn'],['bản dịch','#langBtn'],['giọng Nam/Nữ','#player'],['Ngôi sao','.foot .sv'],['Sổ Tay','#notebook'],['giữ','#player'],['How to learn','#tipBtn'],['nốt nhạc','#musicBtn']];
+const EXP=[['chủ đề','#topics'],['bài học','#heroDemo'],['câu ngắn','.passage .sents'],['từ tô sáng','.sent .ph'],['loa','#player .play'],['Micro','#micBtn'],['bản dịch','#langBtn'],['giọng Nam/Nữ','#player'],['Ngôi sao','.foot .sv'],['Sổ Tay','#notebook'],['giữ','#player'],['How to learn','#tipBtn'],['nốt nhạc','#musicBtn']];
 const b=await chromium.launch();
 for(const [name,opts] of [['mobile',devices['iPhone 13']],['SE',devices['iPhone SE']],['desktop',{viewport:{width:1280,height:720}}]]){
   console.log('--',name);

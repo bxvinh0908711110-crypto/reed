@@ -8,7 +8,7 @@ const srv=http.createServer((q,r)=>{
   if(q.url.split('?')[0]==='/index.html'){ r.statusCode=307; r.setHeader('Location','/'); r.end(); return; }   // giống Cloudflare: /index.html chuyển về /
   try{
     let buf=fs.readFileSync(ROOT+u); const ext=path.extname(u);
-    if(u==='sw.js'&&swSuffix) buf=Buffer.from(buf.toString('utf8').replace('"reed-v4"','"reed-v4'+swSuffix+'"'));
+    if(u==='sw.js'&&swSuffix) buf=Buffer.from(buf.toString('utf8').replace('"reed-v5"','"reed-v5'+swSuffix+'"'));
     r.setHeader('Content-Type',MIME[ext]||'application/octet-stream');
     if(u==='sw.js'||u==='index.html') r.setHeader('Cache-Control','no-cache');
     r.setHeader('Accept-Ranges','bytes'); r.end(buf);
@@ -42,7 +42,7 @@ const newCtx=async(opts={},init)=>{ const c=await b.newContext(opts); await c.ad
   ok(off.full===200&&off.n===online.n,'offline: âm thanh đã lưu trả về đủ '+off.n+' byte');
   ok(off.range===206&&off.rb===2&&/^bytes 0-1\//.test(off.cr)&&off.open===206,'offline: yêu cầu Range trả 206 đúng ('+off.cr+' | '+off.openCR+')');
   await p.reload(); await p.waitForTimeout(4500);
-  const offPage=await p.evaluate(()=>({h1:!!document.querySelector('.hero h1'),topics:document.querySelectorAll('#topics button').length,heroImg:document.querySelector('.heroImg').naturalWidth,lessons:typeof passages!=='undefined'&&passages.length}));
+  const offPage=await p.evaluate(()=>({h1:!!document.querySelector('.hero h1'),topics:document.querySelectorAll('#topics button').length,heroImg:document.querySelector('.dmAnimal').naturalWidth,lessons:typeof passages!=='undefined'&&passages.length}));
   ok(offPage.h1&&offPage.topics>=7&&offPage.heroImg>0&&offPage.lessons>0,'offline: tải lại trang vẫn chạy '+JSON.stringify(offPage));
   await p.evaluate(()=>{ document.querySelector('#startBtn').click(); }); await p.waitForTimeout(900); await p.evaluate(()=>{ document.querySelector('.ovTopic').click(); }); await p.waitForTimeout(900); await p.evaluate(()=>{ document.querySelector('#lscGrid .lscCard').click(); }); await p.waitForTimeout(1600);   // Start Reading → tổng quan → chủ đề → bài 1
   ok(await p.evaluate(()=>scrollY)>300,'offline: Start Reading vào được bài (scrollY='+await p.evaluate(()=>Math.round(scrollY))+')');
@@ -83,7 +83,7 @@ const newCtx=async(opts={},init)=>{ const c=await b.newContext(opts); await c.ad
   const nav=p.waitForNavigation({timeout:8000}).catch(()=>null);
   await p.evaluate(()=>document.querySelector('.pwaBar button').click()); await nav; await p.waitForTimeout(3000);
   const keys=await p.evaluate(()=>caches.keys());
-  ok(keys.includes('reed-v4-test2-shell')&&!keys.includes('reed-v4-shell'),'sau cập nhật: cache mới thay cache cũ ('+keys.join(', ')+')');
+  ok(keys.includes('reed-v5-test2-shell')&&!keys.includes('reed-v5-shell'),'sau cập nhật: cache mới thay cache cũ ('+keys.join(', ')+')');
   swSuffix=''; await ctx.close();
 }
 

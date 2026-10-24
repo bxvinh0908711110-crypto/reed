@@ -16,7 +16,7 @@ for(const [name,opts] of cases){
   console.log('--',name);
   const ctx=await b.newContext(opts); await ctx.addInitScript(init);
   const p=await boot(ctx);
-  ok(await p.evaluate(()=>document.getElementById('sbox').getClientRects().length>0&&document.querySelector('.hero h1').getBoundingClientRect().top>=document.getElementById('sbox').getBoundingClientRect().bottom-1),'trang chủ (hero): ô tìm kiếm hiện, không đè tiêu đề');
+  ok(await p.evaluate(()=>document.getElementById('sbox').getClientRects().length>0&&document.getElementById('heroDemo').getBoundingClientRect().top>=document.getElementById('sbox').getBoundingClientRect().bottom-1),'trang chủ (hero): ô tìm kiếm hiện, không đè thẻ demo');
   await startAll(p);
   const g=await p.evaluate(()=>{ const r=document.getElementById('sbox').getBoundingClientRect(), t=document.querySelector('.top').getBoundingClientRect(), o=document.getElementById('overviewScreen').getBoundingClientRect(); return {l:r.left,rt:r.right,t:r.top,bt:r.bottom,h:r.height,w:innerWidth,topB:t.bottom,ovT:o.top,sw:document.documentElement.scrollWidth,txt:document.querySelector('.sbA').textContent}; });
   ok(g.h>=40&&g.l>=0&&g.rt<=g.w+0.5,'ô tìm kiếm hiện trên trang All, nằm trong màn hình '+JSON.stringify({l:Math.round(g.l),rt:Math.round(g.rt),h:g.h}));

@@ -3,7 +3,7 @@
    - Âm thanh mp3: lưu lần nghe đầu tiên và có thể tải sẵn hàng loạt (app gửi danh sách qua postMessage). Hỗ trợ yêu cầu Range (Safari).
    - Dữ liệu bài từ Supabase (khác nguồn) không đi qua đây: app tự có cơ chế dự phòng (localStorage + dữ liệu nhúng).
    Khi đổi index.html/ảnh/phông/icon: tăng VERSION. Khi tạo lại âm thanh cho cùng một tên file: tăng AUDIO_CACHE. */
-const VERSION = "reed-v4";   /* v4: dọn bản lưu trang chủ có thể bị bài Stories ghi đè bởi SW cũ */
+const VERSION = "reed-v5";   /* v5: ảnh hero demo chó/mèo; v4: dọn bản lưu trang chủ có thể bị bài Stories ghi đè bởi SW cũ */
 const SHELL = VERSION + "-shell";
 const AUDIO_CACHE = "reed-audio-v2";
 const STORY_CACHE = "reed-stories-v1";   /* bài Stories: tải khi mở, lưu lại sau lần xem đầu (không tải sẵn ~13 MB) */
@@ -11,7 +11,7 @@ const SHELL_FILES = [
   "./", "manifest.webmanifest", "reed-icon.svg",
   "icons/icon-192.png", "icons/icon-512.png", "icons/icon-maskable-512.png", "icons/apple-touch-icon.png",
   "fonts/inter-latin.woff2", "fonts/inter-vietnamese.woff2", "fonts/inter-latin-ext.woff2",
-  "img/hero.webp", "img/hero-sm.webp", "img/family.webp", "img/friends.webp", "img/school.webp", "img/work.webp",
+  "img/hero.webp", "img/hero-sm.webp", "img/dm-dog.webp", "img/dm-cat.webp", "img/family.webp", "img/friends.webp", "img/school.webp", "img/work.webp",
   "img/weekend.webp", "img/health.webp", "img/tech.webp", "img/welcome.webp", "img/topic-stories.webp",
   "img/topic-family.webp", "img/topic-friends.webp", "img/topic-school.webp", "img/topic-work.webp", "img/topic-lifestyle.webp", "img/topic-health.webp", "img/topic-tech.webp"
 ];
