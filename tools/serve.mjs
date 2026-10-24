@@ -1,0 +1,4 @@
+// Server tĩnh để tự thử app: node tools/serve.mjs  → http://localhost:8080
+import http from 'http'; import fs from 'fs'; import path from 'path';
+const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript','.png':'image/png','.webp':'image/webp','.svg':'image/svg+xml','.woff2':'font/woff2','.mp3':'audio/mpeg','.json':'application/json','.mp4':'video/mp4','.css':'text/css','.webmanifest':'application/manifest+json'};
+http.createServer((q,r)=>{let u=decodeURIComponent(q.url.split('?')[0]).replace(/^\//,'')||'index.html'; if(u.endsWith('/')) u+='index.html'; try{const b=fs.readFileSync('E:/Your English/deploy/'+u);r.writeHead(200,{'content-type':MIME[path.extname(u)]||'application/octet-stream','cache-control':'no-store'});r.end(b);}catch(e){r.writeHead(404);r.end('404');}}).listen(8080,()=>console.log('http://localhost:8080'));
