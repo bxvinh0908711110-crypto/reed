@@ -1799,7 +1799,7 @@ addEventListener("keydown",e=>{
 function update(){
   if(scrollY>lockBoundY){ scrollTo(0,lockBoundY); return; }   /* chặn cuộn vào bài chưa mở khoá */
   player.classList.toggle("away",scrollY<heroEnd-6);
-  document.body.classList.toggle("heroView",scrollY<heroEnd-6);   /* trang chủ: ô tìm kiếm hiện cùng thanh trên */   /* trang chủ (chưa vào bài): ẩn thanh, vào bài thì trượt lên */
+  { const hv=scrollY<heroEnd-6; document.body.classList.toggle("heroView",hv); if(hv!==window.__hv){ window.__hv=hv; try{ syncTabs(); }catch(e){} } }   /* trang chủ: ô tìm kiếm hiện cùng thanh trên */   /* trang chủ (chưa vào bài): ẩn thanh, vào bài thì trượt lên */
   const vh=innerHeight;
   let act=null; live=[];
   P.forEach((pp,pi)=>{
@@ -3238,7 +3238,7 @@ function openLessonList(){
   warmThumbs();
   if(typeof Tour!=="undefined"&&(Tour.active||Tour.welcomeOpen)) return;
   if(typeof Rec!=="undefined"&&Rec.open) return;
-  renderLessonList(); document.body.classList.add("listOpen"); lscPlace(); lscEl.hidden=false; lscGrid.scrollTop=0;
+  renderLessonList(); document.body.classList.add("listOpen"); syncTabs(); lscPlace(); lscEl.hidden=false; lscGrid.scrollTop=0;
   requestAnimationFrame(()=>requestAnimationFrame(()=>lscEl.classList.add("on")));
 }
 let lscFrom="";   /* "ov": danh sách chủ đề được mở từ trang tổng quan, Esc sẽ quay lại tổng quan */
@@ -3297,9 +3297,10 @@ function previewTab(key){   /* tab đích sáng ngay khi trang bắt đầu trư
   const t=key==="all"?$("#topics [data-all]"):$('#topics button[data-k="'+key+'"]'); if(t) centerTab(t);
   Pill.clear();
 }
-function syncTabs(){   /* tab "All" sáng khi đang ở trang tổng quan; tab chủ đề sáng khi không ở đó */
+function syncTabs(){   /* tab "All" sáng khi đang ở trang tổng quan; tab chủ đề sáng khi không ở đó; ở trang chủ không tab nào sáng */
   const ov=!ovsEl.hidden&&ovsEl.classList.contains("on");
-  document.querySelectorAll("#topics button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.all?ov:(!ov&&!tagMode&&b.dataset.k===(storiesView?"stories":curTopic)&&curTopic!=="practice")));
+  const homeNoTab=document.body.classList.contains("heroView")&&!ov&&!document.body.classList.contains("listOpen");
+  document.querySelectorAll("#topics button").forEach(b=>b.setAttribute("aria-pressed",homeNoTab?false:b.dataset.all?ov:(!ov&&!tagMode&&b.dataset.k===(storiesView?"stories":curTopic)&&curTopic!=="practice")));
   const bar=$("#topics"), cur=bar.querySelector('button[aria-pressed="true"]');
   if(cur) requestAnimationFrame(()=>centerTab(cur));   /* chạy sau khi chữ của tab chọn đã hiện để đo đúng */
   Pill.clear();
@@ -3625,6 +3626,7 @@ const Bnav=(function(){
     if(b.dataset.all){ if(Practice.active) Practice.end(); if(lscEl.classList.contains("on")){ pagerGo("all"); return; } else if(!(ovsEl.classList.contains("on"))) openOverview(); return; }
     if(b.dataset.soon){ toast.textContent=b.textContent+" lessons are coming soon"; toast.classList.add("on"); clearTimeout(tt); tt=setTimeout(()=>toast.classList.remove("on"),1800); return; }
     if(b.dataset.k==="stories"){ if(listOpen()){ pagerGo("stories"); return; } showStories(); return; }
+    if(document.body.classList.contains("heroView")&&!listOpen()){ if(Practice.active) Practice.end(); openTopicList(b.dataset.k); return; }   /* trang chủ: sang danh sách của chủ đề, không vào thẳng bài */
     if(listOpen()&&!Practice.active){   /* đang ở trang All / danh sách bài: đổi chủ đề tại chỗ và trượt theo hướng của tab */
       pagerGo(b.dataset.k); return;
     }
